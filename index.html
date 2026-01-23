@@ -154,13 +154,29 @@ summary::-webkit-details-marker{display:none}
   left:50%;
   top:50%;
   transform:translate(-50%, -50%);
-  background:rgba(12,21,43,.96);
-  border:1px solid var(--line);
+  background:linear-gradient(135deg, rgba(20,30,58,.98), rgba(36,50,90,.98));
+  border:1px solid rgba(122,162,255,.6);
   border-radius:18px;
-  box-shadow:var(--shadow);
+  box-shadow:0 18px 50px rgba(0,0,0,.45), 0 0 18px rgba(122,162,255,.25);
   padding:14px;
   width:min(92vw, 420px);
   z-index:50;
+}
+.restOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(6,10,18,.35);
+  backdrop-filter: blur(8px);
+  z-index:45;
+}
+.restOverlay.hidden{display:none}
+.restPopup::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:20px;
+  border:1px solid rgba(122,162,255,.35);
+  pointer-events:none;
 }
 .restPopup.hidden{display:none}
 .restPopup .time{font-size:40px}
@@ -389,56 +405,12 @@ summary::-webkit-details-marker{display:none}
     };
   }
 
-  function buildSessionForDay(day, opts){
-    const session = {
-      completed: !!opts.completed,
-      mobilityDone:{},
-      liftSets:{},
-      conditioningMinutes: opts.condMinutes ? String(opts.condMinutes) : ""
-    };
-    const mobTarget = Math.round(day.mobility.length * (opts.mobilityRatio ?? 0));
-    day.mobility.forEach((m, i) => {
-      session.mobilityDone[m.name] = i < mobTarget;
-    });
-    let setsToMark = Math.round(day.lifts.reduce((sum, l) => sum + l.sets, 0) * (opts.setsRatio ?? 0));
-    day.lifts.forEach(l => {
-      session.liftSets[l.name] = [];
-      for(let i=0;i<l.sets;i++){
-        const done = setsToMark > 0;
-        if(setsToMark > 0) setsToMark -= 1;
-        session.liftSets[l.name].push({reps:"", weight:"", rpe:"", done});
-      }
-    });
-    return session;
-  }
-
-  function seedDemoData(state){
-    const currentWeek = state.weekStart;
-    const prevWeek = isoDate(addDays(new Date(currentWeek + "T00:00:00"), -7));
-    if(!state.sessions[currentWeek]) state.sessions[currentWeek] = {};
-    if(!state.sessions[prevWeek]) state.sessions[prevWeek] = {};
-
-    PLAN.forEach((day, idx) => {
-      state.sessions[currentWeek][day.id] = buildSessionForDay(day, {
-        completed: idx < 3,
-        mobilityRatio: idx < 3 ? 0.75 : 0.35,
-        setsRatio: idx < 3 ? 0.8 : 0.4,
-        condMinutes: idx < 2 ? 18 : idx === 2 ? 10 : 0
-      });
-      state.sessions[prevWeek][day.id] = buildSessionForDay(day, {
-        completed: idx < 4,
-        mobilityRatio: idx < 4 ? 0.9 : 0.5,
-        setsRatio: idx < 4 ? 0.9 : 0.5,
-        condMinutes: idx < 3 ? 20 : idx === 3 ? 12 : 0
-      });
-    });
-  }
-
-  let state = load();
-  if(!state){
-    state = defaultState();
-  }
-  seedDemoData(state);
+  let state = load() || defaultState();
+  // Clear any previously seeded demo data by resetting sessions.
+  state.sessions = {};
+  state.viewWeekStart = null;
+  state.weekStart = weekStartKeyWithCutoff();
+  state.activeDayId = PLAN[0].id;
   save(state);
   const timers = {
     rest:{duration:90, remaining:90, running:false, interval:null},
@@ -594,32 +566,85 @@ summary::-webkit-details-marker{display:none}
   }
 
   let audioCtx = null;
+  let audioUnlocked = false;
+  let noiseBuffer = null;
   function playBeep(){
     try{
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if(!Ctx) return;
       audioCtx = audioCtx || new Ctx();
       if(audioCtx.state === "suspended") audioCtx.resume();
-      const beep = (freq) => {
-        const o = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        o.type = "square";
-        o.frequency.value = freq;
-        g.gain.value = 0.25;
-        o.connect(g);
-        g.connect(audioCtx.destination);
-        o.start();
-        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.22);
-        o.stop(audioCtx.currentTime + 0.22);
+      audioUnlocked = audioCtx.state === "running";
+      const drop = (t) => {
+
+        const carrier = audioCtx.createOscillator();
+        const mod = audioCtx.createOscillator();
+        const modGain = audioCtx.createGain();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        carrier.type = "sine";
+        carrier.frequency.setValueAtTime(640, t);
+        carrier.frequency.exponentialRampToValueAtTime(420, t + 0.18);
+
+        mod.type = "sine";
+        mod.frequency.setValueAtTime(28, t);
+        modGain.gain.setValueAtTime(10, t);
+        modGain.gain.exponentialRampToValueAtTime(0.1, t + 0.25);
+
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(1800, t);
+        filter.Q.value = 0.7;
+
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.22, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+
+        mod.connect(modGain);
+        modGain.connect(carrier.frequency);
+        carrier.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        carrier.start(t);
+        mod.start(t);
+        carrier.stop(t + 0.24);
+        mod.stop(t + 0.24);
       };
-      beep(880);
-      setTimeout(() => beep(880), 1000);
-      setTimeout(() => beep(880), 2000);
+      const base = audioCtx.currentTime + 0.02;
+      drop(base);
+      drop(base + 1.0);
+      drop(base + 2.0);
     }catch(e){}
     if(navigator.vibrate){
       navigator.vibrate(120);
       setTimeout(() => navigator.vibrate(120), 1000);
       setTimeout(() => navigator.vibrate(120), 2000);
+    }
+  }
+  function unlockAudio(){
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return false;
+      audioCtx = audioCtx || new Ctx();
+      if(audioCtx.state === "suspended") audioCtx.resume();
+      audioUnlocked = audioCtx.state === "running";
+      if(audioUnlocked){
+        // short tap to confirm unlock
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = "sine";
+        o.frequency.value = 880;
+        g.gain.value = 0.2;
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
+        o.stop(audioCtx.currentTime + 0.15);
+      }
+      return audioUnlocked;
+    }catch(e){
+      return false;
     }
   }
 
@@ -633,10 +658,14 @@ summary::-webkit-details-marker{display:none}
   function showRestPopup(){
     const el = $("#restPopup");
     if(el) el.classList.remove("hidden");
+    const overlay = $("#restOverlay");
+    if(overlay) overlay.classList.remove("hidden");
   }
   function hideRestPopup(){
     const el = $("#restPopup");
     if(el) el.classList.add("hidden");
+    const overlay = $("#restOverlay");
+    if(overlay) overlay.classList.add("hidden");
   }
   function startRestTimer(){
     if(timers.rest.running) return;
@@ -684,6 +713,8 @@ summary::-webkit-details-marker{display:none}
     if(restPauseBtn) restPauseBtn.textContent = timers.rest.running ? "Pause" : "Resume";
     const restDurationLbl = $("#restDurationLbl");
     if(restDurationLbl) restDurationLbl.textContent = formatTime(timers.rest.duration);
+    const enableAudioBtn = $("#enableAudioBtn");
+    if(enableAudioBtn) enableAudioBtn.style.display = audioUnlocked ? "none" : "inline-flex";
   }
 
   function wireTimers(){
@@ -742,6 +773,14 @@ summary::-webkit-details-marker{display:none}
         stopRestTimer();
         persistTimers();
         hideRestPopup();
+        updateTimersUI();
+      };
+    }
+
+    const enableAudioBtn = $("#enableAudioBtn");
+    if(enableAudioBtn){
+      enableAudioBtn.onclick = () => {
+        unlockAudio();
         updateTimersUI();
       };
     }
@@ -1011,6 +1050,7 @@ summary::-webkit-details-marker{display:none}
         </div>
       </div>
 
+      <div id="restOverlay" class="restOverlay hidden"></div>
       <div id="restPopup" class="restPopup hidden">
         <div class="row">
           <div>
@@ -1020,6 +1060,7 @@ summary::-webkit-details-marker{display:none}
           <span class="badge" id="restPopupStatus">${timers.rest.running ? "Running" : "Paused"}</span>
         </div>
         <div class="timerControls" style="margin-top:8px">
+          <button class="btn" id="enableAudioBtn">Enable sound</button>
           <button class="btn" id="restMinusBtn">-15s</button>
           <button class="btn" id="restPlusBtn">+15s</button>
           <button class="btn" id="restPauseBtn">Pause</button>
