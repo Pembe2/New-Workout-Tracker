@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>5-Day Workout + Mobility Tracker (Fat-Loss Focus)</title>
+<title>5-Day Workout + Mobility Tracker</title>
 <meta name="theme-color" content="#0b1220" />
 <style>
 :root{
@@ -187,6 +187,20 @@ summary::-webkit-details-marker{display:none}
   font-size:28px;
   letter-spacing:.5px;
 }
+.time.compact{font-size:22px}
+.stickyTop{
+  position:sticky;
+  top:62px;
+  z-index:9;
+}
+.stickyTop.card{
+  background:var(--card);
+}
+.stickyTop .ch{padding:10px 12px}
+.stickyTop .cb{padding:10px 12px}
+.stickyTop .btn{padding:8px 10px; font-size:12px}
+.stickyTop .timerControls{gap:6px; margin-top:8px}
+.stickyTop .time.compact{font-size:20px}
 .timerControls{
   display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;
 }
@@ -238,7 +252,7 @@ summary::-webkit-details-marker{display:none}
     <div class="head">
       <div>
         <h1>5-Day Workout + Mobility Tracker</h1>
-        <div class="sub">Fat-loss focus: lift hard, recover, hit steps, keep conditioning consistent. Saves on-device.</div>
+        <div class="sub">Lift hard, recover, hit steps, keep conditioning consistent. Saves on-device.</div>
       </div>
       <div class="row">
         <button class="btn" id="exportBtn">Export</button>
@@ -256,7 +270,7 @@ summary::-webkit-details-marker{display:none}
     <div class="kpi">
       <span class="badge">Week: <span class="mono" id="weekLbl"></span></span>
       <span class="badge">Completed: <span class="mono" id="completedLbl">0</span>/5</span>
-      <button class="btn primary" id="jumpTodayBtn">Today</button>
+      <button class="btn primary" id="dashboardBtn">Dashboard</button>
     </div>
   </div>
 </div>
@@ -836,11 +850,23 @@ summary::-webkit-details-marker{display:none}
     return arr;
   }
 
+  function updateAutoComplete(session, day){
+    const anyMob = Object.values(session.mobilityDone || {}).some(Boolean);
+    const anySet = day.lifts.some(l => {
+      const arr = (session.liftSets && session.liftSets[l.name]) ? session.liftSets[l.name] : [];
+      return arr.some(s => s && s.done);
+    });
+    session.completed = anyMob || anySet;
+  }
+
   function render(){
     ensureWeek();
     ensureTimers();
     const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
     const session = getSession(day.id);
+    const prevCompleted = session.completed;
+    updateAutoComplete(session, day);
+    if(session.completed !== prevCompleted) save(state);
 
     const app = $("#app");
 
@@ -939,6 +965,98 @@ summary::-webkit-details-marker{display:none}
     const currentStats = exerciseStatsForWeek(viewWeek);
     const prevStats = exerciseStatsForWeek(prevWeekKeyStr);
 
+    if(state.activeDayId === "dashboard"){
+      app.innerHTML = `
+        <details class="card" open>
+          <summary>
+            Weekly Dashboard
+            <span class="badge">Week of ${viewWeek}</span>
+          </summary>
+          <div class="details-body">
+            <div class="row" style="margin-bottom:10px">
+              <span class="small" style="min-width:110px">View week:</span>
+              <select id="weekSelect" class="inputMini" style="width:auto; min-width:140px">
+                ${allWeeks.length ? allWeeks.map(w => `
+                  <option value="${w}" ${w === viewWeek ? "selected":""}>${w}</option>
+                `).join("") : `<option value="${viewWeek}" selected>${viewWeek}</option>`}
+              </select>
+              <span class="small">Dashboard only (workout view stays on current week).</span>
+            </div>
+            <div class="row">
+              <span class="pill">Days <b>${weekSummary.completed}/5</b></span>
+              <span class="pill">Sets <b>${weekSummary.doneSets}/${weekSummary.totalSets}</b></span>
+              <span class="pill">Mobility <b>${weekSummary.mobDone}/${weekSummary.mobTotal}</b></span>
+              <span class="pill">Conditioning <b>${weekSummary.condTotal} min</b></span>
+              <span class="pill">Evaluation <b>${weekSummary.evaluation}</b></span>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <span class="small">Vs previous week:</span>
+              ${prevWeekSummary ? `
+                <span class="pill">Days <b>${weekSummary.completed - prevWeekSummary.completed >= 0 ? "+" : ""}${weekSummary.completed - prevWeekSummary.completed}</b></span>
+                <span class="pill">Sets <b>${weekSummary.doneSets - prevWeekSummary.doneSets >= 0 ? "+" : ""}${weekSummary.doneSets - prevWeekSummary.doneSets}</b></span>
+                <span class="pill">Mobility <b>${weekSummary.mobDone - prevWeekSummary.mobDone >= 0 ? "+" : ""}${weekSummary.mobDone - prevWeekSummary.mobDone}</b></span>
+                <span class="pill">Conditioning <b>${weekSummary.condTotal - prevWeekSummary.condTotal >= 0 ? "+" : ""}${weekSummary.condTotal - prevWeekSummary.condTotal} min</b></span>
+              ` : `<span class="pill">No previous week data</span>`}
+            </div>
+            <div class="dashTable">
+              <div class="dashHead">Day</div>
+              <div class="dashHead">Status</div>
+              <div class="dashHead">Sets</div>
+              <div class="dashHead">Mobility</div>
+              <div class="dashHead">Conditioning</div>
+              ${weekSummary.days.map(d => `
+                <div class="dashCell">${escapeHtml(d.title)}</div>
+                <div class="dashCell">${d.completed ? "Completed" : "In progress"}</div>
+                <div class="dashCell">${d.doneSets}/${d.totalSets}</div>
+                <div class="dashCell">${d.mobDone}/${d.mobTotal}</div>
+                <div class="dashCell">${Math.round(d.cond)} min</div>
+              `).join("")}
+            </div>
+            <details>
+              <summary>Exercise comparison to previous week (click to expand)</summary>
+              <div class="details-body">
+                <div class="dashTableWide">
+                  <div class="dashHead">Exercise</div>
+                  <div class="dashHead">Max</div>
+                  <div class="dashHead">Max &Delta;</div>
+                  <div class="dashHead">Volume</div>
+                  <div class="dashHead">Vol &Delta;</div>
+                  ${exerciseNames.map(name => {
+                    const cur = currentStats[name] || {};
+                    const prev = prevStats[name] || {};
+                    const curMax = cur.maxWeight ?? null;
+                    const prevMax = prev.maxWeight ?? null;
+                    const curVol = Number.isFinite(cur.volume) ? cur.volume : null;
+                    const prevVol = Number.isFinite(prev.volume) ? prev.volume : null;
+                    const maxDelta = (curMax !== null && prevMax !== null) ? (curMax - prevMax) : null;
+                    const volDelta = (curVol !== null && prevVol !== null) ? (curVol - prevVol) : null;
+                    return `
+                      <div class="dashCell">${escapeHtml(name)}</div>
+                      <div class="dashCell">${formatNumber(curMax)}</div>
+                      <div class="dashCell">${formatDelta(maxDelta)}</div>
+                      <div class="dashCell">${formatNumber(curVol)}</div>
+                      <div class="dashCell">${formatDelta(volDelta)}</div>
+                    `;
+                  }).join("")}
+                </div>
+              </div>
+            </details>
+          </div>
+        </details>
+      `;
+
+      const weekSelect = $("#weekSelect");
+      if(weekSelect){
+        weekSelect.onchange = () => {
+          state.viewWeekStart = weekSelect.value;
+          save(state);
+          render();
+        };
+      }
+      renderTabs();
+      return;
+    }
+
     const mobilityHtml = day.mobility.map(m => {
       const checked = !!session.mobilityDone[m.name];
       return `
@@ -1001,7 +1119,7 @@ summary::-webkit-details-marker{display:none}
             </div>
 
             <div class="small" style="margin-top:10px">
-              Fat-loss execution: keep effort high but controlled (generally stop 1–2 reps before failure on most sets).
+              Execution: keep effort high but controlled (generally stop 1–2 reps before failure on most sets).
             </div>
           </div>
         </details>
@@ -1009,14 +1127,31 @@ summary::-webkit-details-marker{display:none}
     }).join("");
 
     app.innerHTML = `
-      <div class="card">
+      <div class="card stickyTop">
         <div class="ch">
-          <h2>Timers</h2>
-          <span class="badge">Rest + Workout</span>
+          <h2>${escapeHtml(day.title)}</h2>
         </div>
         <div class="cb">
-          <div class="timerGrid">
-            <div class="timerBox">
+          <div class="row" style="justify-content:space-between">
+            <div>
+              <div class="small">Workout timer</div>
+              <div class="time compact" id="workoutTime">${formatTime(timers.workout.elapsed)}</div>
+            </div>
+            <span class="badge" id="workoutStatus">${timers.workout.running ? "Running" : "Paused"}</span>
+          </div>
+          <div class="timerControls">
+            <button class="btn good" id="workoutStartBtn">Start</button>
+            <button class="btn" id="workoutPauseBtn">Pause</button>
+            <button class="btn bad" id="workoutResetBtn">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cb">
+          <details>
+            <summary>Rest Time Duration (click to expand)</summary>
+            <div class="details-body">
               <div class="row" style="justify-content:space-between">
                 <div>
                   <div class="small">Rest timer setup</div>
@@ -1031,22 +1166,7 @@ summary::-webkit-details-marker{display:none}
               </div>
               <div class="small" style="margin-top:6px">Auto-starts when you mark a set done.</div>
             </div>
-            <div class="timerBox">
-              <div class="row" style="justify-content:space-between">
-                <div>
-                  <div class="small">Workout timer</div>
-                  <div class="time" id="workoutTime">${formatTime(timers.workout.elapsed)}</div>
-                </div>
-                <span class="badge" id="workoutStatus">${timers.workout.running ? "Running" : "Paused"}</span>
-              </div>
-              <div class="timerControls">
-                <button class="btn good" id="workoutStartBtn">Start</button>
-                <button class="btn" id="workoutPauseBtn">Pause</button>
-                <button class="btn bad" id="workoutResetBtn">Reset</button>
-              </div>
-              <div class="small" style="margin-top:6px">Tip: start when your warm-up begins.</div>
-            </div>
-          </div>
+          </details>
         </div>
       </div>
 
@@ -1069,6 +1189,7 @@ summary::-webkit-details-marker{display:none}
         </div>
       </div>
 
+      <!--
       <details class="card">
         <summary>
           Weekly Dashboard (click to expand)
@@ -1120,9 +1241,9 @@ summary::-webkit-details-marker{display:none}
               <div class="dashTableWide">
                 <div class="dashHead">Exercise</div>
                 <div class="dashHead">Max</div>
-                <div class="dashHead">Max Δ</div>
+                <div class="dashHead">Max &Delta;</div>
                 <div class="dashHead">Volume</div>
-                <div class="dashHead">Vol Δ</div>
+                <div class="dashHead">Vol &Delta;</div>
                 ${exerciseNames.map(name => {
                   const cur = currentStats[name] || {};
                   const prev = prevStats[name] || {};
@@ -1145,25 +1266,7 @@ summary::-webkit-details-marker{display:none}
           </details>
         </div>
       </details>
-
-      <div class="card">
-        <div class="ch">
-          <div>
-            <h2>${escapeHtml(day.title)}</h2>
-          </div>
-          <div class="row">
-            <span class="badge">${session.completed ? "Completed" : "In progress"}</span>
-            <button class="btn good" id="completeBtn">${session.completed ? "Uncomplete" : "Mark Complete"}</button>
-          </div>
-        </div>
-        <div class="cb">
-          <div class="small">
-            Suggested fat-loss baseline: steps 8–10k/day; keep protein high; add Zone 2 if progress stalls.
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
+      -->\n<div class="card">
         <div class="ch">
           <h2>Mobility Warm-up</h2>
           <span class="badge">Before lifting</span>
@@ -1182,7 +1285,7 @@ summary::-webkit-details-marker{display:none}
       <div class="card">
         <div class="ch">
           <h2>${escapeHtml(day.conditioning.label)}</h2>
-          <span class="badge">Fat-loss driver</span>
+          <span class="badge">Conditioning</span>
         </div>
         <div class="cb">
           <div class="small">${escapeHtml(day.conditioning.rx)}</div>
@@ -1202,7 +1305,9 @@ summary::-webkit-details-marker{display:none}
     app.querySelectorAll('input[type="checkbox"][data-mob]').forEach(cb => {
       cb.addEventListener("change", () => {
         session.mobilityDone[cb.getAttribute("data-mob")] = cb.checked;
+        updateAutoComplete(session, day);
         save(state);
+        renderTabs();
       });
     });
 
@@ -1219,17 +1324,19 @@ summary::-webkit-details-marker{display:none}
         save(state);
       });
 
-      if(inp.type === "checkbox"){
-        inp.addEventListener("change", () => {
-          const liftDef = day.lifts.find(x => x.name === liftName);
-          const arr = ensureLiftArray(session, liftDef);
-          arr[idx][field] = inp.checked;
-          save(state);
-          if(field === "done" && inp.checked){
-            startRestTimer();
-          }
-        });
-      }
+        if(inp.type === "checkbox"){
+          inp.addEventListener("change", () => {
+            const liftDef = day.lifts.find(x => x.name === liftName);
+            const arr = ensureLiftArray(session, liftDef);
+            arr[idx][field] = inp.checked;
+            updateAutoComplete(session, day);
+            save(state);
+            renderTabs();
+            if(field === "done" && inp.checked){
+              startRestTimer();
+            }
+          });
+        }
     });
 
     // Conditioning minutes
@@ -1237,14 +1344,6 @@ summary::-webkit-details-marker{display:none}
       session.conditioningMinutes = $("#condMin").value;
       save(state);
     });
-
-    // Complete toggle
-    $("#completeBtn").onclick = () => {
-      session.completed = !session.completed;
-      save(state);
-      renderTabs();
-      render();
-    };
 
     renderTabs();
     updateTimersUI();
@@ -1287,9 +1386,8 @@ summary::-webkit-details-marker{display:none}
     render();
   };
 
-  $("#jumpTodayBtn").onclick = () => {
-    // Simple: default to Day 1. If you want calendar-based mapping, we can add it.
-    state.activeDayId = PLAN[0].id;
+  $("#dashboardBtn").onclick = () => {
+    state.activeDayId = "dashboard";
     save(state);
     render();
   };
@@ -1303,3 +1401,7 @@ summary::-webkit-details-marker{display:none}
 </script>
 </body>
 </html>
+
+
+
+
