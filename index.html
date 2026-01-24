@@ -31,7 +31,7 @@ body{
     var(--bg);
 }
 header{
-  position:sticky; top:0; z-index:10;
+  position:static;
   backdrop-filter: blur(10px);
   background: linear-gradient(to bottom, rgba(11,18,32,.92), rgba(11,18,32,.70));
   border-bottom:1px solid var(--line);
@@ -91,6 +91,31 @@ summary::-webkit-details-marker{display:none}
   margin-right:8px; margin-top:8px;
 }
 .pill b{color:var(--text); font-weight:900}
+.optionToggle{
+  display:inline-flex;
+  gap:4px;
+  align-items:center;
+  padding:4px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:rgba(15,26,51,.55);
+  margin-top:8px;
+}
+.optBtn{
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  font-weight:900;
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  cursor:pointer;
+}
+.optBtn.active{
+  color:var(--text);
+  background:rgba(122,162,255,.22);
+  border:1px solid rgba(122,162,255,.55);
+}
 .table{
   margin-top:10px;
   display:grid;
@@ -190,7 +215,7 @@ summary::-webkit-details-marker{display:none}
 .time.compact{font-size:22px}
 .stickyTop{
   position:sticky;
-  top:62px;
+  top:8px;
   z-index:9;
 }
 .stickyTop.card{
@@ -293,11 +318,11 @@ summary::-webkit-details-marker{display:none}
         {name:"Scap push-ups", dose:"2×10", cue:"Move shoulder blades; elbows stay locked."},
       ],
       lifts:[
-        {name:"Bench Press (BB or DB)", sets:4, reps:"6–8", rest:"90–150s", cue:"Stop with 1–2 reps in reserve; controlled descent."},
+        {name:"Bench Press (BB or DB)", sets:4, reps:"6–8", rest:"90–150s", cue:"Stop with 1–2 reps in reserve; controlled descent.", options:["BB","DB"]},
         {name:"Incline DB Press", sets:3, reps:"8–10", rest:"90s", cue:"Full range; do not bounce."},
         {name:"Standing Overhead Press", sets:3, reps:"6–8", rest:"120s", cue:"Glutes tight; avoid excessive low-back arch."},
         {name:"DB Lateral Raise", sets:3, reps:"12–15", rest:"60s", cue:"No shrugging; slow lower."},
-        {name:"Triceps Pushdown (or Dips)", sets:3, reps:"10–12", rest:"60–90s", cue:"Elbows pinned; full extension."},
+        {name:"Triceps Pushdown (or Dips)", sets:3, reps:"10–12", rest:"60–90s", cue:"Elbows pinned; full extension.", options:["Pushdown","Dips"]},
       ],
       conditioning:{label:"Optional finisher", rx:"Push-ups: 2 rounds near-failure (stop 1–2 reps before form breaks)."}
     },
@@ -309,7 +334,7 @@ summary::-webkit-details-marker{display:none}
         {name:"Ankle dorsiflexion rocks", dose:"2×10/side", cue:"Heel stays down; knee tracks over toes."},
       ],
       lifts:[
-        {name:"Squat (Back or Front)", sets:4, reps:"5–8", rest:"120–180s", cue:"Brace hard; consistent depth; clean reps."},
+        {name:"Squat (Back or Front)", sets:4, reps:"5–8", rest:"120–180s", cue:"Brace hard; consistent depth; clean reps.", options:["Back","Front"]},
         {name:"Romanian Deadlift", sets:3, reps:"8", rest:"120s", cue:"Hinge; neutral spine; feel hamstrings."},
         {name:"Walking Lunges", sets:3, reps:"12/leg", rest:"90s", cue:"Long stride; stable knee."},
         {name:"Standing Calf Raises", sets:4, reps:"12–15", rest:"60s", cue:"Pause at top and bottom."},
@@ -325,11 +350,11 @@ summary::-webkit-details-marker{display:none}
         {name:"Cat-cow", dose:"1×8", cue:"Segment the spine; slow controlled motion."},
       ],
       lifts:[
-        {name:"Pull-ups (or Lat Pulldown)", sets:4, reps:"6–10", rest:"120s", cue:"Full stretch at bottom; no kipping."},
-        {name:"Row (BB or DB)", sets:3, reps:"8–10", rest:"120s", cue:"Pull to hip; keep neck neutral."},
+        {name:"Pull-ups (or Lat Pulldown)", sets:4, reps:"6–10", rest:"120s", cue:"Full stretch at bottom; no kipping.", options:["Pull-ups","Lat Pulldown"]},
+        {name:"Row (BB or DB)", sets:3, reps:"8–10", rest:"120s", cue:"Pull to hip; keep neck neutral.", options:["BB","DB"]},
         {name:"Single-Arm DB Row", sets:3, reps:"10/side", rest:"90s", cue:"Pause at top; controlled lower."},
         {name:"Face Pulls", sets:3, reps:"12–15", rest:"60s", cue:"Elbows high; squeeze rear delts."},
-        {name:"Biceps Curl (DB or BB)", sets:3, reps:"10–12", rest:"60–90s", cue:"No swing; full extension."},
+        {name:"Biceps Curl (DB or BB)", sets:3, reps:"10–12", rest:"60–90s", cue:"No swing; full extension.", options:["DB","BB"]},
       ],
       conditioning:{label:"Optional intervals", rx:"Rower: 8 min (20s hard / 40s easy). Keep technique clean."}
     },
@@ -342,10 +367,10 @@ summary::-webkit-details-marker{display:none}
       ],
       lifts:[
         {name:"Kettlebell Swings", sets:4, reps:"20", rest:"60–90s", cue:"Hinge; snap hips; neutral spine."},
-        {name:"Box Jumps (or Step-ups)", sets:4, reps:"10", rest:"60–90s", cue:"Land softly; stop before sloppy reps."},
+        {name:"Box Jumps (or Step-ups)", sets:4, reps:"10", rest:"60–90s", cue:"Land softly; stop before sloppy reps.", options:["Box Jump","Step-up"]},
         {name:"Battle Ropes", sets:4, reps:"30s", rest:"60–90s", cue:"Athletic stance; steady breathing."},
-        {name:"Hanging Leg Raises (or Dead Bug)", sets:4, reps:"10–15", rest:"60–90s", cue:"Control; no swinging."},
-        {name:"Ab Wheel (or Plank)", sets:4, reps:"8–10", rest:"60–90s", cue:"Ribs down; no low-back sag."},
+        {name:"Hanging Leg Raises (or Dead Bug)", sets:4, reps:"10–15", rest:"60–90s", cue:"Control; no swinging.", options:["Hanging","Dead Bug"]},
+        {name:"Ab Wheel (or Plank)", sets:4, reps:"8–10", rest:"60–90s", cue:"Ribs down; no low-back sag.", options:["Ab Wheel","Plank"]},
       ],
       conditioning:{label:"Zone 2 add-on", rx:"Optional: 10–20 minutes Zone 2 (easy conversational pace)."}
     },
@@ -359,7 +384,7 @@ summary::-webkit-details-marker{display:none}
       lifts:[
         {name:"Deadlift (moderate load)", sets:3, reps:"5", rest:"150–180s", cue:"Crisp reps; stop short of grinding."},
         {name:"Incline DB Bench", sets:3, reps:"10", rest:"90s", cue:"Controlled tempo; full range."},
-        {name:"Chin-ups (or assisted)", sets:3, reps:"AMRAP", rest:"120s", cue:"Stop 1 rep before form breaks."},
+        {name:"Chin-ups (or assisted)", sets:3, reps:"AMRAP", rest:"120s", cue:"Stop 1 rep before form breaks.", options:["Chin-ups","Assisted"]},
         {name:"Goblet Squat", sets:3, reps:"12", rest:"90s", cue:"Upright torso; elbows inside knees."},
         {name:"Farmer’s Carries", sets:3, reps:"40–60s", rest:"60–90s", cue:"Tall posture; slow controlled steps."},
       ],
@@ -420,12 +445,7 @@ summary::-webkit-details-marker{display:none}
   }
 
   let state = load() || defaultState();
-  // Clear any previously seeded demo data by resetting sessions.
-  state.sessions = {};
-  state.viewWeekStart = null;
-  state.weekStart = weekStartKeyWithCutoff();
-  state.activeDayId = PLAN[0].id;
-  save(state);
+  const openLifts = new Set();
   const timers = {
     rest:{duration:90, remaining:90, running:false, interval:null},
     workout:{elapsed:0, running:false, interval:null}
@@ -490,7 +510,8 @@ summary::-webkit-details-marker{display:none}
       state.sessions[wk][dayId] = {
         completed:false,
         mobilityDone:{},
-        liftSets:{},  // liftName -> [{reps,weight,rpe,done}]
+        liftSets:{},  // liftName[::option] -> [{reps,weight,rpe,done}]
+        liftOptions:{},
         conditioningMinutes:""
       };
     }
@@ -544,23 +565,30 @@ summary::-webkit-details-marker{display:none}
     const n = parseFloat(v);
     return Number.isFinite(n) ? n : null;
   }
+  function displayNameFromStorageKey(key){
+    const parts = String(key).split("::");
+    if(parts.length > 1){
+      return `${parts[0]} (${parts.slice(1).join("::")})`;
+    }
+    return key;
+  }
   function exerciseStatsForWeek(weekKey){
     const sessions = state.sessions[weekKey] || {};
     const stats = {};
-    PLAN.forEach(day => {
-      const s = sessions[day.id];
-      day.lifts.forEach(lift => {
-        if(!stats[lift.name]) stats[lift.name] = {maxWeight:null, volume:0};
-        const arr = (s && s.liftSets && s.liftSets[lift.name]) ? s.liftSets[lift.name] : [];
-        arr.forEach(set => {
+    Object.values(sessions).forEach(s => {
+      if(!s || !s.liftSets) return;
+      Object.entries(s.liftSets).forEach(([key, arr]) => {
+        const name = displayNameFromStorageKey(key);
+        if(!stats[name]) stats[name] = {maxWeight:null, volume:0};
+        (arr || []).forEach(set => {
           if(!set || !set.done) return;
           const w = parseNum(set.weight);
           const r = parseNum(set.reps);
           if(w !== null){
-            stats[lift.name].maxWeight = stats[lift.name].maxWeight === null ? w : Math.max(stats[lift.name].maxWeight, w);
+            stats[name].maxWeight = stats[name].maxWeight === null ? w : Math.max(stats[name].maxWeight, w);
           }
           if(w !== null && r !== null){
-            stats[lift.name].volume += w * r;
+            stats[name].volume += w * r;
           }
         });
       });
@@ -842,18 +870,70 @@ summary::-webkit-details-marker{display:none}
     }
   }
 
-  function ensureLiftArray(session, lift){
-    if(!session.liftSets[lift.name]) session.liftSets[lift.name] = [];
-    const arr = session.liftSets[lift.name];
+  function liftOptionKey(dayId, lift){
+    return `${dayId}::${lift.name}`;
+  }
+  function liftStorageKey(lift, option){
+    if(lift.options && option) return `${lift.name}::${option}`;
+    return lift.name;
+  }
+  function findStoredOption(session, lift){
+    if(!session || !session.liftSets || !lift.options) return null;
+    const prefix = `${lift.name}::`;
+    const match = Object.keys(session.liftSets).find(k => k.startsWith(prefix));
+    return match ? match.slice(prefix.length) : null;
+  }
+  function resolveLiftOption(session, dayId, lift){
+    if(!lift.options || !lift.options.length) return null;
+    const key = liftOptionKey(dayId, lift);
+    if(session && session.liftOptions && lift.options.includes(session.liftOptions[key])){
+      return session.liftOptions[key];
+    }
+    if(session && session.liftSets && session.liftSets[lift.name]){
+      return lift.options[0];
+    }
+    const stored = findStoredOption(session, lift);
+    if(stored && lift.options.includes(stored)) return stored;
+    return lift.options[0];
+  }
+  function getLiftOption(session, dayId, lift){
+    const opt = resolveLiftOption(session, dayId, lift);
+    if(!opt) return null;
+    if(!session.liftOptions) session.liftOptions = {};
+    const key = liftOptionKey(dayId, lift);
+    if(session.liftOptions[key] !== opt){
+      session.liftOptions[key] = opt;
+    }
+    return opt;
+  }
+  function ensureLiftArray(session, lift, option){
+    const key = liftStorageKey(lift, option);
+    if(lift.options && !session.liftSets[key] && session.liftSets[lift.name]){
+      session.liftSets[key] = session.liftSets[lift.name];
+      delete session.liftSets[lift.name];
+    }
+    if(!session.liftSets[key]) session.liftSets[key] = [];
+    const arr = session.liftSets[key];
     while(arr.length < lift.sets) arr.push({reps:"", weight:"", rpe:"", done:false});
     if(arr.length > lift.sets) arr.length = lift.sets;
     return arr;
+  }
+  function getLiftSets(session, dayId, lift){
+    if(!session || !session.liftSets) return [];
+    const opt = resolveLiftOption(session, dayId, lift);
+    const key = liftStorageKey(lift, opt);
+    if(session.liftSets[key]) return session.liftSets[key];
+    if(lift.options && session.liftSets[lift.name]) return session.liftSets[lift.name];
+    return [];
+  }
+  function liftDetailKey(dayId, lift){
+    return `${dayId}::${lift.name}`;
   }
 
   function updateAutoComplete(session, day){
     const anyMob = Object.values(session.mobilityDone || {}).some(Boolean);
     const anySet = day.lifts.some(l => {
-      const arr = (session.liftSets && session.liftSets[l.name]) ? session.liftSets[l.name] : [];
+      const arr = getLiftSets(session, day.id, l);
       return arr.some(s => s && s.done);
     });
     session.completed = anyMob || anySet;
@@ -893,7 +973,7 @@ summary::-webkit-details-marker{display:none}
           dayMobDone = Object.values(s.mobilityDone || {}).filter(Boolean).length;
           dayCond = parseFloat(s.conditioningMinutes) || 0;
           d.lifts.forEach(l => {
-            const arr = s.liftSets[l.name] || [];
+            const arr = getLiftSets(s, d.id, l);
             dayDoneSets += arr.filter(x => x.done).length;
           });
         }
@@ -946,7 +1026,7 @@ summary::-webkit-details-marker{display:none}
           mobDone += Object.values(s.mobilityDone || {}).filter(Boolean).length;
           condTotal += parseFloat(s.conditioningMinutes) || 0;
           d.lifts.forEach(l => {
-            const arr = s.liftSets[l.name] || [];
+            const arr = getLiftSets(s, d.id, l);
             doneSets += arr.filter(x => x.done).length;
           });
         }
@@ -961,7 +1041,12 @@ summary::-webkit-details-marker{display:none}
       };
     })() : null;
 
-    const exerciseNames = Array.from(new Set(PLAN.flatMap(d => d.lifts.map(l => l.name))));
+    const exerciseNames = Array.from(new Set(PLAN.flatMap(d => d.lifts.flatMap(l => {
+      if(l.options && l.options.length){
+        return l.options.map(opt => `${l.name} (${opt})`);
+      }
+      return [l.name];
+    }))));
     const currentStats = exerciseStatsForWeek(viewWeek);
     const prevStats = exerciseStatsForWeek(prevWeekKeyStr);
 
@@ -1075,25 +1160,38 @@ summary::-webkit-details-marker{display:none}
     const prevSession = prevWeekSessions[day.id] || null;
 
     const liftsHtml = day.lifts.map(lift => {
-      const arr = ensureLiftArray(session, lift);
-      const prevArr = prevSession && prevSession.liftSets && prevSession.liftSets[lift.name] ? prevSession.liftSets[lift.name] : [];
+      const option = getLiftOption(session, day.id, lift);
+      const arr = ensureLiftArray(session, lift, option);
+      const prevOption = resolveLiftOption(prevSession, day.id, lift);
+      const prevArr = getLiftSets(prevSession, day.id, lift);
 
       const tableRows = arr.map((set, i) => {
         const idx = i;
         const prevSet = prevArr[idx] || null;
-        const prevText = prevSet ? `Prev set ${i+1}: reps ${escapeHtml(prevSet.reps || "—")}, weight ${escapeHtml(prevSet.weight || "—")}, RPE ${escapeHtml(prevSet.rpe || "—")}, ${prevSet.done ? "done" : "not done"}` : `Prev set ${i+1}: no data`;
+        const prevLabel = prevOption ? ` (${escapeHtml(prevOption)})` : "";
+        const prevText = prevSet ? `Prev${prevLabel} set ${i+1}: reps ${escapeHtml(prevSet.reps || "—")}, weight ${escapeHtml(prevSet.weight || "—")}, RPE ${escapeHtml(prevSet.rpe || "—")}, ${prevSet.done ? "done" : "not done"}` : `Prev${prevLabel} set ${i+1}: no data`;
         return `
           <div class="setnum">Set ${i+1}</div>
-          <div class="cell"><input inputmode="numeric" placeholder="${escapeHtml(lift.reps)}" value="${escapeHtml(set.reps)}" data-lift="${escapeHtml(lift.name)}" data-field="reps" data-idx="${idx}"></div>
-          <div class="cell"><input inputmode="decimal" placeholder="weight" value="${escapeHtml(set.weight)}" data-lift="${escapeHtml(lift.name)}" data-field="weight" data-idx="${idx}"></div>
-          <div class="cell"><input inputmode="decimal" placeholder="RPE 1–10" value="${escapeHtml(set.rpe)}" data-lift="${escapeHtml(lift.name)}" data-field="rpe" data-idx="${idx}"></div>
-          <div class="done"><input type="checkbox" ${set.done ? "checked":""} data-lift="${escapeHtml(lift.name)}" data-field="done" data-idx="${idx}"></div>
+          <div class="cell"><input inputmode="numeric" placeholder="${escapeHtml(lift.reps)}" value="${escapeHtml(set.reps)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="reps" data-idx="${idx}"></div>
+          <div class="cell"><input inputmode="decimal" placeholder="weight" value="${escapeHtml(set.weight)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="weight" data-idx="${idx}"></div>
+          <div class="cell"><input inputmode="decimal" placeholder="RPE 1–10" value="${escapeHtml(set.rpe)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="rpe" data-idx="${idx}"></div>
+          <div class="done"><input type="checkbox" ${set.done ? "checked":""} data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="done" data-idx="${idx}"></div>
           <div class="compareRow">${prevText}</div>
         `;
       }).join("");
 
+      const optionToggle = lift.options ? `
+        <div class="optionToggle" role="group" aria-label="Exercise option">
+          ${lift.options.map(opt => `
+            <button class="optBtn ${opt === option ? "active" : ""}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(opt)}" type="button">${escapeHtml(opt)}</button>
+          `).join("")}
+        </div>
+      ` : "";
+
+      const detailKey = liftDetailKey(day.id, lift);
+      const isOpen = openLifts.has(detailKey);
       return `
-        <details>
+        <details data-detail="${escapeHtml(detailKey)}" ${isOpen ? "open" : ""}>
           <summary>
             ${escapeHtml(lift.name)}
             <span class="badge">${lift.sets}×${escapeHtml(lift.reps)} • ${escapeHtml(lift.rest)}</span>
@@ -1103,6 +1201,8 @@ summary::-webkit-details-marker{display:none}
               <span class="pill">Sets <b>${lift.sets}</b></span>
               <span class="pill">Reps <b>${escapeHtml(lift.reps)}</b></span>
               <span class="pill">Rest <b>${escapeHtml(lift.rest)}</b></span>
+              ${lift.options ? `<span class="pill">Option <b>${escapeHtml(option)}</b></span>` : ""}
+              ${optionToggle}
               <div class="hr"></div>
               <div><b>Coaching cue:</b> ${escapeHtml(lift.cue)}</div>
             </div>
@@ -1314,12 +1414,13 @@ summary::-webkit-details-marker{display:none}
     // Wire events (lift inputs)
     app.querySelectorAll('input[data-lift]').forEach(inp => {
       const liftName = inp.getAttribute("data-lift");
+      const liftOpt = inp.getAttribute("data-opt") || null;
       const field = inp.getAttribute("data-field");
       const idx = parseInt(inp.getAttribute("data-idx"), 10);
 
       inp.addEventListener("input", () => {
         const liftDef = day.lifts.find(x => x.name === liftName);
-        const arr = ensureLiftArray(session, liftDef);
+        const arr = ensureLiftArray(session, liftDef, liftOpt);
         arr[idx][field] = inp.value;
         save(state);
       });
@@ -1327,7 +1428,7 @@ summary::-webkit-details-marker{display:none}
         if(inp.type === "checkbox"){
           inp.addEventListener("change", () => {
             const liftDef = day.lifts.find(x => x.name === liftName);
-            const arr = ensureLiftArray(session, liftDef);
+            const arr = ensureLiftArray(session, liftDef, liftOpt);
             arr[idx][field] = inp.checked;
             updateAutoComplete(session, day);
             save(state);
@@ -1337,6 +1438,33 @@ summary::-webkit-details-marker{display:none}
             }
           });
         }
+    });
+
+    app.querySelectorAll(".optBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const opt = btn.getAttribute("data-opt");
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef || !opt) return;
+        openLifts.add(liftDetailKey(day.id, liftDef));
+        if(!session.liftOptions) session.liftOptions = {};
+        const key = liftOptionKey(day.id, liftDef);
+        session.liftOptions[key] = opt;
+        save(state);
+        render();
+      });
+    });
+
+    app.querySelectorAll("details[data-detail]").forEach(el => {
+      el.addEventListener("toggle", () => {
+        const key = el.getAttribute("data-detail");
+        if(!key) return;
+        if(el.open){
+          openLifts.add(key);
+        }else{
+          openLifts.delete(key);
+        }
+      });
     });
 
     // Conditioning minutes
