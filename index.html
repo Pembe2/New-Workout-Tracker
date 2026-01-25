@@ -254,11 +254,11 @@ summary::-webkit-details-marker{display:none}
 .time.compact{font-size:22px}
 .stickyTop{
   position:sticky;
-  top:8px;
+  top:calc(8px + env(safe-area-inset-top));
   z-index:9;
 }
 .stickyTop.card{
-  background:var(--card-bg);
+  background:var(--card);
 }
 .stickyTop .ch{padding:10px 12px}
 .stickyTop .cb{padding:10px 12px}
