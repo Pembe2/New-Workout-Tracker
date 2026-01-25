@@ -320,10 +320,12 @@ summary::-webkit-details-marker{display:none}
       ],
       lifts:[
         {name:"Bench Press (BB or DB)", sets:4, reps:"6–8", rest:"90–150s", cue:"Stop with 1–2 reps in reserve; controlled descent.", options:["BB","DB"]},
-        {name:"Incline DB Press", sets:3, reps:"8–10", rest:"90s", cue:"Full range; do not bounce."},
+        {name:"Incline Bench Press (DB or BB)", sets:3, reps:"8–10", rest:"90s", cue:"Full range; do not bounce.", options:["DB","BB"]},
         {name:"Standing Overhead Press", sets:3, reps:"6–8", rest:"120s", cue:"Glutes tight; avoid excessive low-back arch."},
         {name:"DB Lateral Raise", sets:3, reps:"12–15", rest:"60s", cue:"No shrugging; slow lower."},
         {name:"Triceps Pushdown (or Dips)", sets:3, reps:"10–12", rest:"60–90s", cue:"Elbows pinned; full extension.", options:["Pushdown","Dips"]},
+        { name:"Cable / DB Chest Fly", sets:3, reps:"12–15", rest:"60s", cue:"Soft elbows; stretch under control." },
+        { name:"Overhead Triceps Extension", sets:3, reps:"10–12", rest:"60–90s", cue:"Elbows narrow; full stretch." },
       ],
       conditioning:{label:"Optional finisher", rx:"Push-ups: 2 rounds near-failure (stop 1–2 reps before form breaks)."}
     },
@@ -339,7 +341,9 @@ summary::-webkit-details-marker{display:none}
         {name:"Romanian Deadlift", sets:3, reps:"8", rest:"120s", cue:"Hinge; neutral spine; feel hamstrings."},
         {name:"Walking Lunges", sets:3, reps:"12/leg", rest:"90s", cue:"Long stride; stable knee."},
         {name:"Standing Calf Raises", sets:4, reps:"12–15", rest:"60s", cue:"Pause at top and bottom."},
-        {name:"Plank (front/side)", sets:3, reps:"45–60s", rest:"45–60s", cue:"Ribs down; squeeze glutes; breathe."},
+        {name:"Plank (front/side)", sets:3, reps:"45–60s", rest:"45–60s", cue:"Ribs down; squeeze glutes; breathe.", options:["Front","Side"]},
+        { name:"Leg Curl (machine/band)", sets:3, reps:"10–15", rest:"60–90s", cue:"Control; squeeze hamstrings." },
+        { name:"Hip Thrust (BB/DB)", sets:3, reps:"8–12", rest:"90s", cue:"Posterior tilt; pause at top." },
       ],
       conditioning:{label:"Optional Zone 2", rx:"Incline treadmill walk: 10 minutes easy (conversational pace)."}
     },
@@ -356,6 +360,8 @@ summary::-webkit-details-marker{display:none}
         {name:"Single-Arm DB Row", sets:3, reps:"10/side", rest:"90s", cue:"Pause at top; controlled lower."},
         {name:"Face Pulls", sets:3, reps:"12–15", rest:"60s", cue:"Elbows high; squeeze rear delts."},
         {name:"Biceps Curl (DB or BB)", sets:3, reps:"10–12", rest:"60–90s", cue:"No swing; full extension.", options:["DB","BB"]},
+        { name:"Rear Delt Fly (DB/cable)", sets:3, reps:"12–15", rest:"60s", cue:"Lead with elbows; no shrug." },
+        { name:"Hammer Curl", sets:3, reps:"10–12", rest:"60–90s", cue:"Neutral wrist; no swing." },
       ],
       conditioning:{label:"Optional intervals", rx:"Rower: 8 min (20s hard / 40s easy). Keep technique clean."}
     },
@@ -372,6 +378,8 @@ summary::-webkit-details-marker{display:none}
         {name:"Battle Ropes", sets:4, reps:"30s", rest:"60–90s", cue:"Athletic stance; steady breathing."},
         {name:"Hanging Leg Raises (or Dead Bug)", sets:4, reps:"10–15", rest:"60–90s", cue:"Control; no swinging.", options:["Hanging","Dead Bug"]},
         {name:"Ab Wheel (or Plank)", sets:4, reps:"8–10", rest:"60–90s", cue:"Ribs down; no low-back sag.", options:["Ab Wheel","Plank"]},
+        { name:"Sled Push (or Incline Sprint)", sets:6, reps:"20–30s", rest:"60–90s", cue:"Strong posture; steady drive." , options:["Sled Push","Incline Sprint"]},
+        { name:"Pallof Press", sets:3, reps:"10–12/side", rest:"45–60s", cue:"No rotation; brace." },
       ],
       conditioning:{label:"Zone 2 add-on", rx:"Optional: 10–20 minutes Zone 2 (easy conversational pace)."}
     },
@@ -388,6 +396,8 @@ summary::-webkit-details-marker{display:none}
         {name:"Chin-ups (or assisted)", sets:3, reps:"AMRAP", rest:"120s", cue:"Stop 1 rep before form breaks.", options:["Chin-ups","Assisted"]},
         {name:"Goblet Squat", sets:3, reps:"12", rest:"90s", cue:"Upright torso; elbows inside knees."},
         {name:"Farmer’s Carries", sets:3, reps:"40–60s", rest:"60–90s", cue:"Tall posture; slow controlled steps."},
+        { name:"Seated Cable Row (or Chest-Supported Row)", sets:3, reps:"10–12", rest:"90s", cue:"Pause at squeeze; no jerking.", options:["Cable","Chest-Supported"] },
+        { name:"DB Bulgarian Split Squat", sets:3, reps:"8–10/leg", rest:"90s", cue:"Vertical shin; control depth." },
       ],
       conditioning:{label:"Optional easy finish", rx:"Incline walk: 8–12 minutes easy."}
     }
@@ -513,6 +523,7 @@ summary::-webkit-details-marker{display:none}
         mobilityDone:{},
         liftSets:{},  // liftName[::option] -> [{reps,weight,rpe,done}]
         liftOptions:{},
+        extraSets:{},     // NEW: liftStorageKey -> number of extra sets
         conditioningMinutes:""
       };
     }
@@ -924,6 +935,16 @@ summary::-webkit-details-marker{display:none}
     if(lift.options && option) return `${lift.name}::${option}`;
     return lift.name;
   }
+  function getExtraSets(session, lift, option){
+    if(!session.extraSets) session.extraSets = {};
+    const key = liftStorageKey(lift, option);
+    return session.extraSets[key] || 0;
+  }
+  function setExtraSets(session, lift, option, n){
+    if(!session.extraSets) session.extraSets = {};
+    const key = liftStorageKey(lift, option);
+    session.extraSets[key] = Math.max(0, n|0);
+  }
   function findStoredOption(session, lift){
     if(!session || !session.liftSets || !lift.options) return null;
     const prefix = `${lift.name}::`;
@@ -955,14 +976,23 @@ summary::-webkit-details-marker{display:none}
   }
   function ensureLiftArray(session, lift, option){
     const key = liftStorageKey(lift, option);
+
+    // migrate old key if options changed
     if(lift.options && !session.liftSets[key] && session.liftSets[lift.name]){
       session.liftSets[key] = session.liftSets[lift.name];
       delete session.liftSets[lift.name];
     }
+
     if(!session.liftSets[key]) session.liftSets[key] = [];
+
+    // total sets = planned sets + user-added extra sets (per lift/option)
+    const extra = getExtraSets(session, lift, option);
+    const targetLen = (lift.sets || 0) + extra;
+
     const arr = session.liftSets[key];
-    while(arr.length < lift.sets) arr.push({reps:"", weight:"", rpe:"", done:false});
-    if(arr.length > lift.sets) arr.length = lift.sets;
+    while(arr.length < targetLen) arr.push({reps:"", weight:"", rpe:"", done:false});
+    if(arr.length > targetLen) arr.length = targetLen;
+
     return arr;
   }
   function getLiftSets(session, dayId, lift){
@@ -1241,20 +1271,40 @@ summary::-webkit-details-marker{display:none}
         <details data-detail="${escapeHtml(detailKey)}" ${isOpen ? "open" : ""}>
           <summary>
             ${escapeHtml(lift.name)}
-            <span class="badge">${lift.sets}×${escapeHtml(lift.reps)} • ${escapeHtml(lift.rest)}</span>
           </summary>
           <div class="details-body">
             <div class="small">
               <span class="pill">Sets <b>${lift.sets}</b></span>
               <span class="pill">Reps <b>${escapeHtml(lift.reps)}</b></span>
               <span class="pill">Rest <b>${escapeHtml(lift.rest)}</b></span>
-              ${lift.options ? `<span class="pill">Option <b>${escapeHtml(option)}</b></span>` : ""}
               ${optionToggle}
               <div class="hr"></div>
               <div><b>Coaching cue:</b> ${escapeHtml(lift.cue)}</div>
             </div>
 
             <div class="hr"></div>
+            <div class="row" style="justify-content:space-between; margin:8px 0 10px">
+              <div class="small">
+                Planned sets: <b>${lift.sets}</b>
+                &nbsp;•&nbsp;
+                Total sets: <b>${arr.length}</b>
+              </div>
+              <div class="row" style="gap:8px">
+                <button class="btn" type="button"
+                  data-addset="1"
+                  data-lift="${escapeHtml(lift.name)}"
+                  data-opt="${escapeHtml(option || "")}">
+                  + Add set
+                </button>
+                <button class="btn" type="button"
+                  data-rmset="1"
+                  data-lift="${escapeHtml(lift.name)}"
+                  data-opt="${escapeHtml(option || "")}"
+                  ${arr.length <= lift.sets ? "disabled" : ""}>
+                  – Remove set
+                </button>
+              </div>
+            </div>
 
             <div class="table">
               <div class="th">Set</div>
@@ -1513,6 +1563,41 @@ summary::-webkit-details-marker{display:none}
         }
       });
     });
+
+    // Add/Remove sets
+    app.querySelectorAll("button[data-addset]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const liftOpt = btn.getAttribute("data-opt") || null;
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef) return;
+
+        const cur = getExtraSets(session, liftDef, liftOpt);
+        setExtraSets(session, liftDef, liftOpt, cur + 1);
+
+        openLifts.add(liftDetailKey(day.id, liftDef)); // keep open
+        save(state);
+        render();
+      });
+    });
+
+    app.querySelectorAll("button[data-rmset]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const liftOpt = btn.getAttribute("data-opt") || null;
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef) return;
+
+        const cur = getExtraSets(session, liftDef, liftOpt);
+        if(cur <= 0) return;
+        setExtraSets(session, liftDef, liftOpt, cur - 1);
+
+        openLifts.add(liftDetailKey(day.id, liftDef)); // keep open
+        save(state);
+        render();
+      });
+    });
+
 
     // Conditioning minutes
     $("#condMin").addEventListener("input", () => {
