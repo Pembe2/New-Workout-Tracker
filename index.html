@@ -28,6 +28,7 @@
   --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
   --header-bg:rgba(11,18,32,.85);
   --card-bg:rgba(15,26,51,.72);
+  --menu-bg:#0f1a33;
   --btn-bg:rgba(15,26,51,.78);
   --ui-bg:rgba(12,21,43,.55);
   --input-bg:rgba(12,21,43,.80);
@@ -46,6 +47,7 @@ body.light{
   --shadow:0 4px 12px rgba(0,0,0,.08);
   --header-bg:rgba(255,255,255,.95);
   --card-bg:#ffffff;
+  --menu-bg:#ffffff;
   --btn-bg:#ffffff;
   --ui-bg:#f1f5f9;
   --input-bg:#ffffff;
@@ -67,7 +69,8 @@ body{
   padding-top: 0;
 }
 header{
-  position:static;
+  position:relative;
+  z-index:120;
   backdrop-filter: blur(10px);
   background: var(--header-bg);
   border-bottom:1px solid var(--line);
@@ -317,7 +320,10 @@ summary::-webkit-details-marker{display:none}
 .menuOverlay.show{ display:block; }
 .menuPopup{
   position:absolute; top:50px; right:0; width:180px;
-  background:var(--card-bg); border:1px solid var(--line);
+  background-color:var(--menu-bg);
+  background-image:none;
+  opacity:1;
+  border:1px solid var(--line);
   border-radius:16px; box-shadow:var(--shadow);
   padding:8px; z-index:200; display:none;
   flex-direction:column; gap:4px;
