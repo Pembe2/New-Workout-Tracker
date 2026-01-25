@@ -309,8 +309,15 @@ summary::-webkit-details-marker{display:none}
 .menuBtn{
   font-size:20px; padding:6px 12px;
 }
+.menuLayer{
+  position:fixed;
+  inset:0;
+  z-index:2147483647;
+  pointer-events:none;
+}
 .menuOverlay{
-  position:fixed; inset:0; z-index:9998; display:none;
+  position:fixed; inset:0; z-index:0; display:none;
+  pointer-events:auto;
 }
 .menuOverlay.show{ display:block; }
 .menuPopup{
@@ -323,8 +330,10 @@ summary::-webkit-details-marker{display:none}
   opacity:1;
   border:1px solid var(--line);
   border-radius:16px; box-shadow:var(--shadow);
-  padding:8px; z-index:9999; display:none;
+  padding:8px; z-index:1; display:none;
   flex-direction:column; gap:4px;
+  pointer-events:auto;
+  transform: translateZ(0);
 }
 .menuPopup.show{ display:flex; }
 .menuItem{
@@ -369,13 +378,15 @@ summary::-webkit-details-marker{display:none}
   </div>
 </header>
 
-<div class="menuOverlay" id="menuOverlay"></div>
-<div class="menuPopup" id="menuPopup">
-  <button class="menuItem" id="themeToggle"><span>🌗</span> <span>Theme</span></button>
-  <div class="hr" style="margin:4px 0"></div>
-  <button class="menuItem" id="importBtn"><span>📂</span> <span>Import</span></button>
-  <button class="menuItem" id="exportBtn"><span>💾</span> <span>Export</span></button>
-  <button class="menuItem bad" id="resetBtn"><span>⚠️</span> <span>Reset</span></button>
+<div class="menuLayer" id="menuLayer">
+  <div class="menuOverlay" id="menuOverlay"></div>
+  <div class="menuPopup" id="menuPopup">
+    <button class="menuItem" id="themeToggle"><span>🌗</span> <span>Theme</span></button>
+    <div class="hr" style="margin:4px 0"></div>
+    <button class="menuItem" id="importBtn"><span>📂</span> <span>Import</span></button>
+    <button class="menuItem" id="exportBtn"><span>💾</span> <span>Export</span></button>
+    <button class="menuItem bad" id="resetBtn"><span>⚠️</span> <span>Reset</span></button>
+  </div>
 </div>
 
 <main id="app"></main>
