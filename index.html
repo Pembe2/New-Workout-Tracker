@@ -256,7 +256,7 @@ summary::-webkit-details-marker{display:none}
 .stickyTop{
   position:sticky;
   top:calc(8px + var(--sat));
-  z-index:9;
+  z-index:1;
 }
 .stickyTop.card{
   background:var(--card);
@@ -312,14 +312,14 @@ summary::-webkit-details-marker{display:none}
   font-size:20px; padding:6px 12px;
 }
 .menuOverlay{
-  position:fixed; inset:0; z-index:99; display:none;
+  position:fixed; inset:0; z-index:150; display:none;
 }
 .menuOverlay.show{ display:block; }
 .menuPopup{
   position:absolute; top:50px; right:0; width:180px;
   background:var(--card-bg); border:1px solid var(--line);
   border-radius:16px; box-shadow:var(--shadow);
-  padding:8px; z-index:100; display:none;
+  padding:8px; z-index:200; display:none;
   flex-direction:column; gap:4px;
 }
 .menuPopup.show{ display:flex; }
