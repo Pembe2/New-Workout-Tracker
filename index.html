@@ -363,19 +363,20 @@ summary::-webkit-details-marker{display:none}
       </div>
       <div class="row" style="position:relative">
         <button class="btn menuBtn" id="menuToggle">☰</button>
-        <div class="menuOverlay" id="menuOverlay"></div>
-        <div class="menuPopup" id="menuPopup">
-          <button class="menuItem" id="themeToggle"><span>🌗</span> <span>Theme</span></button>
-          <div class="hr" style="margin:4px 0"></div>
-          <button class="menuItem" id="importBtn"><span>📂</span> <span>Import</span></button>
-          <button class="menuItem" id="exportBtn"><span>💾</span> <span>Export</span></button>
-          <button class="menuItem bad" id="resetBtn"><span>⚠️</span> <span>Reset</span></button>
-        </div>
         <input type="file" id="importFile" style="display:none" accept=".json">
       </div>
     </div>
   </div>
 </header>
+
+<div class="menuOverlay" id="menuOverlay"></div>
+<div class="menuPopup" id="menuPopup">
+  <button class="menuItem" id="themeToggle"><span>🌗</span> <span>Theme</span></button>
+  <div class="hr" style="margin:4px 0"></div>
+  <button class="menuItem" id="importBtn"><span>📂</span> <span>Import</span></button>
+  <button class="menuItem" id="exportBtn"><span>💾</span> <span>Export</span></button>
+  <button class="menuItem bad" id="resetBtn"><span>⚠️</span> <span>Reset</span></button>
+</div>
 
 <main id="app"></main>
 
