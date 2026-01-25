@@ -611,6 +611,8 @@ summary::-webkit-details-marker{display:none}
   let audioCtx = null;
   let audioUnlocked = false;
   let noiseBuffer = null;
+  let wakeLock = null;
+  let wakeLockEnabled = false;
   function playBeep(){
     try{
       const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -640,7 +642,7 @@ summary::-webkit-details-marker{display:none}
         filter.Q.value = 0.7;
 
         gain.gain.setValueAtTime(0.0001, t);
-        gain.gain.exponentialRampToValueAtTime(0.22, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.45, t + 0.01);
         gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
 
         mod.connect(modGain);
@@ -665,12 +667,12 @@ summary::-webkit-details-marker{display:none}
       setTimeout(() => navigator.vibrate(120), 2000);
     }
   }
-  function unlockAudio(){
+  async function unlockAudio(){
     try{
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if(!Ctx) return false;
       audioCtx = audioCtx || new Ctx();
-      if(audioCtx.state === "suspended") audioCtx.resume();
+      if(audioCtx.state === "suspended") await audioCtx.resume();
       audioUnlocked = audioCtx.state === "running";
       if(audioUnlocked){
         // short tap to confirm unlock
@@ -685,8 +687,10 @@ summary::-webkit-details-marker{display:none}
         g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
         o.stop(audioCtx.currentTime + 0.15);
       }
+      updateTimersUI();
       return audioUnlocked;
     }catch(e){
+      updateTimersUI();
       return false;
     }
   }
@@ -697,6 +701,7 @@ summary::-webkit-details-marker{display:none}
       timers.rest.interval = null;
     }
     timers.rest.running = false;
+    updateWakeLock();
   }
   function showRestPopup(){
     const el = $("#restPopup");
@@ -716,6 +721,7 @@ summary::-webkit-details-marker{display:none}
       timers.rest.remaining = timers.rest.duration;
     }
     timers.rest.running = true;
+    updateWakeLock();
     timers.rest.interval = setInterval(() => {
       timers.rest.remaining -= 1;
       if(timers.rest.remaining <= 0){
@@ -737,6 +743,7 @@ summary::-webkit-details-marker{display:none}
       timers.workout.interval = null;
     }
     timers.workout.running = false;
+    updateWakeLock();
   }
 
   function updateTimersUI(){
@@ -759,6 +766,44 @@ summary::-webkit-details-marker{display:none}
     const enableAudioBtn = $("#enableAudioBtn");
     if(enableAudioBtn) enableAudioBtn.style.display = audioUnlocked ? "none" : "inline-flex";
   }
+
+  async function requestWakeLock(){
+    if(!("wakeLock" in navigator)) return;
+    try{
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLockEnabled = true;
+      wakeLock.addEventListener("release", () => {
+        wakeLockEnabled = false;
+      });
+    }catch(e){
+      wakeLockEnabled = false;
+    }
+  }
+  function releaseWakeLock(){
+    if(wakeLock){
+      wakeLock.release().catch(() => {});
+      wakeLock = null;
+    }
+    wakeLockEnabled = false;
+  }
+  function updateWakeLock(){
+    const shouldHold = timers.rest.running;
+    if(shouldHold){
+      if(document.visibilityState === "visible" && !wakeLockEnabled){
+        requestWakeLock();
+      }
+    }else{
+      releaseWakeLock();
+    }
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible"){
+      audioUnlocked = audioCtx && audioCtx.state === "running";
+      updateTimersUI();
+      updateWakeLock();
+    }
+  });
 
   function wireTimers(){
     const restMin = $("#restMin");
@@ -844,6 +889,7 @@ summary::-webkit-details-marker{display:none}
       workoutStartBtn.onclick = () => {
         if(timers.workout.running) return;
         timers.workout.running = true;
+        updateWakeLock();
         timers.workout.interval = setInterval(() => {
           timers.workout.elapsed += 1;
           persistTimers();
