@@ -225,6 +225,11 @@ summary::-webkit-details-marker{display:none}
   width:min(92vw, 420px);
   z-index:50;
 }
+.restPopup .small{color:var(--muted)}
+.restPopup .badge{color:var(--muted)}
+.restPopup .btn{background:var(--btn-bg)}
+.restPopup .btn.bad{border-color:rgba(255,107,107,.45)}
+.restPopup .btn.good{border-color:rgba(53,208,127,.45)}
 .restOverlay{
   position:fixed;
   inset:0;
@@ -245,6 +250,18 @@ summary::-webkit-details-marker{display:none}
 .restPopup .time{font-size:40px}
 .restPopup .row{justify-content:space-between}
 .restPopup .timerControls{gap:6px}
+body.light .restOverlay{
+  background:rgba(15,23,42,.12);
+  backdrop-filter: blur(6px);
+}
+body.light .restPopup{
+  background:linear-gradient(135deg, #ffffff, #f1f5f9);
+  border:1px solid rgba(49,130,206,.35);
+  box-shadow:0 16px 40px rgba(15,23,42,.12), 0 0 12px rgba(49,130,206,.15);
+}
+body.light .restPopup::before{
+  border-color:rgba(49,130,206,.25);
+}
 .time{
   font-family:var(--mono);
   font-size:28px;
