@@ -254,7 +254,7 @@ summary::-webkit-details-marker{display:none}
 .stickyTop{
   position:sticky;
   top:calc(8px + var(--sat));
-  z-index:1;
+  z-index:0;
 }
 .stickyTop.card{
   background:var(--card);
@@ -310,7 +310,7 @@ summary::-webkit-details-marker{display:none}
   font-size:20px; padding:6px 12px;
 }
 .menuOverlay{
-  position:fixed; inset:0; z-index:150; display:none;
+  position:fixed; inset:0; z-index:9998; display:none;
 }
 .menuOverlay.show{ display:block; }
 .menuPopup{
@@ -323,7 +323,7 @@ summary::-webkit-details-marker{display:none}
   opacity:1;
   border:1px solid var(--line);
   border-radius:16px; box-shadow:var(--shadow);
-  padding:8px; z-index:200; display:none;
+  padding:8px; z-index:9999; display:none;
   flex-direction:column; gap:4px;
 }
 .menuPopup.show{ display:flex; }
