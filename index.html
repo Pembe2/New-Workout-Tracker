@@ -314,7 +314,10 @@ summary::-webkit-details-marker{display:none}
 }
 .menuOverlay.show{ display:block; }
 .menuPopup{
-  position:absolute; top:50px; right:0; width:180px;
+  position:fixed;
+  top:calc(var(--sat) + 50px);
+  right:14px;
+  width:180px;
   background-color:var(--menu-bg);
   background-image:none;
   opacity:1;
