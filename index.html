@@ -1173,7 +1173,7 @@ summary::-webkit-details-marker{display:none}
               <div class="dashHead">Conditioning</div>
               ${weekSummary.days.map(d => `
                 <div class="dashCell">${escapeHtml(d.title)}</div>
-                <div class="dashCell">${d.completed ? "Completed" : "In progress"}</div>
+                <div class="dashCell">${d.completed ? "Cmp" : "In Prog"}</div>
                 <div class="dashCell">${d.doneSets}/${d.totalSets}</div>
                 <div class="dashCell">${d.mobDone}/${d.mobTotal}</div>
                 <div class="dashCell">${Math.round(d.cond)} min</div>
