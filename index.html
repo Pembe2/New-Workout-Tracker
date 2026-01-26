@@ -1164,6 +1164,44 @@ body.light .restPopup::before{
   function liftDetailKey(dayId, lift){
     return `${dayId}::${lift.name}`;
   }
+  function hasLiftData(sets){
+    return (sets || []).some(s => s && (s.done || s.reps || s.weight || s.rpe));
+  }
+  function getPrevLiftData(dayId, lift, preferredOption){
+    const currentWeek = state.weekStart;
+    const weeks = Object.keys(state.sessions || {})
+      .filter(w => w < currentWeek)
+      .sort((a,b) => b.localeCompare(a));
+    for(const wk of weeks){
+      const s = state.sessions[wk] && state.sessions[wk][dayId];
+      if(!s) continue;
+
+      if(lift.options && lift.options.length){
+        const opt = (preferredOption && lift.options.includes(preferredOption))
+          ? preferredOption
+          : resolveLiftOption(s, dayId, lift);
+        const key = opt ? liftStorageKey(lift, opt) : lift.name;
+        const sets = (s.liftSets && s.liftSets[key]) ? s.liftSets[key] : getLiftSets(s, dayId, lift);
+        if(hasLiftData(sets)) return {weekKey:wk, session:s, option:opt, sets};
+
+        if(s.liftSets){
+          const prefix = `${lift.name}::`;
+          const keys = Object.keys(s.liftSets).filter(k => k === lift.name || k.startsWith(prefix));
+          for(const k of keys){
+            const arr = s.liftSets[k] || [];
+            if(hasLiftData(arr)){
+              const opt2 = k.startsWith(prefix) ? k.slice(prefix.length) : lift.options[0];
+              return {weekKey:wk, session:s, option:opt2, sets: arr};
+            }
+          }
+        }
+      }else{
+        const sets = getLiftSets(s, dayId, lift);
+        if(hasLiftData(sets)) return {weekKey:wk, session:s, option:null, sets};
+      }
+    }
+    return {weekKey:null, session:null, option:null, sets:[]};
+  }
 
   function updateAutoComplete(session, day){
     const anyMob = Object.values(session.mobilityDone || {}).some(Boolean);
@@ -1391,15 +1429,13 @@ body.light .restPopup::before{
       `;
     }).join("");
 
-    const prevWeek = prevWeekKey(state.weekStart);
-    const prevWeekSessions = state.sessions[prevWeek] || {};
-    const prevSession = prevWeekSessions[day.id] || null;
-
     const liftsHtml = day.lifts.map(lift => {
       const option = getLiftOption(session, day.id, lift);
       const arr = ensureLiftArray(session, lift, option);
-      const prevOption = resolveLiftOption(prevSession, day.id, lift);
-      const prevArr = getLiftSets(prevSession, day.id, lift);
+      const prevData = getPrevLiftData(day.id, lift, option);
+      const prevOption = prevData.option;
+      const prevArr = prevData.sets || [];
+      const prevWeekLabel = prevData.weekKey ? ` (week of ${prevData.weekKey})` : "";
       const suggestion = getOverloadSuggestion(lift, prevArr);
 
       let activeCue = lift.cue;
@@ -1409,7 +1445,9 @@ body.light .restPopup::before{
         const idx = i;
         const prevSet = prevArr[idx] || null;
         const prevLabel = prevOption ? ` (${escapeHtml(prevOption)})` : "";
-        const prevText = prevSet ? `Prev${prevLabel} set ${i+1}: reps ${escapeHtml(prevSet.reps || "—")}, weight ${escapeHtml(prevSet.weight || "—")}, RPE ${escapeHtml(prevSet.rpe || "—")}, ${prevSet.done ? "done" : "not done"}` : `Prev${prevLabel} set ${i+1}: no data`;
+        const prevText = prevSet
+          ? `Prev${prevLabel}${prevWeekLabel} set ${i+1}: reps ${escapeHtml(prevSet.reps || "—")}, weight ${escapeHtml(prevSet.weight || "—")}, RPE ${escapeHtml(prevSet.rpe || "—")}, ${prevSet.done ? "done" : "not done"}`
+          : `Prev${prevLabel}${prevWeekLabel} set ${i+1}: no data`;
         return `
           <div class="setnum">Set ${i+1}</div>
           <div class="cell"><input inputmode="numeric" placeholder="${escapeHtml(lift.reps)}" value="${escapeHtml(set.reps)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="reps" data-idx="${idx}"></div>
@@ -1467,7 +1505,7 @@ body.light .restPopup::before{
                   ${arr.length <= lift.sets ? "disabled" : ""}>
                   – Remove set
                 </button>
-                ${prevArr.some(x => x && x.done) ? `
+                ${hasLiftData(prevArr) ? `
                 <button class="btn" type="button"
                   data-copyprev="1"
                   data-lift="${escapeHtml(lift.name)}"
@@ -1774,6 +1812,45 @@ body.light .restPopup::before{
         setExtraSets(session, liftDef, liftOpt, cur - 1);
 
         openLifts.add(liftDetailKey(day.id, liftDef)); // keep open
+        save(state);
+        render();
+      });
+    });
+
+    // Copy previous values
+    app.querySelectorAll("button[data-copyprev]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const liftOpt = btn.getAttribute("data-opt") || null;
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef) return;
+
+        const prevData = getPrevLiftData(day.id, liftDef, liftOpt);
+        if(!hasLiftData(prevData.sets)) return;
+
+        let targetOpt = liftOpt || prevData.option || null;
+        if(liftDef.options && targetOpt && !liftDef.options.includes(targetOpt)){
+          targetOpt = liftDef.options[0];
+        }
+
+        if(liftDef.options && targetOpt){
+          if(!session.liftOptions) session.liftOptions = {};
+          const key = liftOptionKey(day.id, liftDef);
+          session.liftOptions[key] = targetOpt;
+        }
+
+        const desiredExtra = Math.max(0, (prevData.sets || []).length - (liftDef.sets || 0));
+        setExtraSets(session, liftDef, targetOpt, desiredExtra);
+        const arr = ensureLiftArray(session, liftDef, targetOpt);
+
+        for(let i=0; i<arr.length; i++){
+          const prevSet = (prevData.sets || [])[i];
+          arr[i].reps = prevSet ? (prevSet.reps || "") : "";
+          arr[i].weight = prevSet ? (prevSet.weight || "") : "";
+          arr[i].rpe = prevSet ? (prevSet.rpe || "") : "";
+          arr[i].done = false;
+        }
+
         save(state);
         render();
       });
