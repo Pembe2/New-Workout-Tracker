@@ -88,7 +88,7 @@ main{max-width:820px; margin:0 auto; padding:14px 14px 88px;}
   background:var(--card-bg); border:1px solid var(--line); border-radius:22px;
   box-shadow:var(--shadow); overflow:hidden; margin-bottom:12px;
 }
-.ch{padding:14px 14px; border-bottom:1px solid rgba(255,255,255,.22); display:flex; justify-content:space-between; align-items:center; gap:10px;}
+.ch{padding:14px 14px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:10px;}
 .ch h2{margin:0; font-size:14px; letter-spacing:.2px}
 .cb{padding:14px 14px}
 .badge{
@@ -119,8 +119,14 @@ summary{
   list-style:none; cursor:pointer; user-select:none;
   padding:12px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;
   font-weight:900; font-size:13px;
+  background:rgba(255,255,255,.08);
+  border-bottom:1px solid rgba(255,255,255,.22);
 }
 summary::-webkit-details-marker{display:none}
+.light summary{
+  background:rgba(0,0,0,.05);
+  border-bottom:1px solid rgba(0,0,0,.16);
+}
 .details-body{padding:0 12px 12px; border-top:1px solid var(--line)}
 .pill{
   display:inline-flex; gap:8px; align-items:center;
