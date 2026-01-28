@@ -88,7 +88,7 @@ main{max-width:820px; margin:0 auto; padding:14px 14px 88px;}
   background:var(--card-bg); border:1px solid var(--line); border-radius:22px;
   box-shadow:var(--shadow); overflow:hidden; margin-bottom:12px;
 }
-.ch{padding:14px 14px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:10px;}
+.ch{padding:14px 14px; border-bottom:1px solid rgba(255,255,255,.22); display:flex; justify-content:space-between; align-items:center; gap:10px;}
 .ch h2{margin:0; font-size:14px; letter-spacing:.2px}
 .cb{padding:14px 14px}
 .badge{
@@ -439,11 +439,17 @@ body.light .restPopup::before{
       lifts:[
         {name:"Bench Press (BB or DB)", sets:4, reps:"6–8", rest:"90–150s", cue:"Stop with 1–2 reps in reserve; controlled descent.", options:["BB","DB"]},
         {name:"Incline Bench Press (BB or DB)", sets:3, reps:"8–10", rest:"90s", cue:"Full range; do not bounce.", options:["BB","DB"]},
-        {name:"Standing Overhead Press", sets:3, reps:"6–8", rest:"120s", cue:"Glutes tight; avoid excessive low-back arch."},
+        {name:"DB Overhead Press (Standing or Seated)", sets:3, reps:"6–8", rest:"120s", cue:"Glutes tight; avoid excessive low-back arch.", options:["Standing","Seated"], cues:{
+          "Standing": "Glutes tight, ribs down; avoid excessive low-back arch.",
+          "Seated": "Tall posture, slight back support; keep ribs stacked over hips."
+        }},
         {name:"DB Lateral Raise", sets:3, reps:"12–15", rest:"60s", cue:"No shrugging; slow lower."},
         {name:"Triceps Pushdown (or Dips)", sets:3, reps:"10–12", rest:"60–90s", cue:"Elbows pinned; full extension.", options:["Pushdown","Dips"]},
         { name:"Cable or DB Chest Fly", sets:3, reps:"12–15", rest:"60s", cue:"Soft elbows; stretch under control.", options:["Cable","DB"] },
-        { name:"Overhead Triceps Extension", sets:3, reps:"10–12", rest:"60–90s", cue:"Elbows narrow; full stretch." },
+        { name:"Overhead Tricep Extension (DB or Cable)", sets:3, reps:"10–12", rest:"60–90s", cue:"Elbows narrow; full stretch.", options:["DB","Cable"], cues:{
+          "DB": "Elbows tucked; let the DB travel behind head for a full stretch.",
+          "Cable": "Keep constant tension; elbows fixed, smooth lockout."
+        } },
       ],
       conditioning:{label:"Optional finisher", rx:"Push-ups: 2 rounds near-failure (stop 1–2 reps before form breaks)."}
     },
@@ -475,11 +481,14 @@ body.light .restPopup::before{
       lifts:[
         {name:"Pull-ups (or Lat Pulldown)", sets:4, reps:"6–10", rest:"120s", cue:"Full stretch at bottom; no kipping.", options:["Pull-ups","Lat Pulldown"]},
         {name:"Row (BB or DB)", sets:3, reps:"8–10", rest:"120s", cue:"Pull to hip; keep neck neutral.", options:["BB","DB"]},
-        {name:"Single-Arm DB Row", sets:3, reps:"10/side", rest:"90s", cue:"Pause at top; controlled lower."},
+        {name:"Three Point DB Row", sets:3, reps:"10/side", rest:"90s", cue:"Pause at top; controlled lower."},
         {name:"Face Pulls", sets:3, reps:"12–15", rest:"60s", cue:"Elbows high; squeeze rear delts."},
         {name:"Biceps Curl (BB or DB)", sets:3, reps:"10–12", rest:"60–90s", cue:"No swing; full extension.", options:["BB","DB"]},
         { name:"Rear Delt Fly (DB or Cable)", sets:3, reps:"12–15", rest:"60s", cue:"Lead with elbows; no shrug.", options:["DB","Cable"] },
-        { name:"Hammer Curl", sets:3, reps:"10–12", rest:"60–90s", cue:"Neutral wrist; no swing." },
+        { name:"Hammer Curl or Preacher Curl", sets:3, reps:"10–12", rest:"60–90s", cue:"Neutral wrist; no swing.", options:["Hammer Curl","Preacher Curl"], cues:{
+          "Hammer Curl": "Neutral wrist; keep elbows pinned, no swing.",
+          "Preacher Curl": "Elbows fixed on pad; full stretch and controlled reps."
+        } },
       ],
       conditioning:{label:"Optional intervals", rx:"Rower: 8 min (20s hard / 40s easy). Keep technique clean."}
     },
@@ -652,7 +661,9 @@ body.light .restPopup::before{
         liftSets:{},  // liftName[::option] -> [{reps,weight,rpe,done}]
         liftOptions:{},
         extraSets:{},     // NEW: liftStorageKey -> number of extra sets
-        conditioningMinutes:""
+        conditioningMinutes:"",
+        conditioningPushups:{set1:"", set2:""},
+        dayLocked:false
       };
     }
     return state.sessions[wk][dayId];
@@ -701,6 +712,27 @@ body.light .restPopup::before{
   function prevWeekKey(weekKey){
     return isoDate(addDays(new Date(weekKey + "T00:00:00"), -7));
   }
+  function weekHasAnyData(weekKey){
+    const sessions = state.sessions[weekKey] || {};
+    return Object.values(sessions).some(s => {
+      if(!s) return false;
+      if(s.completed) return true;
+      if(s.notes && String(s.notes).trim()) return true;
+      if(s.conditioningMinutes && parseFloat(s.conditioningMinutes)) return true;
+      if(s.mobilityDone && Object.values(s.mobilityDone).some(Boolean)) return true;
+      if(s.liftSets && Object.values(s.liftSets).some(arr => hasLiftData(arr))) return true;
+      return false;
+    });
+  }
+  function prevWeekWithData(weekKey){
+    const weeks = Object.keys(state.sessions || {})
+      .filter(w => w < weekKey)
+      .sort((a,b) => b.localeCompare(a));
+    for(const wk of weeks){
+      if(weekHasAnyData(wk)) return wk;
+    }
+    return null;
+  }
   function parseNum(v){
     const n = parseFloat(v);
     return Number.isFinite(n) ? n : null;
@@ -747,6 +779,14 @@ body.light .restPopup::before{
     return String(rounded);
   }
 
+  function applyDayLock(container, locked){
+    if(!container) return;
+    container.querySelectorAll("input, textarea, select, button").forEach(el => {
+      if(el.hasAttribute("data-allow-when-locked")) return;
+      el.disabled = !!locked;
+    });
+  }
+
   function getOverloadSuggestion(lift, prevSets){
     // 1. Check for valid history
     const valid = prevSets.filter(s => s.done && parseNum(s.weight) !== null && parseNum(s.reps) !== null);
@@ -781,6 +821,15 @@ body.light .restPopup::before{
   let noiseBuffer = null;
   let wakeLock = null;
   let wakeLockEnabled = false;
+  async function resumeAudioIfNeeded(){
+    try{
+      if(!audioCtx) return;
+      if(audioCtx.state === "suspended") await audioCtx.resume();
+      audioUnlocked = audioCtx.state === "running";
+    }catch(e){
+      audioUnlocked = false;
+    }
+  }
   function playBeep(){
     try{
       const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -810,7 +859,7 @@ body.light .restPopup::before{
         filter.Q.value = 0.7;
 
         gain.gain.setValueAtTime(0.0001, t);
-        gain.gain.exponentialRampToValueAtTime(0.45, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.9, t + 0.01);
         gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
 
         mod.connect(modGain);
@@ -848,7 +897,7 @@ body.light .restPopup::before{
         const g = audioCtx.createGain();
         o.type = "sine";
         o.frequency.value = 880;
-        g.gain.value = 0.2;
+        g.gain.value = 0.35;
         o.connect(g);
         g.connect(audioCtx.destination);
         o.start();
@@ -885,9 +934,7 @@ body.light .restPopup::before{
   }
   function startRestTimer(){
     if(timers.rest.running) return;
-    if(timers.rest.remaining <= 0){
-      timers.rest.remaining = timers.rest.duration;
-    }
+    timers.rest.remaining = timers.rest.duration;
     timers.rest.running = true;
     updateWakeLock();
     timers.rest.interval = setInterval(() => {
@@ -967,7 +1014,7 @@ body.light .restPopup::before{
 
   document.addEventListener("visibilitychange", () => {
     if(document.visibilityState === "visible"){
-      audioUnlocked = audioCtx && audioCtx.state === "running";
+      resumeAudioIfNeeded();
       updateTimersUI();
       updateWakeLock();
     }
@@ -1204,6 +1251,10 @@ body.light .restPopup::before{
   }
 
   function updateAutoComplete(session, day){
+    if(session.dayLocked){
+      session.completed = true;
+      return;
+    }
     const anyMob = Object.values(session.mobilityDone || {}).some(Boolean);
     const anySet = day.lifts.some(l => {
       const arr = getLiftSets(session, day.id, l);
@@ -1282,8 +1333,8 @@ body.light .restPopup::before{
     })();
 
     const allWeeks = Object.keys(state.sessions || {}).sort((a,b) => b.localeCompare(a));
-    const prevWeekKeyStr = prevWeekKey(viewWeek);
-    const prevWeekSummary = state.sessions[prevWeekKeyStr] ? (() => {
+    const prevWeekKeyStr = prevWeekWithData(viewWeek);
+    const prevWeekSummary = prevWeekKeyStr ? (() => {
       const wk = prevWeekKeyStr;
       const sessions = state.sessions[wk] || {};
       let totalSets = 0;
@@ -1321,7 +1372,7 @@ body.light .restPopup::before{
       return [l.name];
     }))));
     const currentStats = exerciseStatsForWeek(viewWeek);
-    const prevStats = exerciseStatsForWeek(prevWeekKeyStr);
+    const prevStats = prevWeekKeyStr ? exerciseStatsForWeek(prevWeekKeyStr) : {};
 
     if(state.activeDayId === "dashboard"){
       app.innerHTML = `
@@ -1348,7 +1399,7 @@ body.light .restPopup::before{
               <span class="pill">Evaluation <b>${weekSummary.evaluation}</b></span>
             </div>
             <div class="row" style="margin-top:8px">
-              <span class="small">Vs previous week:</span>
+              <span class="small">Vs previous week${prevWeekKeyStr ? ` (${prevWeekKeyStr})` : ""}:</span>
               ${prevWeekSummary ? `
                 <span class="pill">Days <b>${weekSummary.completed - prevWeekSummary.completed >= 0 ? "+" : ""}${weekSummary.completed - prevWeekSummary.completed}</b></span>
                 <span class="pill">Sets <b>${weekSummary.doneSets - prevWeekSummary.doneSets >= 0 ? "+" : ""}${weekSummary.doneSets - prevWeekSummary.doneSets}</b></span>
@@ -1696,13 +1747,28 @@ body.light .restPopup::before{
         <div class="cb">
           <div class="small">${escapeHtml(day.conditioning.rx)}</div>
           <div class="hr"></div>
+          ${day.id === "d1" ? `
+          <div class="row">
+            <div style="flex:1 1 140px">
+              <div class="small" style="margin-bottom:6px">Push-ups set 1 reps</div>
+              <input id="pushupSet1" type="number" style="width:100%; padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);"
+                     inputmode="numeric" min="0" step="1" placeholder="e.g., 22" value="${escapeHtml((session.conditioningPushups && session.conditioningPushups.set1) || "")}">
+            </div>
+            <div style="flex:1 1 140px">
+              <div class="small" style="margin-bottom:6px">Push-ups set 2 reps</div>
+              <input id="pushupSet2" type="number" style="width:100%; padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);"
+                     inputmode="numeric" min="0" step="1" placeholder="e.g., 18" value="${escapeHtml((session.conditioningPushups && session.conditioningPushups.set2) || "")}">
+            </div>
+          </div>
+          ` : `
           <div class="row">
             <div style="flex:1 1 220px">
               <div class="small" style="margin-bottom:6px">Conditioning minutes completed (optional)</div>
-              <input id="condMin" style="width:100%; padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);"
-                     inputmode="numeric" placeholder="e.g., 15" value="${escapeHtml(session.conditioningMinutes||"")}">
+              <input id="condMin" type="number" style="width:100%; padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);"
+                     inputmode="numeric" min="0" step="0.1" placeholder="e.g., 15" value="${escapeHtml(session.conditioningMinutes||"")}">
             </div>
           </div>
+          `}
         </div>
       </div>
 
@@ -1713,6 +1779,19 @@ body.light .restPopup::before{
         </div>
         <div class="cb">
           <textarea id="sessionNotes" style="width:100%; height:80px; padding:10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text); font-family:var(--sans); font-size:13px;" placeholder="How did it feel? Pain? Energy levels?">${escapeHtml(session.notes || "")}</textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <h2>Day Complete</h2>
+          <span class="badge">${session.dayLocked ? "Locked" : "Unlocked"}</span>
+        </div>
+        <div class="cb">
+          <div class="small" style="margin-bottom:8px">Locks all inputs for this day.</div>
+          <button class="btn good" id="dayCompleteBtn" data-allow-when-locked="1">
+            ${session.dayLocked ? "Unlock Day" : "Mark Day Complete"}
+          </button>
         </div>
       </div>
     `;
@@ -1863,15 +1942,55 @@ body.light .restPopup::before{
     });
 
 
-    // Conditioning minutes
-    $("#condMin").addEventListener("input", () => {
-      session.conditioningMinutes = $("#condMin").value;
-      save(state);
-    });
+    // Conditioning tracking
+    const condMin = $("#condMin");
+    if(condMin){
+      condMin.addEventListener("input", () => {
+        session.conditioningMinutes = condMin.value;
+        save(state);
+      });
+    }
+    const pushupSet1 = $("#pushupSet1");
+    const pushupSet2 = $("#pushupSet2");
+    if(pushupSet1 || pushupSet2){
+      if(!session.conditioningPushups) session.conditioningPushups = {set1:"", set2:""};
+      if(pushupSet1){
+        pushupSet1.addEventListener("input", () => {
+          session.conditioningPushups.set1 = pushupSet1.value;
+          save(state);
+        });
+      }
+      if(pushupSet2){
+        pushupSet2.addEventListener("input", () => {
+          session.conditioningPushups.set2 = pushupSet2.value;
+          save(state);
+        });
+      }
+    }
+
+    const dayCompleteBtn = $("#dayCompleteBtn");
+    if(dayCompleteBtn){
+      dayCompleteBtn.addEventListener("click", () => {
+        if(session.dayLocked){
+          if(!confirm("Unlock this day and re-enable inputs?")) return;
+          session.dayLocked = false;
+        }else{
+          session.dayLocked = true;
+          session.completed = true;
+          stopRestTimer();
+          stopWorkoutTimer();
+          persistTimers();
+          hideRestPopup();
+        }
+        save(state);
+        render();
+      });
+    }
 
     renderTabs();
     updateTimersUI();
     wireTimers();
+    applyDayLock(app, session.dayLocked);
     if(timers.rest.running){
       showRestPopup();
     }else{
