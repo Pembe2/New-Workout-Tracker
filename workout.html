@@ -290,7 +290,84 @@
     };
   }
 
+  const LEGACY_LIFT_NAME_MAP = {
+    "Bench Press (BB or DB)": "Bench Press",
+    "Incline Bench Press (BB or DB)": "Incline Bench Press",
+    "DB Overhead Press (Standing or Seated)": "DB Overhead Press",
+    "Cable or DB Chest Fly": "Chest Fly",
+    "Overhead Tricep Extension (DB or Cable)": "Overhead Tricep Extension",
+    "Squat (Back or Front)": "Squat",
+    "Plank (Front or Side)": "Plank",
+    "Leg Curl (Machine or Band)": "Leg Curl",
+    "Hip Thrust (BB or DB)": "Hip Thrust",
+    "Row (BB or DB)": "Row",
+    "Biceps Curl (BB or DB)": "Biceps Curl",
+    "Rear Delt Fly (DB or Cable)": "Rear Delt Fly",
+    "Triceps Pushdown (or Dips)": "Triceps Pushdown or Dips",
+    "Pull-ups (or Lat Pulldown)": "Pull-ups or Lat Pulldown",
+    "Box Jumps (or Step-ups)": "Box Jumps or Step-ups",
+    "Hanging Leg Raises (or Dead Bug)": "Hanging Leg Raises or Dead Bug",
+    "Ab Wheel (or Plank)": "Ab Wheel or Plank",
+    "Sled Push (or Bike Sprint)": "Sled Push or Bike Sprint",
+    "Chin-ups (or assisted)": "Chin-ups or Assisted",
+    "Seated Cable Row (or Chest-Supported Row)": "Seated Cable Row or Chest-Supported Row"
+  };
+
+  function remapStorageKey(obj, oldName, newName){
+    if(!obj) return false;
+    let changed = false;
+    if(Object.prototype.hasOwnProperty.call(obj, oldName)){
+      if(!Object.prototype.hasOwnProperty.call(obj, newName)){
+        obj[newName] = obj[oldName];
+      }
+      delete obj[oldName];
+      changed = true;
+    }
+    const prefix = `${oldName}::`;
+    Object.keys(obj).forEach(k => {
+      if(!k.startsWith(prefix)) return;
+      const nextKey = `${newName}${k.slice(oldName.length)}`;
+      if(!Object.prototype.hasOwnProperty.call(obj, nextKey)){
+        obj[nextKey] = obj[k];
+      }
+      delete obj[k];
+      changed = true;
+    });
+    return changed;
+  }
+
+  function migrateLegacyLiftNames(stateObj){
+    if(!stateObj || !stateObj.sessions) return false;
+    let changed = false;
+    Object.values(stateObj.sessions).forEach(weekSessions => {
+      if(!weekSessions) return;
+      Object.entries(weekSessions).forEach(([dayId, session]) => {
+        if(!session) return;
+        Object.entries(LEGACY_LIFT_NAME_MAP).forEach(([oldName, newName]) => {
+          if(remapStorageKey(session.liftSets, oldName, newName)) changed = true;
+          if(remapStorageKey(session.extraSets, oldName, newName)) changed = true;
+          if(remapStorageKey(session.restOverrides, oldName, newName)) changed = true;
+          if(session.liftOptions){
+            const oldOptKey = `${dayId}::${oldName}`;
+            const newOptKey = `${dayId}::${newName}`;
+            if(Object.prototype.hasOwnProperty.call(session.liftOptions, oldOptKey)){
+              if(!Object.prototype.hasOwnProperty.call(session.liftOptions, newOptKey)){
+                session.liftOptions[newOptKey] = session.liftOptions[oldOptKey];
+              }
+              delete session.liftOptions[oldOptKey];
+              changed = true;
+            }
+          }
+        });
+      });
+    });
+    return changed;
+  }
+
   let state = load() || defaultState();
+  if(migrateLegacyLiftNames(state)){
+    save(state);
+  }
   const openLifts = new Set();
   const timers = {
     rest:{duration:90, remaining:90, running:false, interval:null},
