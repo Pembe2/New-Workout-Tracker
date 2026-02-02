@@ -1,0 +1,1894 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Beach Pump Workout</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+<div class="safe-area-fix"></div>
+
+<header>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <h1>Beach Pump Workout</h1>
+        <div class="sub">Quick pump session with short rests. Saves on-device.</div>
+      </div>
+      <div class="row" style="position:relative">
+        <button class="btn menuBtn iconOnly" id="menuToggle" aria-label="Menu">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M3 6h18M3 12h18M3 18h18"/>
+          </svg>
+        </button>
+        <input type="file" id="importFile" style="display:none" accept=".json">
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="menuLayer" id="menuLayer">
+  <div class="menuOverlay" id="menuOverlay"></div>
+  <div class="menuPopup" id="menuPopup">
+    <a class="menuItem" href="index.html">Workout Index</a>
+    <div class="hr" style="margin:4px 0"></div>
+    <button class="menuItem" id="devNotesBtn">
+      <img class="icon devNotesIcon devNotesIcon--dark" src="middle finger - white.svg" alt="">
+      <img class="icon devNotesIcon devNotesIcon--light" src="middle finger -black.svg" alt="">
+      Dev Notes
+    </button>
+    <button class="menuItem" id="themeToggle">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 1 0 9.8 9.8z"/>
+      </svg>
+      Theme
+    </button>
+    <button class="menuItem" id="importBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v12M8 11l4 4 4-4M4 21h16"/>
+      </svg>
+      Import
+    </button>
+    <button class="menuItem" id="exportBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 21V9M8 13l4-4 4 4M4 3h16"/>
+      </svg>
+      Export
+    </button>
+    <button class="menuItem bad" id="resetBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<main id="app"></main>
+
+<div class="devNotesOverlay hidden" id="devNotesOverlay"></div>
+<div class="devNotesModal hidden" id="devNotesModal" role="dialog" aria-modal="true" aria-labelledby="devNotesTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="devNotesTitle" style="margin:0">Developer Comments</h3>
+    <button class="btn" id="devNotesClose" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+      Close
+    </button>
+  </div>
+  <div class="devNotesList" id="devNotesList"></div>
+  <div class="small" style="margin-bottom:6px">Add a comment</div>
+  <textarea id="devNotesInput" style="width:100%; height:80px; padding:10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text); font-family:var(--sans); font-size:13px;" placeholder="Type a comment..."></textarea>
+  <div class="row" style="justify-content:flex-end; margin-top:8px">
+    <button class="btn good" id="devNotesAdd" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Add
+    </button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const KEY = "workout_tracker_beach_pump_v1";
+  const ICONS = {
+    add: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+    remove: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
+    copy: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="10" height="10" rx="2"/><rect x="5" y="5" width="10" height="10" rx="2"/></svg>`,
+    play: `<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l12 7-12 7z"/></svg>`,
+    pause: `<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>`,
+    reset: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6"/><path d="M3 4v4h4"/></svg>`,
+    clock: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`,
+    sound: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9a5 5 0 0 1 0 6"/></svg>`,
+    minus: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>`,
+    plus: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,
+    close: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`,
+    check: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>`,
+    unlock: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0"/></svg>`,
+    trash: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>`,
+    chevron: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>`
+  };
+
+  // Beach pump workout plan
+
+  const PLAN = [
+    {
+      id:"pump", short:"Pump", title:"Beach Pump",
+      mobility:[
+        {name:"Light cardio (bike / row / treadmill)", dose:"2 minutes", cue:"Easy pace to raise temperature."},
+        {name:"Band pull-aparts", dose:"20 reps", cue:"Squeeze shoulder blades; keep ribs down."},
+        {name:"Bodyweight squats", dose:"20 reps", cue:"Smooth tempo; full range."},
+        {name:"Push-ups", dose:"15 reps", cue:"Controlled; stop before form breaks."},
+        {name:"Arm circles / shoulder rolls", dose:"1 minute", cue:"Relax shoulders; smooth circles."}
+      ],
+      lifts:[
+        {name:"A1 Incline Dumbbell Press", sets:4, reps:"12-15", rest:"20-30s", cue:"Controlled tempo with slow eccentric."},
+        {name:"A2 Lat Pulldown", sets:4, reps:"12-15", rest:"20-30s", cue:"1-second squeeze at bottom.", options:["Wide","Neutral"], cues:{
+          "Wide":"Pull to upper chest; keep elbows slightly forward.",
+          "Neutral":"Elbows closer to ribs; squeeze lats hard."
+        }},
+        {name:"B1 Leg Press", sets:3, reps:"20-25", rest:"30-40s", cue:"Constant tension; no lockout."},
+        {name:"B2 Walking Lunges", sets:3, reps:"12-16 steps", rest:"30-40s", cue:"Long stride; stable knee.", options:["Bodyweight","Dumbbells"]},
+        {name:"C1 Dumbbell Lateral Raises", sets:3, reps:"15-20", rest:"45s", cue:"Partial reps for last 5."},
+        {name:"C2 Cable Triceps Pushdown (Rope)", sets:3, reps:"15-20", rest:"45s", cue:"Slow controlled negative."},
+        {name:"C3 Curls", sets:3, reps:"15-20", rest:"45s", cue:"Full stretch at bottom.", options:["EZ-Bar","Dumbbell"]}
+      ],
+      conditioning:{label:"Finisher (5 minutes)", rx:"Bodyweight full-body circuit: 30s each x 2 rounds (no rest between moves, rest 30s between rounds)."}
+    }
+  ];
+
+  const $ = (s, el=document) => el.querySelector(s);
+
+  function isoDate(d=new Date()){ return d.toISOString().slice(0,10); }
+  function weekStartKey(d=new Date()){
+    const x = new Date(d);
+    const day = (x.getDay()+6)%7; // Mon=0
+    x.setDate(x.getDate()-day);
+    return isoDate(x);
+  }
+  function weekStartKeyWithCutoff(d=new Date()){
+    const x = new Date(d);
+    if(x.getDay() === 0 && x.getHours() >= 23){
+      return weekStartKey(addDays(x, 1));
+    }
+    return weekStartKey(x);
+  }
+  function addDays(d, n){
+    const x = new Date(d);
+    x.setDate(x.getDate() + n);
+    return x;
+  }
+  function nextSundayAt23(d=new Date()){
+    const x = new Date(d);
+    const day = x.getDay(); // Sun=0
+    let daysUntil = (7 - day) % 7;
+    if(day === 0 && x.getHours() >= 23) daysUntil = 7;
+    const target = addDays(x, daysUntil);
+    target.setHours(23, 0, 0, 0);
+    return target;
+  }
+
+  function load(){
+    try{ return JSON.parse(localStorage.getItem(KEY)) || null; }catch(e){ return null; }
+  }
+  function save(state){
+    localStorage.setItem(KEY, JSON.stringify(state));
+  }
+
+  function defaultState(){
+    return {
+      weekStart: weekStartKeyWithCutoff(),
+      activeDayId: PLAN[0].id,
+      sessions: {}, // weekStart -> dayId -> data
+      viewWeekStart: null,
+      timers: {
+        restDuration: 90,
+        restRemaining: 90,
+        workoutElapsed: 0,
+        theme: "dark"
+      }
+    };
+  }
+
+  let state = load() || defaultState();
+  const openLifts = new Set();
+  const timers = {
+    rest:{duration:90, remaining:90, running:false, interval:null},
+    workout:{elapsed:0, running:false, interval:null}
+  };
+  let weeklyRolloverTimer = null;
+
+  // Apply theme immediately
+  if(!state.theme) state.theme = "dark";
+  if(state.theme === "light") document.body.classList.add("light");
+  else document.body.classList.remove("light");
+
+  function ensureWeek(){
+    const wk = weekStartKeyWithCutoff();
+    if(state.weekStart !== wk){
+      const oldWeek = state.weekStart;
+      state.weekStart = wk;
+      state.activeDayId = PLAN[0].id;
+      if(!state.viewWeekStart || state.viewWeekStart === oldWeek){
+        state.viewWeekStart = wk;
+      }
+    }
+    if(!state.sessions[state.weekStart]) state.sessions[state.weekStart] = {};
+    if(!state.viewWeekStart) state.viewWeekStart = state.weekStart;
+  }
+
+  function scheduleWeeklyRollover(){
+    if(weeklyRolloverTimer){
+      clearTimeout(weeklyRolloverTimer);
+      weeklyRolloverTimer = null;
+    }
+    const now = new Date();
+    const target = nextSundayAt23(now);
+    const ms = Math.max(1000, target.getTime() - now.getTime());
+    weeklyRolloverTimer = setTimeout(() => {
+      ensureWeek();
+      state.viewWeekStart = state.weekStart;
+      save(state);
+      render();
+      scheduleWeeklyRollover();
+    }, ms);
+  }
+
+  function ensureTimers(){
+    if(!state.timers) state.timers = {restDuration:90, restRemaining:90, workoutElapsed:0};
+    if(!Number.isFinite(state.timers.restDuration)) state.timers.restDuration = 90;
+    if(!Number.isFinite(state.timers.restRemaining)) state.timers.restRemaining = state.timers.restDuration;
+    if(!Number.isFinite(state.timers.workoutElapsed)) state.timers.workoutElapsed = 0;
+    timers.rest.duration = state.timers.restDuration;
+    timers.rest.remaining = state.timers.restRemaining;
+    timers.workout.elapsed = state.timers.workoutElapsed;
+    persistTimers();
+  }
+
+  function persistTimers(){
+    state.timers = {
+      restDuration: timers.rest.duration,
+      restRemaining: timers.rest.remaining,
+      workoutElapsed: timers.workout.elapsed
+    };
+    save(state);
+  }
+
+  function getSession(dayId){
+    ensureWeek();
+    const wk = state.weekStart;
+    if(!state.sessions[wk][dayId]){
+      state.sessions[wk][dayId] = {
+        completed:false,
+        mobilityDone:{},
+        liftSets:{},  // liftName[::option] -> [{reps,weight,rpe,done}]
+        liftOptions:{},
+        extraSets:{},     // NEW: liftStorageKey -> number of extra sets
+        conditioningMinutes:"",
+        conditioningPushups:{set1:"", set2:""},
+        dayLocked:false
+      };
+    }
+    return state.sessions[wk][dayId];
+  }
+
+  function countCompleted(){
+    ensureWeek();
+    const wk = state.weekStart;
+    const obj = state.sessions[wk] || {};
+    return Object.values(obj).filter(s => s && s.completed).length;
+  }
+  function countCompletedForWeek(weekKey){
+    const obj = state.sessions[weekKey] || {};
+    return Object.values(obj).filter(s => s && s.completed).length;
+  }
+
+  function renderTabs(){
+    const tabs = $("#tabs");
+    if(!tabs) return;
+    tabs.innerHTML = "";
+    PLAN.forEach(d => {
+      const b = document.createElement("button");
+      b.className = "tab" + (d.id === state.activeDayId ? " active" : "");
+      b.textContent = d.short;
+      b.onclick = () => { state.activeDayId = d.id; save(state); render(); };
+      tabs.appendChild(b);
+    });
+    const weekLbl = $("#weekLbl");
+    if(weekLbl) weekLbl.textContent = state.weekStart;
+    const completedLbl = $("#completedLbl");
+    if(completedLbl) completedLbl.textContent = String(countCompleted());
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
+  function formatTime(totalSec){
+    const s = Math.max(0, Math.floor(totalSec));
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return `${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`;
+  }
+  function weekSummaryCompletedRatio(sessions){
+    const completed = PLAN.reduce((sum, d) => sum + (sessions[d.id] && sessions[d.id].completed ? 1 : 0), 0);
+    return completed / PLAN.length;
+  }
+  function prevWeekKey(weekKey){
+    return isoDate(addDays(new Date(weekKey + "T00:00:00"), -7));
+  }
+  function weekHasAnyData(weekKey){
+    const sessions = state.sessions[weekKey] || {};
+    return Object.values(sessions).some(s => {
+      if(!s) return false;
+      if(s.completed) return true;
+      if(s.notes && String(s.notes).trim()) return true;
+      if(s.conditioningMinutes && parseFloat(s.conditioningMinutes)) return true;
+      if(s.mobilityDone && Object.values(s.mobilityDone).some(Boolean)) return true;
+      if(s.liftSets && Object.values(s.liftSets).some(arr => hasLiftData(arr))) return true;
+      return false;
+    });
+  }
+  function prevWeekWithData(weekKey){
+    const weeks = Object.keys(state.sessions || {})
+      .filter(w => w < weekKey)
+      .sort((a,b) => b.localeCompare(a));
+    for(const wk of weeks){
+      if(weekHasAnyData(wk)) return wk;
+    }
+    return null;
+  }
+  function parseNum(v){
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  function displayNameFromStorageKey(key){
+    const parts = String(key).split("::");
+    if(parts.length > 1){
+      return `${parts[0]} (${parts.slice(1).join("::")})`;
+    }
+    return key;
+  }
+  function exerciseStatsForWeek(weekKey){
+    const sessions = state.sessions[weekKey] || {};
+    const stats = {};
+    Object.values(sessions).forEach(s => {
+      if(!s || !s.liftSets) return;
+      Object.entries(s.liftSets).forEach(([key, arr]) => {
+        const name = displayNameFromStorageKey(key);
+        if(!stats[name]) stats[name] = {maxWeight:null, volume:0};
+        (arr || []).forEach(set => {
+          if(!set || !set.done) return;
+          const w = parseNum(set.weight);
+          const r = parseNum(set.reps);
+          if(w !== null){
+            stats[name].maxWeight = stats[name].maxWeight === null ? w : Math.max(stats[name].maxWeight, w);
+          }
+          if(w !== null && r !== null){
+            stats[name].volume += w * r;
+          }
+        });
+      });
+    });
+    return stats;
+  }
+  function formatDelta(n){
+    if(n === null || n === undefined || Number.isNaN(n)) return "-";
+    const rounded = Math.round(n * 10) / 10;
+    const sign = rounded > 0 ? "+" : "";
+    return `${sign}${rounded}`;
+  }
+  function formatNumber(n){
+    if(n === null || n === undefined || Number.isNaN(n)) return "-";
+    const rounded = Math.round(n * 10) / 10;
+    return String(rounded);
+  }
+
+  function applyDayLock(container, locked){
+    if(!container) return;
+    container.querySelectorAll("input, textarea, select, button").forEach(el => {
+      if(el.hasAttribute("data-allow-when-locked")) return;
+      el.disabled = !!locked;
+    });
+  }
+
+  function getOverloadSuggestion(lift, prevSets){
+    // 1. Check for valid history
+    const valid = prevSets.filter(s => s.done && parseNum(s.weight) !== null && parseNum(s.reps) !== null);
+    if(!valid.length) return null;
+
+    // 2. Find best set (heaviest weight, then most reps)
+    valid.sort((a,b) => {
+      const wA = parseNum(a.weight), wB = parseNum(b.weight);
+      if(wA !== wB) return wB - wA;
+      return parseNum(b.reps) - parseNum(a.reps);
+    });
+    const best = valid[0];
+    const lastWeight = parseNum(best.weight);
+    const lastReps = parseNum(best.reps);
+
+    // 3. Parse target reps (e.g. "6-8" -> 8)
+    if(lift.reps.toLowerCase().includes("amrap")) return `Beat ${lastReps} reps @ ${lastWeight} lbs`;
+    const nums = lift.reps.match(/\d+/g);
+    if(!nums) return null;
+    const maxTarget = parseInt(nums[nums.length-1]);
+
+    // 4. Generate Tip
+    if(lastReps >= maxTarget){
+      return `Target hit! Try ${lastWeight + 5} lbs`;
+    } else {
+      return `Aim for ${lastReps + 1} reps @ ${lastWeight} lbs`;
+    }
+  }
+
+  let audioCtx = null;
+  let audioUnlocked = false;
+  let noiseBuffer = null;
+  let wakeLock = null;
+  let wakeLockEnabled = false;
+  async function resumeAudioIfNeeded(){
+    try{
+      if(!audioCtx) return;
+      if(audioCtx.state === "suspended") await audioCtx.resume();
+      audioUnlocked = audioCtx.state === "running";
+    }catch(e){
+      audioUnlocked = false;
+    }
+  }
+  function playBeep(){
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return;
+      audioCtx = audioCtx || new Ctx();
+      if(audioCtx.state === "suspended") audioCtx.resume();
+      audioUnlocked = audioCtx.state === "running";
+      const drop = (t) => {
+
+        const carrier = audioCtx.createOscillator();
+        const mod = audioCtx.createOscillator();
+        const modGain = audioCtx.createGain();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        carrier.type = "sine";
+        carrier.frequency.setValueAtTime(640, t);
+        carrier.frequency.exponentialRampToValueAtTime(420, t + 0.18);
+
+        mod.type = "sine";
+        mod.frequency.setValueAtTime(28, t);
+        modGain.gain.setValueAtTime(10, t);
+        modGain.gain.exponentialRampToValueAtTime(0.1, t + 0.25);
+
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(1800, t);
+        filter.Q.value = 0.7;
+
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.9, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+
+        mod.connect(modGain);
+        modGain.connect(carrier.frequency);
+        carrier.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        carrier.start(t);
+        mod.start(t);
+        carrier.stop(t + 0.24);
+        mod.stop(t + 0.24);
+      };
+      const base = audioCtx.currentTime + 0.02;
+      drop(base);
+      drop(base + 1.0);
+      drop(base + 2.0);
+    }catch(e){}
+    if(navigator.vibrate){
+      navigator.vibrate(120);
+      setTimeout(() => navigator.vibrate(120), 1000);
+      setTimeout(() => navigator.vibrate(120), 2000);
+    }
+  }
+  async function unlockAudio(){
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return false;
+      audioCtx = audioCtx || new Ctx();
+      if(audioCtx.state === "suspended") await audioCtx.resume();
+      audioUnlocked = audioCtx.state === "running";
+      if(audioUnlocked){
+        // short tap to confirm unlock
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = "sine";
+        o.frequency.value = 880;
+        g.gain.value = 0.35;
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
+        o.stop(audioCtx.currentTime + 0.15);
+      }
+      updateTimersUI();
+      return audioUnlocked;
+    }catch(e){
+      updateTimersUI();
+      return false;
+    }
+  }
+
+  function stopRestTimer(){
+    if(timers.rest.interval){
+      clearInterval(timers.rest.interval);
+      timers.rest.interval = null;
+    }
+    timers.rest.running = false;
+    updateWakeLock();
+  }
+  function showRestPopup(){
+    const el = $("#restPopup");
+    if(el) el.classList.remove("hidden");
+    const overlay = $("#restOverlay");
+    if(overlay) overlay.classList.remove("hidden");
+  }
+  function hideRestPopup(){
+    const el = $("#restPopup");
+    if(el) el.classList.add("hidden");
+    const overlay = $("#restOverlay");
+    if(overlay) overlay.classList.add("hidden");
+  }
+  function startRestTimer(){
+    if(timers.rest.running) return;
+    timers.rest.remaining = timers.rest.duration;
+    timers.rest.running = true;
+    updateWakeLock();
+    timers.rest.interval = setInterval(() => {
+      timers.rest.remaining -= 1;
+      if(timers.rest.remaining <= 0){
+        timers.rest.remaining = 0;
+        stopRestTimer();
+        playBeep();
+        setTimeout(() => hideRestPopup(), 2600);
+      }
+      persistTimers();
+      updateTimersUI();
+    }, 1000);
+    showRestPopup();
+    updateTimersUI();
+  }
+
+  function stopWorkoutTimer(){
+    if(timers.workout.interval){
+      clearInterval(timers.workout.interval);
+      timers.workout.interval = null;
+    }
+    timers.workout.running = false;
+    updateWakeLock();
+  }
+
+  function updateTimersUI(){
+    const restTimeEl = $("#restTime");
+    const workoutTimeEl = $("#workoutTime");
+    if(restTimeEl) restTimeEl.textContent = formatTime(timers.rest.remaining);
+    if(workoutTimeEl) workoutTimeEl.textContent = formatTime(timers.workout.elapsed);
+    const restStatus = $("#restStatus");
+    if(restStatus) restStatus.textContent = timers.rest.running ? "Running" : "Ready";
+    const workoutStatus = $("#workoutStatus");
+    if(workoutStatus) workoutStatus.textContent = timers.workout.running ? "Running" : "Paused";
+    const restPopupTime = $("#restPopupTime");
+    if(restPopupTime) restPopupTime.textContent = formatTime(timers.rest.remaining);
+    const restPopupStatus = $("#restPopupStatus");
+    if(restPopupStatus) restPopupStatus.textContent = timers.rest.running ? "Running" : "Paused";
+    const restPauseBtn = $("#restPauseBtn");
+    if(restPauseBtn){
+      restPauseBtn.innerHTML = `${timers.rest.running ? ICONS.pause : ICONS.play}<span class="label">${timers.rest.running ? "Pause" : "Resume"}</span>`;
+    }
+    const restDurationLbl = $("#restDurationLbl");
+    if(restDurationLbl) restDurationLbl.textContent = formatTime(timers.rest.duration);
+    const enableAudioBtn = $("#enableAudioBtn");
+    if(enableAudioBtn) enableAudioBtn.style.display = audioUnlocked ? "none" : "inline-flex";
+  }
+
+  async function requestWakeLock(){
+    if(!("wakeLock" in navigator)) return;
+    try{
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLockEnabled = true;
+      wakeLock.addEventListener("release", () => {
+        wakeLockEnabled = false;
+      });
+    }catch(e){
+      wakeLockEnabled = false;
+    }
+  }
+  function releaseWakeLock(){
+    if(wakeLock){
+      wakeLock.release().catch(() => {});
+      wakeLock = null;
+    }
+    wakeLockEnabled = false;
+  }
+  function updateWakeLock(){
+    const shouldHold = timers.rest.running;
+    if(shouldHold){
+      if(document.visibilityState === "visible" && !wakeLockEnabled){
+        requestWakeLock();
+      }
+    }else{
+      releaseWakeLock();
+    }
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible"){
+      resumeAudioIfNeeded();
+      updateTimersUI();
+      updateWakeLock();
+    }
+  });
+
+  function wireTimers(){
+    const restMin = $("#restMin");
+    const restSec = $("#restSec");
+    const restSetBtn = $("#restSetBtn");
+    const restPauseBtn = $("#restPauseBtn");
+    const restResetBtn = $("#restResetBtn");
+    const restCloseBtn = $("#restCloseBtn");
+    const restPlusBtn = $("#restPlusBtn");
+    const restMinusBtn = $("#restMinusBtn");
+
+    if(restMin && restSec){
+      const m = Math.floor(timers.rest.duration / 60);
+      const s = timers.rest.duration % 60;
+      restMin.value = String(m);
+      restSec.value = String(s);
+    }
+
+    if(restSetBtn){
+      restSetBtn.onclick = () => {
+        const m = clamp(parseInt(restMin.value || "0", 10) || 0, 0, 59);
+        const s = clamp(parseInt(restSec.value || "0", 10) || 0, 0, 59);
+        const total = Math.max(5, (m * 60) + s);
+        stopRestTimer();
+        timers.rest.duration = total;
+        timers.rest.remaining = total;
+        persistTimers();
+        updateTimersUI();
+      };
+    }
+
+    if(restPauseBtn){
+      restPauseBtn.onclick = () => {
+        if(timers.rest.running){
+          stopRestTimer();
+        }else{
+          startRestTimer();
+        }
+        persistTimers();
+        updateTimersUI();
+      };
+    }
+
+    if(restResetBtn){
+      restResetBtn.onclick = () => {
+        stopRestTimer();
+        timers.rest.remaining = timers.rest.duration;
+        persistTimers();
+        updateTimersUI();
+      };
+    }
+
+    if(restCloseBtn){
+      restCloseBtn.onclick = () => {
+        stopRestTimer();
+        persistTimers();
+        hideRestPopup();
+        updateTimersUI();
+      };
+    }
+
+    const enableAudioBtn = $("#enableAudioBtn");
+    if(enableAudioBtn){
+      enableAudioBtn.onclick = () => {
+        unlockAudio();
+        updateTimersUI();
+      };
+    }
+
+    const adjustRest = (delta) => {
+      timers.rest.remaining = clamp(timers.rest.remaining + delta, 5, 60 * 30);
+      persistTimers();
+      updateTimersUI();
+    };
+    if(restPlusBtn) restPlusBtn.onclick = () => adjustRest(15);
+    if(restMinusBtn) restMinusBtn.onclick = () => adjustRest(-15);
+
+    const workoutStartBtn = $("#workoutStartBtn");
+    const workoutPauseBtn = $("#workoutPauseBtn");
+    const workoutResetBtn = $("#workoutResetBtn");
+
+    if(workoutStartBtn){
+      workoutStartBtn.onclick = () => {
+        if(timers.workout.running) return;
+        timers.workout.running = true;
+        updateWakeLock();
+        timers.workout.interval = setInterval(() => {
+          timers.workout.elapsed += 1;
+          persistTimers();
+          updateTimersUI();
+        }, 1000);
+        updateTimersUI();
+      };
+    }
+
+    if(workoutPauseBtn){
+      workoutPauseBtn.onclick = () => {
+        stopWorkoutTimer();
+        persistTimers();
+        updateTimersUI();
+      };
+    }
+
+    if(workoutResetBtn){
+      workoutResetBtn.onclick = () => {
+        if(!confirm("Reset workout timer?")) return;
+        stopWorkoutTimer();
+        timers.workout.elapsed = 0;
+        persistTimers();
+        updateTimersUI();
+      };
+    }
+  }
+
+  function liftOptionKey(dayId, lift){
+    return `${dayId}::${lift.name}`;
+  }
+  function liftStorageKey(lift, option){
+    if(lift.options && option) return `${lift.name}::${option}`;
+    return lift.name;
+  }
+  function getExtraSets(session, lift, option){
+    if(!session.extraSets) session.extraSets = {};
+    const key = liftStorageKey(lift, option);
+    return session.extraSets[key] || 0;
+  }
+  function setExtraSets(session, lift, option, n){
+    if(!session.extraSets) session.extraSets = {};
+    const key = liftStorageKey(lift, option);
+    session.extraSets[key] = Math.max(0, n|0);
+  }
+  function findStoredOption(session, lift){
+    if(!session || !session.liftSets || !lift.options) return null;
+    const prefix = `${lift.name}::`;
+    const match = Object.keys(session.liftSets).find(k => k.startsWith(prefix));
+    return match ? match.slice(prefix.length) : null;
+  }
+  function resolveLiftOption(session, dayId, lift){
+    if(!lift.options || !lift.options.length) return null;
+    const key = liftOptionKey(dayId, lift);
+    if(session && session.liftOptions && lift.options.includes(session.liftOptions[key])){
+      return session.liftOptions[key];
+    }
+    if(session && session.liftSets && session.liftSets[lift.name]){
+      return lift.options[0];
+    }
+    const stored = findStoredOption(session, lift);
+    if(stored && lift.options.includes(stored)) return stored;
+    return lift.options[0];
+  }
+  function getLiftOption(session, dayId, lift){
+    const opt = resolveLiftOption(session, dayId, lift);
+    if(!opt) return null;
+    if(!session.liftOptions) session.liftOptions = {};
+    const key = liftOptionKey(dayId, lift);
+    if(session.liftOptions[key] !== opt){
+      session.liftOptions[key] = opt;
+    }
+    return opt;
+  }
+  function ensureLiftArray(session, lift, option){
+    const key = liftStorageKey(lift, option);
+
+    // migrate old key if options changed
+    if(lift.options && !session.liftSets[key] && session.liftSets[lift.name]){
+      session.liftSets[key] = session.liftSets[lift.name];
+      delete session.liftSets[lift.name];
+    }
+
+    if(!session.liftSets[key]) session.liftSets[key] = [];
+
+    // total sets = planned sets + user-added extra sets (per lift/option)
+    const extra = getExtraSets(session, lift, option);
+    const targetLen = (lift.sets || 0) + extra;
+
+    const arr = session.liftSets[key];
+    while(arr.length < targetLen) arr.push({reps:"", weight:"", rpe:"", done:false});
+    if(arr.length > targetLen) arr.length = targetLen;
+
+    return arr;
+  }
+  function getLiftSets(session, dayId, lift){
+    if(!session || !session.liftSets) return [];
+    const opt = resolveLiftOption(session, dayId, lift);
+    const key = liftStorageKey(lift, opt);
+    if(session.liftSets[key]) return session.liftSets[key];
+    if(lift.options && session.liftSets[lift.name]) return session.liftSets[lift.name];
+    return [];
+  }
+  function liftDetailKey(dayId, lift){
+    return `${dayId}::${lift.name}`;
+  }
+  function hasLiftData(sets){
+    return (sets || []).some(s => s && (s.done || s.reps || s.weight || s.rpe));
+  }
+  function getPrevLiftData(dayId, lift, preferredOption){
+    const currentWeek = state.weekStart;
+    const weeks = Object.keys(state.sessions || {})
+      .filter(w => w < currentWeek)
+      .sort((a,b) => b.localeCompare(a));
+    for(const wk of weeks){
+      const s = state.sessions[wk] && state.sessions[wk][dayId];
+      if(!s) continue;
+
+      if(lift.options && lift.options.length){
+        const opt = (preferredOption && lift.options.includes(preferredOption))
+          ? preferredOption
+          : resolveLiftOption(s, dayId, lift);
+        const key = opt ? liftStorageKey(lift, opt) : lift.name;
+        const sets = (s.liftSets && s.liftSets[key]) ? s.liftSets[key] : getLiftSets(s, dayId, lift);
+        if(hasLiftData(sets)) return {weekKey:wk, session:s, option:opt, sets};
+
+        if(s.liftSets){
+          const prefix = `${lift.name}::`;
+          const keys = Object.keys(s.liftSets).filter(k => k === lift.name || k.startsWith(prefix));
+          for(const k of keys){
+            const arr = s.liftSets[k] || [];
+            if(hasLiftData(arr)){
+              const opt2 = k.startsWith(prefix) ? k.slice(prefix.length) : lift.options[0];
+              return {weekKey:wk, session:s, option:opt2, sets: arr};
+            }
+          }
+        }
+      }else{
+        const sets = getLiftSets(s, dayId, lift);
+        if(hasLiftData(sets)) return {weekKey:wk, session:s, option:null, sets};
+      }
+    }
+    return {weekKey:null, session:null, option:null, sets:[]};
+  }
+
+  function updateAutoComplete(session, day){
+    if(session.dayLocked){
+      session.completed = true;
+      return;
+    }
+    const anyMob = Object.values(session.mobilityDone || {}).some(Boolean);
+    const anySet = day.lifts.some(l => {
+      const arr = getLiftSets(session, day.id, l);
+      return arr.some(s => s && s.done);
+    });
+    session.completed = anyMob || anySet;
+  }
+
+  function render(){
+    ensureWeek();
+    ensureTimers();
+    if(!PLAN.length) return;
+    const validIds = new Set(PLAN.map(d => d.id));
+    if(!validIds.has(state.activeDayId)){
+      state.activeDayId = PLAN[0].id;
+      save(state);
+    }
+    const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
+    const session = getSession(day.id);
+    const prevCompleted = session.completed;
+    updateAutoComplete(session, day);
+    if(session.completed !== prevCompleted) save(state);
+
+    const app = $("#app");
+
+    const viewWeek = state.viewWeekStart || state.weekStart;
+    const weekSummary = (() => {
+      const wk = viewWeek;
+      const sessions = state.sessions[wk] || {};
+      let totalSets = 0;
+      let doneSets = 0;
+      let mobTotal = 0;
+      let mobDone = 0;
+      let condTotal = 0;
+      const days = PLAN.map(d => {
+        const s = sessions[d.id];
+        const dayTotalSets = d.lifts.reduce((sum, l) => sum + l.sets, 0);
+        totalSets += dayTotalSets;
+        mobTotal += d.mobility.length;
+        let dayDoneSets = 0;
+        let dayMobDone = 0;
+        let dayCond = 0;
+        let completed = false;
+        if(s){
+          completed = !!s.completed;
+          dayMobDone = Object.values(s.mobilityDone || {}).filter(Boolean).length;
+          dayCond = parseFloat(s.conditioningMinutes) || 0;
+          d.lifts.forEach(l => {
+            const arr = getLiftSets(s, d.id, l);
+            dayDoneSets += arr.filter(x => x.done).length;
+          });
+        }
+        doneSets += dayDoneSets;
+        mobDone += dayMobDone;
+        condTotal += dayCond;
+        return {
+          title: d.title,
+          completed,
+          doneSets: dayDoneSets,
+          totalSets: dayTotalSets,
+          mobDone: dayMobDone,
+          mobTotal: d.mobility.length,
+          cond: dayCond
+        };
+      });
+      const dayCompletion = weekSummaryCompletedRatio(sessions);
+      const setsRatio = totalSets ? (doneSets / totalSets) : 0;
+      const mobilityRatio = mobTotal ? (mobDone / mobTotal) : 0;
+      const condRatio = clamp(condTotal / 60, 0, 1);
+      const score = (dayCompletion * 0.45) + (setsRatio * 0.30) + (mobilityRatio * 0.15) + (condRatio * 0.10);
+      const evaluation = score >= 0.85 ? "Great" : score >= 0.65 ? "Good" : "Needs improvement";
+      return {
+        days,
+        totalSets,
+        doneSets,
+        mobTotal,
+        mobDone,
+        condTotal: Math.round(condTotal),
+        completed: countCompletedForWeek(wk),
+        evaluation
+      };
+    })();
+
+    const allWeeks = Object.keys(state.sessions || {}).sort((a,b) => b.localeCompare(a));
+    const prevWeekKeyStr = prevWeekWithData(viewWeek);
+    const prevWeekSummary = prevWeekKeyStr ? (() => {
+      const wk = prevWeekKeyStr;
+      const sessions = state.sessions[wk] || {};
+      let totalSets = 0;
+      let doneSets = 0;
+      let mobTotal = 0;
+      let mobDone = 0;
+      let condTotal = 0;
+      PLAN.forEach(d => {
+        const s = sessions[d.id];
+        totalSets += d.lifts.reduce((sum, l) => sum + l.sets, 0);
+        mobTotal += d.mobility.length;
+        if(s){
+          mobDone += Object.values(s.mobilityDone || {}).filter(Boolean).length;
+          condTotal += parseFloat(s.conditioningMinutes) || 0;
+          d.lifts.forEach(l => {
+            const arr = getLiftSets(s, d.id, l);
+            doneSets += arr.filter(x => x.done).length;
+          });
+        }
+      });
+      return {
+        totalSets,
+        doneSets,
+        mobTotal,
+        mobDone,
+        condTotal: Math.round(condTotal),
+        completed: countCompletedForWeek(wk)
+      };
+    })() : null;
+
+    const exerciseNames = Array.from(new Set(PLAN.flatMap(d => d.lifts.flatMap(l => {
+      if(l.options && l.options.length){
+        return l.options.map(opt => `${l.name} (${opt})`);
+      }
+      return [l.name];
+    }))));
+    const currentStats = exerciseStatsForWeek(viewWeek);
+    const prevStats = prevWeekKeyStr ? exerciseStatsForWeek(prevWeekKeyStr) : {};
+    const evalClass = weekSummary.evaluation === "Great"
+      ? "evalGood"
+      : weekSummary.evaluation === "Good"
+        ? "evalOk"
+        : "evalBad";
+
+    if(state.activeDayId === "dashboard"){
+      app.innerHTML = `
+        <details class="card" open>
+          <summary>
+            Weekly Dashboard
+            <span class="badge">Week of ${viewWeek}</span>
+          </summary>
+          <div class="details-body">
+            <div class="row" style="margin-bottom:10px">
+              <span class="small" style="min-width:110px">View week:</span>
+              <select id="weekSelect" class="inputMini" style="width:auto; min-width:140px">
+                ${allWeeks.length ? allWeeks.map(w => `
+                  <option value="${w}" ${w === viewWeek ? "selected":""}>${w}</option>
+                `).join("") : `<option value="${viewWeek}" selected>${viewWeek}</option>`}
+              </select>
+              <span class="small">Dashboard only (workout view stays on current week).</span>
+            </div>
+            <div class="row">
+              <span class="pill">Days <b>${weekSummary.completed}/5</b></span>
+              <span class="pill">Sets <b>${weekSummary.doneSets}/${weekSummary.totalSets}</b></span>
+              <span class="pill">Mobility <b>${weekSummary.mobDone}/${weekSummary.mobTotal}</b></span>
+              <span class="pill">Conditioning <b>${weekSummary.condTotal} min</b></span>
+              <span class="pill">Evaluation <b>${weekSummary.evaluation}</b><span class="evalFace ${evalClass}" aria-hidden="true">☺</span></span>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <span class="small">Vs previous week${prevWeekKeyStr ? ` (${prevWeekKeyStr})` : ""}:</span>
+              ${prevWeekSummary ? `
+                <span class="pill">Days <b>${weekSummary.completed - prevWeekSummary.completed >= 0 ? "+" : ""}${weekSummary.completed - prevWeekSummary.completed}</b></span>
+                <span class="pill">Sets <b>${weekSummary.doneSets - prevWeekSummary.doneSets >= 0 ? "+" : ""}${weekSummary.doneSets - prevWeekSummary.doneSets}</b></span>
+                <span class="pill">Mobility <b>${weekSummary.mobDone - prevWeekSummary.mobDone >= 0 ? "+" : ""}${weekSummary.mobDone - prevWeekSummary.mobDone}</b></span>
+                <span class="pill">Conditioning <b>${weekSummary.condTotal - prevWeekSummary.condTotal >= 0 ? "+" : ""}${weekSummary.condTotal - prevWeekSummary.condTotal} min</b></span>
+              ` : `<span class="pill">No previous week data</span>`}
+            </div>
+            <div class="dashTable">
+              <div class="dashHead">Day</div>
+              <div class="dashHead">Status</div>
+              <div class="dashHead">Sets</div>
+              <div class="dashHead">Mobility</div>
+              <div class="dashHead">Conditioning</div>
+              ${weekSummary.days.map(d => `
+                <div class="dashCell">${escapeHtml(d.title)}</div>
+                <div class="dashCell">${d.completed ? "Cmp" : "In Prog"}</div>
+                <div class="dashCell">${d.doneSets}/${d.totalSets}</div>
+                <div class="dashCell">${d.mobDone}/${d.mobTotal}</div>
+                <div class="dashCell">${Math.round(d.cond)} min</div>
+              `).join("")}
+            </div>
+            <details style="margin-top:12px">
+              <summary class="summaryIcon">
+                <div class="summaryRow">
+                  <span>Exercise comparison to previous week</span>
+                  <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+                </div>
+              </summary>
+              <div class="details-body">
+                <div class="dashTableWide">
+                  <div class="dashHead">Exercise</div>
+                  <div class="dashHead">Max</div>
+                  <div class="dashHead">Max &Delta;</div>
+                  <div class="dashHead">Volume</div>
+                  <div class="dashHead">Vol &Delta;</div>
+                  ${exerciseNames.map(name => {
+                    const cur = currentStats[name] || {};
+                    const prev = prevStats[name] || {};
+                    const curMax = cur.maxWeight ?? null;
+                    const prevMax = prev.maxWeight ?? null;
+                    const curVol = Number.isFinite(cur.volume) ? cur.volume : null;
+                    const prevVol = Number.isFinite(prev.volume) ? prev.volume : null;
+                    const maxDelta = (curMax !== null && prevMax !== null) ? (curMax - prevMax) : null;
+                    const volDelta = (curVol !== null && prevVol !== null) ? (curVol - prevVol) : null;
+                    return `
+                      <div class="dashCell">${escapeHtml(name)}</div>
+                      <div class="dashCell">${formatNumber(curMax)}</div>
+                      <div class="dashCell">${formatDelta(maxDelta)}</div>
+                      <div class="dashCell">${formatNumber(curVol)}</div>
+                      <div class="dashCell">${formatDelta(volDelta)}</div>
+                    `;
+                  }).join("")}
+                </div>
+              </div>
+            </details>
+          </div>
+        </details>
+      `;
+
+      const weekSelect = $("#weekSelect");
+      if(weekSelect){
+        weekSelect.onchange = () => {
+          state.viewWeekStart = weekSelect.value;
+          save(state);
+          render();
+        };
+      }
+      renderTabs();
+      return;
+    }
+
+    const mobilityHtml = day.mobility.map(m => {
+      const checked = !!session.mobilityDone[m.name];
+      return `
+        <div class="checkbox">
+          <input type="checkbox" ${checked ? "checked":""} data-mob="${escapeHtml(m.name)}">
+          <div>
+            <div class="t">${escapeHtml(m.name)}</div>
+            <div class="d" style="color:var(--accent); font-weight:700; margin-bottom:2px">${escapeHtml(m.dose)}</div>
+            <div class="d">${escapeHtml(m.cue)}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    const renderLift = (lift) => {
+      const option = getLiftOption(session, day.id, lift);
+      const arr = ensureLiftArray(session, lift, option);
+      const prevData = getPrevLiftData(day.id, lift, option);
+      const prevOption = prevData.option;
+      const prevArr = prevData.sets || [];
+      const prevWeekLabel = prevData.weekKey ? ` (week of ${prevData.weekKey})` : "";
+      const suggestion = getOverloadSuggestion(lift, prevArr);
+
+      let activeCue = lift.cue;
+      if(lift.cues && option && lift.cues[option]) activeCue = lift.cues[option];
+
+      const tableRows = arr.map((set, i) => {
+        const idx = i;
+        const prevSet = prevArr[idx] || null;
+        const prevLabel = prevOption ? ` (${escapeHtml(prevOption)})` : "";
+        const prevText = prevSet
+          ? `Prev${prevLabel}${prevWeekLabel} set ${i+1}: reps ${escapeHtml(prevSet.reps || "-")}, weight ${escapeHtml(prevSet.weight || "-")}, RPE ${escapeHtml(prevSet.rpe || "-")}, ${prevSet.done ? "done" : "not done"}`
+          : `Prev${prevLabel}${prevWeekLabel} set ${i+1}: no data`;
+        return `
+          <div class="setnum">Set ${i+1}</div>
+          <div class="cell"><input inputmode="numeric" placeholder="${escapeHtml(lift.reps)}" value="${escapeHtml(set.reps)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="reps" data-idx="${idx}"></div>
+          <div class="cell"><input inputmode="decimal" placeholder="weight" value="${escapeHtml(set.weight)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="weight" data-idx="${idx}"></div>
+          <div class="cell"><input inputmode="decimal" placeholder="RPE 1-10" value="${escapeHtml(set.rpe)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="rpe" data-idx="${idx}"></div>
+          <div class="done"><input type="checkbox" ${set.done ? "checked":""} data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="done" data-idx="${idx}"></div>
+          <div class="compareRow">${prevText}</div>
+        `;
+      }).join("");
+
+      const optionToggle = lift.options ? `
+        <div class="optionToggle" role="group" aria-label="Exercise option">
+          ${lift.options.map(opt => `
+            <button class="optBtn ${opt === option ? "active" : ""}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(opt)}" type="button">${escapeHtml(opt)}</button>
+          `).join("")}
+        </div>
+      ` : "";
+
+      const detailKey = liftDetailKey(day.id, lift);
+      const isOpen = openLifts.has(detailKey);
+      return `
+        <details data-detail="${escapeHtml(detailKey)}" ${isOpen ? "open" : ""}>
+          <summary>
+            <div class="summaryRow">
+              <span>${escapeHtml(lift.name)}</span>
+              <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+            </div>
+          </summary>
+          <div class="details-body">
+            <div class="small">
+              <span class="pill">Sets <b>${lift.sets}</b></span>
+              <span class="pill">Reps <b>${escapeHtml(lift.reps)}</b></span>
+              <span class="pill">Rest <b>${escapeHtml(lift.rest)}</b></span>
+              ${optionToggle}
+              ${suggestion ? `<div class="suggestion">ðŸŽ¯ ${escapeHtml(suggestion)}</div>` : ""}
+              <div class="hr"></div>
+              <div><b>Coaching cue:</b> ${escapeHtml(activeCue)}</div>
+            </div>
+
+            <div class="hr"></div>
+            <div class="row" style="justify-content:space-between; margin:8px 0 10px">
+              <div class="small">
+                Planned sets: <b>${lift.sets}</b>
+                &nbsp;*&nbsp;
+                Total sets: <b>${arr.length}</b>
+              </div>
+              <div class="row" style="gap:8px">
+                <button class="btn" type="button"
+                  data-addset="1"
+                  data-lift="${escapeHtml(lift.name)}"
+                  data-opt="${escapeHtml(option || "")}">
+                  ${ICONS.add}<span class="label">Add set</span>
+                </button>
+                <button class="btn" type="button"
+                  data-rmset="1"
+                  data-lift="${escapeHtml(lift.name)}"
+                  data-opt="${escapeHtml(option || "")}"
+                  ${arr.length <= lift.sets ? "disabled" : ""}>
+                  ${ICONS.remove}<span class="label">Remove set</span>
+                </button>
+                ${hasLiftData(prevArr) ? `
+                <button class="btn" type="button"
+                  data-copyprev="1"
+                  data-lift="${escapeHtml(lift.name)}"
+                  data-opt="${escapeHtml(option || "")}">
+                  ${ICONS.copy}<span class="label">Copy Prev</span>
+                </button>` : ""}
+              </div>
+            </div>
+
+            <div class="table">
+              <div class="th">Set</div>
+              <div class="th">Reps</div>
+              <div class="th">Weight</div>
+              <div class="th">RPE</div>
+              <div class="th" style="text-align:center">Done</div>
+              ${tableRows}
+            </div>
+
+            <div class="small" style="margin-top:10px">
+              Execution: keep effort high but controlled (generally stop 1-2 reps before failure on most sets).
+            </div>
+          </div>
+        </details>
+      `;
+    };
+
+    const supersetMeta = {
+      A: [
+        "Superset A - Chest + Back (8 minutes)",
+        "Perform 4 rounds",
+        "No rest between exercises",
+        "Rest 20-30 seconds between rounds"
+      ],
+      B: [
+        "Superset B - Legs (6 minutes)",
+        "Perform 3 rounds",
+        "No rest between exercises",
+        "Rest 30-40 seconds between rounds"
+      ],
+      C: [
+        "Giant Set C - Shoulders + Arms (6 minutes)",
+        "Perform 3 rounds",
+        "No rest between exercises",
+        "Rest 45 seconds between rounds"
+      ]
+    };
+
+    const groupKeyForLift = (lift) => {
+      const m = String(lift.name).match(/^([A-Z])\d*/);
+      return m ? m[1] : "Other";
+    };
+
+    const liftsHtml = (() => {
+      if(day.id !== "pump") return day.lifts.map(renderLift).join("");
+      const groups = {};
+      day.lifts.forEach(lift => {
+        const k = groupKeyForLift(lift);
+        if(!groups[k]) groups[k] = [];
+        groups[k].push(lift);
+      });
+      const order = ["A","B","C","Other"];
+      return order
+        .filter(k => groups[k] && groups[k].length)
+        .map(k => {
+          const meta = supersetMeta[k] || [];
+          return `
+            <div class="card" style="background:var(--ui-bg); border-radius:16px; box-shadow:none; margin-bottom:12px;">
+              <div class="cb">
+                ${meta.length ? `
+                  <div class="small" style="margin-bottom:8px; line-height:1.5">
+                    <div style="font-weight:900; color:var(--text)">${meta[0]}</div>
+                    ${meta.slice(1).map(line => `<div>${line}</div>`).join("")}
+                  </div>
+                  <div class="hr"></div>
+                ` : ``}
+                ${groups[k].map(renderLift).join("")}
+              </div>
+            </div>
+          `;
+        }).join("");
+    })();
+
+    app.innerHTML = `
+      <div class="card stickyTop">
+        <div class="ch">
+          <h2>${escapeHtml(day.title)}</h2>
+        </div>
+        <div class="cb">
+          <div class="row" style="justify-content:space-between">
+            <div>
+              <div class="small">Workout timer</div>
+              <div class="time compact" id="workoutTime">${formatTime(timers.workout.elapsed)}</div>
+            </div>
+            <span class="badge" id="workoutStatus">${timers.workout.running ? "Running" : "Paused"}</span>
+          </div>
+          <div class="timerControls">
+            <button class="btn good" id="workoutStartBtn">${ICONS.play}<span class="label">Start</span></button>
+            <button class="btn" id="workoutPauseBtn">${ICONS.pause}<span class="label">Pause</span></button>
+            <button class="btn bad" id="workoutResetBtn">${ICONS.reset}<span class="label">Reset</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cb">
+          <details style="margin-top:12px">
+            <summary class="summaryIcon">
+              <div class="summaryRow">
+                <span>Rest Time Duration</span>
+                <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+              </div>
+            </summary>
+            <div class="details-body">
+              <div class="row" style="justify-content:space-between">
+                <div>
+                  <div class="small">Rest timer setup</div>
+                  <div class="time" id="restDurationLbl">${formatTime(timers.rest.duration)}</div>
+                </div>
+                <span class="badge">Set duration</span>
+              </div>
+              <div class="row" style="margin-top:6px">
+                <input class="inputMini" id="restMin" inputmode="numeric" placeholder="min">
+                <input class="inputMini" id="restSec" inputmode="numeric" placeholder="sec">
+                <button class="btn" id="restSetBtn">${ICONS.clock}<span class="label">Set</span></button>
+              </div>
+              <div class="small" style="margin-top:6px">Auto-starts when you mark a set done.</div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div id="restOverlay" class="restOverlay hidden"></div>
+      <div id="restPopup" class="restPopup hidden">
+        <div class="row">
+          <div>
+            <div class="small">Rest timer</div>
+            <div class="time" id="restPopupTime">${formatTime(timers.rest.remaining)}</div>
+          </div>
+          <span class="badge" id="restPopupStatus">${timers.rest.running ? "Running" : "Paused"}</span>
+        </div>
+        <div class="timerControls" style="margin-top:8px">
+          <button class="btn" id="enableAudioBtn">${ICONS.sound}<span class="label">Enable sound</span></button>
+          <button class="btn" id="restMinusBtn">${ICONS.minus}<span class="label">-15s</span></button>
+          <button class="btn" id="restPlusBtn">${ICONS.plus}<span class="label">+15s</span></button>
+          <button class="btn" id="restPauseBtn">${ICONS.pause}<span class="label">Pause</span></button>
+          <button class="btn bad" id="restResetBtn">${ICONS.reset}<span class="label">Reset</span></button>
+          <button class="btn" id="restCloseBtn">${ICONS.close}<span class="label">Close</span></button>
+        </div>
+      </div>
+
+      <!--
+      <details class="card">
+        <summary class="summaryIcon">
+          <div class="summaryRow">
+            <span class="row" style="gap:8px; align-items:center">
+              <span>Weekly Dashboard</span>
+              <span class="badge">Week of ${viewWeek}</span>
+            </span>
+            <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+          </div>
+        </summary>
+        <div class="details-body">
+          <div class="row" style="margin-bottom:10px">
+            <span class="small" style="min-width:110px">View week:</span>
+            <select id="weekSelect" class="inputMini" style="width:auto; min-width:140px">
+              ${allWeeks.length ? allWeeks.map(w => `
+                <option value="${w}" ${w === viewWeek ? "selected":""}>${w}</option>
+              `).join("") : `<option value="${viewWeek}" selected>${viewWeek}</option>`}
+            </select>
+            <span class="small">Dashboard only (workout view stays on current week).</span>
+          </div>
+          <div class="row">
+            <span class="pill">Days <b>${weekSummary.completed}/5</b></span>
+            <span class="pill">Sets <b>${weekSummary.doneSets}/${weekSummary.totalSets}</b></span>
+            <span class="pill">Mobility <b>${weekSummary.mobDone}/${weekSummary.mobTotal}</b></span>
+            <span class="pill">Conditioning <b>${weekSummary.condTotal} min</b></span>
+            <span class="pill">Evaluation <b>${weekSummary.evaluation}</b><span class="evalFace ${evalClass}" aria-hidden="true">☺</span></span>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <span class="small">Vs previous week:</span>
+            ${prevWeekSummary ? `
+              <span class="pill">Days <b>${weekSummary.completed - prevWeekSummary.completed >= 0 ? "+" : ""}${weekSummary.completed - prevWeekSummary.completed}</b></span>
+              <span class="pill">Sets <b>${weekSummary.doneSets - prevWeekSummary.doneSets >= 0 ? "+" : ""}${weekSummary.doneSets - prevWeekSummary.doneSets}</b></span>
+              <span class="pill">Mobility <b>${weekSummary.mobDone - prevWeekSummary.mobDone >= 0 ? "+" : ""}${weekSummary.mobDone - prevWeekSummary.mobDone}</b></span>
+              <span class="pill">Conditioning <b>${weekSummary.condTotal - prevWeekSummary.condTotal >= 0 ? "+" : ""}${weekSummary.condTotal - prevWeekSummary.condTotal} min</b></span>
+            ` : `<span class="pill">No previous week data</span>`}
+          </div>
+          <div class="dashTable">
+            <div class="dashHead">Day</div>
+            <div class="dashHead">Status</div>
+            <div class="dashHead">Sets</div>
+            <div class="dashHead">Mobility</div>
+            <div class="dashHead">Conditioning</div>
+            ${weekSummary.days.map(d => `
+              <div class="dashCell">${escapeHtml(d.title)}</div>
+              <div class="dashCell">${d.completed ? "Completed" : "In progress"}</div>
+              <div class="dashCell">${d.doneSets}/${d.totalSets}</div>
+              <div class="dashCell">${d.mobDone}/${d.mobTotal}</div>
+              <div class="dashCell">${Math.round(d.cond)} min</div>
+            `).join("")}
+          </div>
+          <details>
+            <summary class="summaryIcon">
+              <div class="summaryRow">
+                <span>Exercise comparison to previous week</span>
+                <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+              </div>
+            </summary>
+            <div class="details-body">
+              <div class="dashTableWide">
+                <div class="dashHead">Exercise</div>
+                <div class="dashHead">Max</div>
+                <div class="dashHead">Max &Delta;</div>
+                <div class="dashHead">Volume</div>
+                <div class="dashHead">Vol &Delta;</div>
+                ${exerciseNames.map(name => {
+                  const cur = currentStats[name] || {};
+                  const prev = prevStats[name] || {};
+                  const curMax = cur.maxWeight ?? null;
+                  const prevMax = prev.maxWeight ?? null;
+                  const curVol = Number.isFinite(cur.volume) ? cur.volume : null;
+                  const prevVol = Number.isFinite(prev.volume) ? prev.volume : null;
+                  const maxDelta = (curMax !== null && prevMax !== null) ? (curMax - prevMax) : null;
+                  const volDelta = (curVol !== null && prevVol !== null) ? (curVol - prevVol) : null;
+                  return `
+                    <div class="dashCell">${escapeHtml(name)}</div>
+                    <div class="dashCell">${formatNumber(curMax)}</div>
+                    <div class="dashCell">${formatDelta(maxDelta)}</div>
+                    <div class="dashCell">${formatNumber(curVol)}</div>
+                    <div class="dashCell">${formatDelta(volDelta)}</div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          </details>
+        </div>
+      </details>
+      -->\n<div class="card">
+        <div class="ch">
+          <h2>Mobility Warm-up</h2>
+          <span class="badge">Before lifting</span>
+        </div>
+        <div class="cb">${mobilityHtml}</div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <h2>Main Workout</h2>
+          <span class="badge">${day.lifts.length} exercises</span>
+        </div>
+        <div class="cb">${liftsHtml}</div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <h2>${escapeHtml(day.conditioning.label)}</h2>
+          <span class="badge">Conditioning</span>
+        </div>
+        <div class="cb">
+          ${day.id === "pump" ? `
+          <div class="small">${escapeHtml(day.conditioning.rx)}</div>
+          <ul class="small" style="margin:8px 0 0 16px; padding:0; line-height:1.6">
+            <li>Air squats</li>
+            <li>Push-ups</li>
+            <li>Alternating reverse lunges</li>
+            <li>Plank shoulder taps</li>
+            <li>Glute bridges</li>
+            <li>Mountain climbers</li>
+          </ul>
+          ` : `
+          <div class="small">${escapeHtml(day.conditioning.rx)}</div>
+          `}
+          <div class="hr"></div>
+          ${day.id === "d1" ? `
+          <div class="row">
+            <div style="flex:1 1 140px">
+              <div class="small" style="margin-bottom:6px">Push-ups set 1 reps</div>
+              <input id="pushupSet1" type="number" style="width:100%; padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);"
+                     inputmode="numeric" min="0" step="1" placeholder="e.g., 22" value="${escapeHtml((session.conditioningPushups && session.conditioningPushups.set1) || "")}">
+            </div>
+            <div style="flex:1 1 140px">
+              <div class="small" style="margin-bottom:6px">Push-ups set 2 reps</div>
+              <input id="pushupSet2" type="number" style="width:100%; padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);"
+                     inputmode="numeric" min="0" step="1" placeholder="e.g., 18" value="${escapeHtml((session.conditioningPushups && session.conditioningPushups.set2) || "")}">
+            </div>
+          </div>
+          ` : `
+          <div class="row">
+            <div style="flex:1 1 220px">
+              <div class="small" style="margin-bottom:6px">Conditioning minutes completed (optional)</div>
+              <input id="condMin" type="number" style="width:100%; padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);"
+                     inputmode="numeric" min="0" step="0.1" placeholder="e.g., 15" value="${escapeHtml(session.conditioningMinutes||"")}">
+            </div>
+          </div>
+          `}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <h2>Session Notes</h2>
+          <span class="badge">Log</span>
+        </div>
+        <div class="cb">
+          <textarea id="sessionNotes" style="width:100%; height:80px; padding:10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text); font-family:var(--sans); font-size:13px;" placeholder="How did it feel? Pain? Energy levels?">${escapeHtml(session.notes || "")}</textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <h2>Day Complete</h2>
+          <span class="badge">${session.dayLocked ? "Locked" : "Unlocked"}</span>
+        </div>
+        <div class="cb">
+          <div class="small" style="margin-bottom:8px">Locks all inputs for this day.</div>
+          <button class="btn good" id="dayCompleteBtn" data-allow-when-locked="1">
+            ${session.dayLocked ? `${ICONS.unlock}<span class="label">Unlock Day</span>` : `${ICONS.check}<span class="label">Mark Day Complete</span>`}
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Wire events (mobility)
+    app.querySelectorAll('input[type="checkbox"][data-mob]').forEach(cb => {
+      cb.addEventListener("change", () => {
+        session.mobilityDone[cb.getAttribute("data-mob")] = cb.checked;
+        updateAutoComplete(session, day);
+        save(state);
+        renderTabs();
+      });
+    });
+
+    // Wire events (lift inputs)
+    app.querySelectorAll('input[data-lift]').forEach(inp => {
+      const liftName = inp.getAttribute("data-lift");
+      const liftOpt = inp.getAttribute("data-opt") || null;
+      const field = inp.getAttribute("data-field");
+      const idx = parseInt(inp.getAttribute("data-idx"), 10);
+
+      inp.addEventListener("input", () => {
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        const arr = ensureLiftArray(session, liftDef, liftOpt);
+        arr[idx][field] = inp.value;
+        save(state);
+      });
+
+        if(inp.type === "checkbox"){
+          inp.addEventListener("change", () => {
+            const liftDef = day.lifts.find(x => x.name === liftName);
+            const arr = ensureLiftArray(session, liftDef, liftOpt);
+            arr[idx][field] = inp.checked;
+            updateAutoComplete(session, day);
+            save(state);
+            renderTabs();
+            if(field === "done" && inp.checked){
+              startRestTimer();
+            }
+          });
+        }
+    });
+
+    app.querySelectorAll(".optBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const opt = btn.getAttribute("data-opt");
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef || !opt) return;
+        openLifts.add(liftDetailKey(day.id, liftDef));
+        if(!session.liftOptions) session.liftOptions = {};
+        const key = liftOptionKey(day.id, liftDef);
+        session.liftOptions[key] = opt;
+        save(state);
+        render();
+      });
+    });
+
+    app.querySelectorAll("details[data-detail]").forEach(el => {
+      el.addEventListener("toggle", () => {
+        const key = el.getAttribute("data-detail");
+        if(!key) return;
+        if(el.open){
+          openLifts.add(key);
+        }else{
+          openLifts.delete(key);
+        }
+      });
+    });
+
+    // Add/Remove sets
+    app.querySelectorAll("button[data-addset]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const liftOpt = btn.getAttribute("data-opt") || null;
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef) return;
+
+        const cur = getExtraSets(session, liftDef, liftOpt);
+        setExtraSets(session, liftDef, liftOpt, cur + 1);
+
+        openLifts.add(liftDetailKey(day.id, liftDef)); // keep open
+        save(state);
+        render();
+      });
+    });
+
+    app.querySelectorAll("button[data-rmset]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const liftOpt = btn.getAttribute("data-opt") || null;
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef) return;
+
+        const cur = getExtraSets(session, liftDef, liftOpt);
+        if(cur <= 0) return;
+        setExtraSets(session, liftDef, liftOpt, cur - 1);
+
+        openLifts.add(liftDetailKey(day.id, liftDef)); // keep open
+        save(state);
+        render();
+      });
+    });
+
+    // Copy previous values
+    app.querySelectorAll("button[data-copyprev]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const liftOpt = btn.getAttribute("data-opt") || null;
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef) return;
+
+        const prevData = getPrevLiftData(day.id, liftDef, liftOpt);
+        if(!hasLiftData(prevData.sets)) return;
+
+        let targetOpt = liftOpt || prevData.option || null;
+        if(liftDef.options && targetOpt && !liftDef.options.includes(targetOpt)){
+          targetOpt = liftDef.options[0];
+        }
+
+        if(liftDef.options && targetOpt){
+          if(!session.liftOptions) session.liftOptions = {};
+          const key = liftOptionKey(day.id, liftDef);
+          session.liftOptions[key] = targetOpt;
+        }
+
+        const desiredExtra = Math.max(0, (prevData.sets || []).length - (liftDef.sets || 0));
+        setExtraSets(session, liftDef, targetOpt, desiredExtra);
+        const arr = ensureLiftArray(session, liftDef, targetOpt);
+
+        for(let i=0; i<arr.length; i++){
+          const prevSet = (prevData.sets || [])[i];
+          arr[i].reps = prevSet ? (prevSet.reps || "") : "";
+          arr[i].weight = prevSet ? (prevSet.weight || "") : "";
+          arr[i].rpe = prevSet ? (prevSet.rpe || "") : "";
+          arr[i].done = false;
+        }
+
+        save(state);
+        render();
+      });
+    });
+
+    // Session Notes
+    $("#sessionNotes").addEventListener("input", (e) => {
+      session.notes = e.target.value;
+      save(state);
+    });
+
+
+    // Conditioning tracking
+    const condMin = $("#condMin");
+    if(condMin){
+      condMin.addEventListener("input", () => {
+        session.conditioningMinutes = condMin.value;
+        save(state);
+      });
+    }
+    const pushupSet1 = $("#pushupSet1");
+    const pushupSet2 = $("#pushupSet2");
+    if(pushupSet1 || pushupSet2){
+      if(!session.conditioningPushups) session.conditioningPushups = {set1:"", set2:""};
+      if(pushupSet1){
+        pushupSet1.addEventListener("input", () => {
+          session.conditioningPushups.set1 = pushupSet1.value;
+          save(state);
+        });
+      }
+      if(pushupSet2){
+        pushupSet2.addEventListener("input", () => {
+          session.conditioningPushups.set2 = pushupSet2.value;
+          save(state);
+        });
+      }
+    }
+
+    const dayCompleteBtn = $("#dayCompleteBtn");
+    if(dayCompleteBtn){
+      dayCompleteBtn.addEventListener("click", () => {
+        if(session.dayLocked){
+          if(!confirm("Unlock this day and re-enable inputs?")) return;
+          session.dayLocked = false;
+        }else{
+          session.dayLocked = true;
+          session.completed = true;
+          stopRestTimer();
+          stopWorkoutTimer();
+          persistTimers();
+          hideRestPopup();
+        }
+        save(state);
+        render();
+      });
+    }
+
+    renderTabs();
+    updateTimersUI();
+    wireTimers();
+    applyDayLock(app, session.dayLocked);
+    if(timers.rest.running){
+      showRestPopup();
+    }else{
+      hideRestPopup();
+    }
+
+    const weekSelect = $("#weekSelect");
+    if(weekSelect){
+      weekSelect.onchange = () => {
+        state.viewWeekStart = weekSelect.value;
+        save(state);
+        render();
+      };
+    }
+  }
+
+  // Export / Reset
+  $("#exportBtn").onclick = () => {
+    const data = localStorage.getItem(KEY) || "{}";
+    const blob = new Blob([data], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `workout-tracker-export-${isoDate()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  $("#importBtn").onclick = () => {
+    $("#importFile").click();
+  };
+
+  $("#importFile").onchange = (e) => {
+    const f = e.target.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => {
+      try{
+        const json = JSON.parse(ev.target.result);
+        if(!json.weekStart || !json.sessions) throw new Error("Invalid format");
+        if(!confirm("This will overwrite your current data. Continue?")) return;
+        localStorage.setItem(KEY, JSON.stringify(json));
+        location.reload();
+      }catch(err){
+        alert("Error importing file: " + err.message);
+      }
+    };
+    r.readAsText(f);
+  };
+
+  $("#themeToggle").onclick = () => {
+    state.theme = state.theme === "light" ? "dark" : "light";
+    if(state.theme === "light") document.body.classList.add("light");
+    else document.body.classList.remove("light");
+    save(state);
+  };
+
+  const menuToggle = $("#menuToggle");
+  const menuPopup = $("#menuPopup");
+  const menuOverlay = $("#menuOverlay");
+  if(menuToggle){
+    menuToggle.onclick = () => {
+      menuPopup.classList.toggle("show");
+      menuOverlay.classList.toggle("show");
+    };
+    menuOverlay.onclick = () => {
+      menuPopup.classList.remove("show");
+      menuOverlay.classList.remove("show");
+    };
+    // Close menu when clicking an item
+    menuPopup.querySelectorAll(".menuItem").forEach(b => b.addEventListener("click", () => menuOverlay.click()));
+  }
+
+  // Developer comments (local only)
+  const DEV_NOTES_KEY = `${KEY}__dev_notes`;
+  function loadDevNotes(){
+    try{ return JSON.parse(localStorage.getItem(DEV_NOTES_KEY)) || []; }catch(e){ return []; }
+  }
+  function saveDevNotes(notes){
+    localStorage.setItem(DEV_NOTES_KEY, JSON.stringify(notes));
+  }
+  function renderDevNotesList(){
+    const list = $("#devNotesList");
+    if(!list) return;
+    const notes = loadDevNotes();
+    list.innerHTML = "";
+    if(!notes.length){
+      const empty = document.createElement("div");
+      empty.className = "small";
+      empty.textContent = "No comments yet.";
+      list.appendChild(empty);
+      return;
+    }
+    notes.forEach(note => {
+      const row = document.createElement("div");
+      row.className = "devNoteRow";
+      row.innerHTML = `
+        <div class="devNoteText">${escapeHtml(note.text)}</div>
+        <button class="btn bad" type="button" data-note-id="${note.id}">${ICONS.trash}<span class="label">Delete</span></button>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll("button[data-note-id]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-note-id");
+        const next = loadDevNotes().filter(n => n.id !== id);
+        saveDevNotes(next);
+        renderDevNotesList();
+      });
+    });
+  }
+  function openDevNotes(){
+    const modal = $("#devNotesModal");
+    const overlay = $("#devNotesOverlay");
+    if(!modal || !overlay) return;
+    renderDevNotesList();
+    modal.classList.remove("hidden");
+    overlay.classList.remove("hidden");
+    const input = $("#devNotesInput");
+    if(input) input.focus();
+  }
+  function closeDevNotes(){
+    const modal = $("#devNotesModal");
+    const overlay = $("#devNotesOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+  }
+  const devNotesBtn = $("#devNotesBtn");
+  if(devNotesBtn) devNotesBtn.onclick = openDevNotes;
+  const devNotesClose = $("#devNotesClose");
+  if(devNotesClose) devNotesClose.onclick = closeDevNotes;
+  const devNotesOverlay = $("#devNotesOverlay");
+  if(devNotesOverlay) devNotesOverlay.onclick = closeDevNotes;
+  const devNotesAdd = $("#devNotesAdd");
+  if(devNotesAdd){
+    devNotesAdd.onclick = () => {
+      const input = $("#devNotesInput");
+      if(!input) return;
+      const text = input.value.trim();
+      if(!text) return;
+      const notes = loadDevNotes();
+      notes.push({id:`n_${Date.now()}_${Math.random().toString(36).slice(2,6)}`, text});
+      saveDevNotes(notes);
+      input.value = "";
+      renderDevNotesList();
+      input.focus();
+    };
+  }
+
+  $("#resetBtn").onclick = () => {
+    if(!confirm("Reset all saved data on this device?")) return;
+    localStorage.removeItem(KEY);
+    state = defaultState();
+    save(state);
+    render();
+  };
+
+  const dashboardBtn = $("#dashboardBtn");
+  if(dashboardBtn){
+    dashboardBtn.onclick = () => {
+      state.activeDayId = "dashboard";
+      save(state);
+      render();
+    };
+  }
+
+  // Init
+  ensureWeek();
+  save(state);
+  scheduleWeeklyRollover();
+  render();
+
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
