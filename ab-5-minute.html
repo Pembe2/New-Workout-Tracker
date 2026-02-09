@@ -94,6 +94,24 @@
   </div>
 </div>
 
+<div class="devNotesOverlay hidden" id="liftResetOverlay"></div>
+<div class="devNotesModal hidden" id="liftResetModal" role="dialog" aria-modal="true" aria-labelledby="liftResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="liftResetTitle" style="margin:0">Reset exercises?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will uncheck all exercises for this ab workout.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="liftResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="liftResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
 <script>
 (() => {
   const KEY = "workout_tracker_ab_5_min_v1";
@@ -1152,7 +1170,7 @@
       -->\n<div class="card">
         <div class="ch">
           <h2>Main Workout</h2>
-          <span class="badge">${day.lifts.length} exercises</span>
+          <button class="btn bad" id="liftResetBtn" type="button">${ICONS.reset}<span class="label">Reset</span></button>
         </div>
         <div class="cb">${liftsHtml}</div>
       </div>
@@ -1174,6 +1192,35 @@
         renderTabs();
       });
     });
+    const liftResetBtn = $("#liftResetBtn");
+    if(liftResetBtn){
+      liftResetBtn.addEventListener("click", () => {
+        const modal = $("#liftResetModal");
+        const overlay = $("#liftResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
+      });
+    }
+    const liftResetConfirm = $("#liftResetConfirm");
+    const liftResetCancel = $("#liftResetCancel");
+    const liftResetOverlay = $("#liftResetOverlay");
+    const closeLiftReset = () => {
+      const modal = $("#liftResetModal");
+      const overlay = $("#liftResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(liftResetConfirm){
+      liftResetConfirm.onclick = () => {
+        session.liftDone = {};
+        updateAutoComplete(session, day);
+        save(state);
+        closeLiftReset();
+        render();
+      };
+    }
+    if(liftResetCancel) liftResetCancel.onclick = closeLiftReset;
+    if(liftResetOverlay) liftResetOverlay.onclick = closeLiftReset;
     renderTabs();
     updateTimersUI();
     wireTimers();
