@@ -822,6 +822,7 @@
 
   let audioCtx = null;
   let audioUnlocked = false;
+  let audioEnabled = false;
   let noiseBuffer = null;
   let wakeLock = null;
   let wakeLockEnabled = false;
@@ -836,6 +837,7 @@
   }
   async function playBeep(){
     try{
+      if(!audioEnabled) return;
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if(!Ctx) return;
       audioCtx = audioCtx || new Ctx();
@@ -894,25 +896,30 @@
       setTimeout(() => navigator.vibrate(120), 2000);
     }
   }
+  function playConfirmBeep(){
+    if(!audioCtx || !audioUnlocked) return;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "sine";
+    o.frequency.value = 880;
+    g.gain.value = 0.35;
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
+    o.stop(audioCtx.currentTime + 0.15);
+  }
   async function unlockAudio(silent=false){
     try{
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if(!Ctx) return false;
+      const wasUnlocked = audioUnlocked;
       audioCtx = audioCtx || new Ctx();
       if(audioCtx.state === "suspended") await audioCtx.resume();
       audioUnlocked = audioCtx.state === "running";
-      if(audioUnlocked && !silent){
+      if(audioUnlocked && !silent && !wasUnlocked){
         // short tap to confirm unlock
-        const o = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        o.type = "sine";
-        o.frequency.value = 880;
-        g.gain.value = 0.35;
-        o.connect(g);
-        g.connect(audioCtx.destination);
-        o.start();
-        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
-        o.stop(audioCtx.currentTime + 0.15);
+        playConfirmBeep();
       }
       updateTimersUI();
       return audioUnlocked;
@@ -1007,7 +1014,17 @@
     const enableAudioBtn = $("#enableAudioBtn");
     if(enableAudioBtn){
       enableAudioBtn.style.display = "inline-flex";
-      enableAudioBtn.innerHTML = `${ICONS.sound}<span class="label">${audioUnlocked ? "Sound enabled" : "Enable sound"}</span>`;
+      enableAudioBtn.innerHTML = `${ICONS.sound}<span class="label">${audioEnabled ? "Sound on" : "Sound off"}</span>`;
+    }
+    const restPopupSoundStatus = $("#restPopupSoundStatus");
+    if(restPopupSoundStatus){
+      if(!audioEnabled){
+        restPopupSoundStatus.textContent = "Sound off";
+      }else if(audioUnlocked){
+        restPopupSoundStatus.textContent = "Sound on";
+      }else{
+        restPopupSoundStatus.textContent = "Sound off (tap to re-enable)";
+      }
     }
   }
 
@@ -1076,13 +1093,6 @@
       updateWakeLock();
     }
   });
-
-  // Keep audio unlocked without forcing a beep on every user interaction.
-  const trySilentAudioUnlock = () => {
-    if(!audioUnlocked) unlockAudio(true);
-  };
-  document.addEventListener("pointerdown", trySilentAudioUnlock, {passive:true});
-  document.addEventListener("keydown", trySilentAudioUnlock, {passive:true});
 
   function wireTimers(){
     const restMin = $("#restMin");
@@ -1172,8 +1182,12 @@
 
     const enableAudioBtn = $("#enableAudioBtn");
     if(enableAudioBtn){
-      enableAudioBtn.onclick = () => {
-        unlockAudio(false);
+      enableAudioBtn.onclick = async () => {
+        audioEnabled = !audioEnabled;
+        if(audioEnabled){
+          const ok = await unlockAudio(true);
+          if(ok) playConfirmBeep();
+        }
         updateTimersUI();
       };
     }
@@ -1919,6 +1933,7 @@
           <button class="btn bad" id="restResetBtn">${ICONS.reset}<span class="label">Reset</span></button>
           <button class="btn" id="restCloseBtn">${ICONS.close}<span class="label">Close</span></button>
         </div>
+        <div class="small" id="restPopupSoundStatus" style="margin-top:6px"></div>
       </div>
 
       \n<div class="card">
