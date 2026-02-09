@@ -1351,6 +1351,16 @@
   function liftDisplayName(lift, option){
     return displayNameFromStorageKey(liftStorageKey(lift, option));
   }
+  function scrollExerciseJustBelowSticky(detailsEl){
+    if(!detailsEl) return;
+    const sticky = document.querySelector(".stickyTop");
+    const stickyRect = sticky ? sticky.getBoundingClientRect() : {height:0};
+    const stickyTop = sticky ? parseFloat(getComputedStyle(sticky).top || "0") : 0;
+    const gap = 8;
+    const rect = detailsEl.getBoundingClientRect();
+    const targetY = window.scrollY + rect.top - (stickyRect.height + stickyTop + gap);
+    window.scrollTo({top: Math.max(0, targetY), behavior: "smooth"});
+  }
   function hasLiftData(sets){
     return (sets || []).some(s => s && (s.done || s.reps || s.weight || s.rpe));
   }
@@ -2115,6 +2125,9 @@
                 const nextEl = document.querySelector(`details[data-detail="${CSS.escape(nextKey)}"]`);
                 if(currentEl) currentEl.open = false;
                 if(nextEl) nextEl.open = true;
+                if(nextEl){
+                  requestAnimationFrame(() => scrollExerciseJustBelowSticky(nextEl));
+                }
               }
             }
           });
