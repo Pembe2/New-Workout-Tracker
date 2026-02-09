@@ -112,6 +112,90 @@
   </div>
 </div>
 
+<div class="devNotesOverlay hidden" id="restResetOverlay"></div>
+<div class="devNotesModal hidden" id="restResetModal" role="dialog" aria-modal="true" aria-labelledby="restResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="restResetTitle" style="margin:0">Reset interval timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the remaining time to the set duration.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="restResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="restResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="intervalResetOverlay"></div>
+<div class="devNotesModal hidden" id="intervalResetModal" role="dialog" aria-modal="true" aria-labelledby="intervalResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="intervalResetTitle" style="margin:0">Reset interval timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the interval timer back to the start.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="intervalResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="intervalResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="appResetOverlay"></div>
+<div class="devNotesModal hidden" id="appResetModal" role="dialog" aria-modal="true" aria-labelledby="appResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="appResetTitle" style="margin:0">Reset all data?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will erase all saved workouts on this device.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="appResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="appResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="importOverlay"></div>
+<div class="devNotesModal hidden" id="importModal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="importTitle" style="margin:0">Overwrite current data?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will replace your current data with the imported file.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="importCancel" type="button">Cancel</button>
+    <button class="btn bad" id="importConfirm" type="button">Overwrite</button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="workoutResetOverlay"></div>
+<div class="devNotesModal hidden" id="workoutResetModal" role="dialog" aria-modal="true" aria-labelledby="workoutResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="workoutResetTitle" style="margin:0">Reset workout timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the workout timer back to zero.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="workoutResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="workoutResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
 <script>
 (() => {
   const KEY = "workout_tracker_ab_5_min_v1";
@@ -814,10 +898,10 @@
 
     if(restResetBtn){
       restResetBtn.onclick = () => {
-        stopRestTimer();
-        timers.rest.remaining = timers.rest.duration;
-        persistTimers();
-        updateTimersUI();
+        const modal = $("#restResetModal");
+        const overlay = $("#restResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
       };
     }
 
@@ -829,6 +913,27 @@
         updateTimersUI();
       };
     }
+
+    const restResetConfirm = $("#restResetConfirm");
+    const restResetCancel = $("#restResetCancel");
+    const restResetOverlay = $("#restResetOverlay");
+    const closeRestReset = () => {
+      const modal = $("#restResetModal");
+      const overlay = $("#restResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(restResetConfirm){
+      restResetConfirm.onclick = () => {
+        stopRestTimer();
+        timers.rest.remaining = timers.rest.duration;
+        persistTimers();
+        updateTimersUI();
+        closeRestReset();
+      };
+    }
+    if(restResetCancel) restResetCancel.onclick = closeRestReset;
+    if(restResetOverlay) restResetOverlay.onclick = closeRestReset;
 
     const enableAudioBtn = $("#enableAudioBtn");
     if(enableAudioBtn){
@@ -874,11 +979,10 @@
 
     if(workoutResetBtn){
       workoutResetBtn.onclick = () => {
-        if(!confirm("Reset workout timer?")) return;
-        stopWorkoutTimer();
-        timers.workout.elapsed = 0;
-        persistTimers();
-        updateTimersUI();
+        const modal = $("#workoutResetModal");
+        const overlay = $("#workoutResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
       };
     }
 
@@ -906,8 +1010,10 @@
 
     if(intervalResetBtn){
       intervalResetBtn.onclick = () => {
-        if(!confirm("Reset interval timer?")) return;
-        resetIntervalTimer();
+        const modal = $("#intervalResetModal");
+        const overlay = $("#intervalResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
       };
     }
 
@@ -924,6 +1030,45 @@
         updateIntervalUI();
       };
     }
+
+    const intervalResetConfirm = $("#intervalResetConfirm");
+    const intervalResetCancel = $("#intervalResetCancel");
+    const intervalResetOverlay = $("#intervalResetOverlay");
+    const closeIntervalReset = () => {
+      const modal = $("#intervalResetModal");
+      const overlay = $("#intervalResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(intervalResetConfirm){
+      intervalResetConfirm.onclick = () => {
+        resetIntervalTimer();
+        closeIntervalReset();
+      };
+    }
+    if(intervalResetCancel) intervalResetCancel.onclick = closeIntervalReset;
+    if(intervalResetOverlay) intervalResetOverlay.onclick = closeIntervalReset;
+
+    const workoutResetConfirm = $("#workoutResetConfirm");
+    const workoutResetCancel = $("#workoutResetCancel");
+    const workoutResetOverlay = $("#workoutResetOverlay");
+    const closeWorkoutReset = () => {
+      const modal = $("#workoutResetModal");
+      const overlay = $("#workoutResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(workoutResetConfirm){
+      workoutResetConfirm.onclick = () => {
+        stopWorkoutTimer();
+        timers.workout.elapsed = 0;
+        persistTimers();
+        updateTimersUI();
+        closeWorkoutReset();
+      };
+    }
+    if(workoutResetCancel) workoutResetCancel.onclick = closeWorkoutReset;
+    if(workoutResetOverlay) workoutResetOverlay.onclick = closeWorkoutReset;
   }
 
   function updateAutoComplete(session, day){
@@ -1259,6 +1404,7 @@
     $("#importFile").click();
   };
 
+  let pendingImport = null;
   $("#importFile").onchange = (e) => {
     const f = e.target.files[0];
     if(!f) return;
@@ -1267,9 +1413,11 @@
       try{
         const json = JSON.parse(ev.target.result);
         if(!json.weekStart || !json.sessions) throw new Error("Invalid format");
-        if(!confirm("This will overwrite your current data. Continue?")) return;
-        localStorage.setItem(KEY, JSON.stringify(json));
-        location.reload();
+        pendingImport = json;
+        const modal = $("#importModal");
+        const overlay = $("#importOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
       }catch(err){
         alert("Error importing file: " + err.message);
       }
@@ -1377,12 +1525,53 @@
   }
 
   $("#resetBtn").onclick = () => {
-    if(!confirm("Reset all saved data on this device?")) return;
-    localStorage.removeItem(KEY);
-    state = defaultState();
-    save(state);
-    render();
+    const modal = $("#appResetModal");
+    const overlay = $("#appResetOverlay");
+    if(modal) modal.classList.remove("hidden");
+    if(overlay) overlay.classList.remove("hidden");
   };
+
+  const appResetConfirm = $("#appResetConfirm");
+  const appResetCancel = $("#appResetCancel");
+  const appResetOverlay = $("#appResetOverlay");
+  const closeAppReset = () => {
+    const modal = $("#appResetModal");
+    const overlay = $("#appResetOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+  };
+  if(appResetConfirm){
+    appResetConfirm.onclick = () => {
+      localStorage.removeItem(KEY);
+      state = defaultState();
+      save(state);
+      render();
+      closeAppReset();
+    };
+  }
+  if(appResetCancel) appResetCancel.onclick = closeAppReset;
+  if(appResetOverlay) appResetOverlay.onclick = closeAppReset;
+
+  const importConfirm = $("#importConfirm");
+  const importCancel = $("#importCancel");
+  const importOverlay = $("#importOverlay");
+  const closeImport = () => {
+    const modal = $("#importModal");
+    const overlay = $("#importOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+    pendingImport = null;
+  };
+  if(importConfirm){
+    importConfirm.onclick = () => {
+      if(!pendingImport) return closeImport();
+      localStorage.setItem(KEY, JSON.stringify(pendingImport));
+      closeImport();
+      location.reload();
+    };
+  }
+  if(importCancel) importCancel.onclick = closeImport;
+  if(importOverlay) importOverlay.onclick = closeImport;
 
   const dashboardBtn = $("#dashboardBtn");
   if(dashboardBtn){

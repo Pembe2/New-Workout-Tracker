@@ -105,6 +105,85 @@
   </div>
 </div>
 
+<div class="devNotesOverlay hidden" id="workoutResetOverlay"></div>
+<div class="devNotesModal hidden" id="workoutResetModal" role="dialog" aria-modal="true" aria-labelledby="workoutResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="workoutResetTitle" style="margin:0">Reset workout timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the workout timer back to zero.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="workoutResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="workoutResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="restResetOverlay"></div>
+<div class="devNotesModal hidden" id="restResetModal" role="dialog" aria-modal="true" aria-labelledby="restResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="restResetTitle" style="margin:0">Reset rest timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the remaining time to the set duration.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="restResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="restResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="appResetOverlay"></div>
+<div class="devNotesModal hidden" id="appResetModal" role="dialog" aria-modal="true" aria-labelledby="appResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="appResetTitle" style="margin:0">Reset all data?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will erase all saved workouts on this device.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="appResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="appResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="unlockDayOverlay"></div>
+<div class="devNotesModal hidden" id="unlockDayModal" role="dialog" aria-modal="true" aria-labelledby="unlockDayTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="unlockDayTitle" style="margin:0">Unlock this day?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will re-enable all inputs for this day.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="unlockDayCancel" type="button">Cancel</button>
+    <button class="btn good" id="unlockDayConfirm" type="button">Unlock</button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="importOverlay"></div>
+<div class="devNotesModal hidden" id="importModal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="importTitle" style="margin:0">Overwrite current data?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will replace your current data with the imported file.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="importCancel" type="button">Cancel</button>
+    <button class="btn bad" id="importConfirm" type="button">Overwrite</button>
+  </div>
+</div>
+
+
 <script>
 (() => {
   const KEY = "workout_tracker_fatloss_v2";
@@ -169,7 +248,7 @@
         {name:"Walking Lunges", sets:3, reps:"12/leg", rest:"90s", cue:"Long stride; stable knee."},
         {name:"Standing Calf Raises", sets:4, reps:"12-15", rest:"60s", cue:"Pause at top and bottom."},
         {name:"Plank", sets:3, reps:"45-60s", rest:"45-60s", cue:"Ribs down; squeeze glutes; breathe.", options:["Front","Side"]},
-        { name:"Leg Curl", sets:3, reps:"10-15", rest:"60-90s", cue:"Control; squeeze hamstrings.", options:["Machine","Band"] },
+        { name:"Leg Curl", sets:3, reps:"10-15", rest:"30-60s", cue:"Control; squeeze hamstrings.", options:["Machine","Band"] },
         { name:"Hip Thrust", sets:3, reps:"8-12", rest:"90s", cue:"Posterior tilt; pause at top.", options:["BB","DB"] },
       ],
       conditioning:{label:"Optional Zone 2", rx:"Incline treadmill walk: 10 minutes easy (conversational pace)."}
@@ -182,8 +261,8 @@
         {name:"Cat-cow", dose:"1x8", cue:"Segment the spine; slow controlled motion."},
       ],
       lifts:[
-        {name:"Pull-ups or Lat Pulldown", sets:4, reps:"6-10", rest:"120s", cue:"Full stretch at bottom; no kipping.", options:["Pull-ups","Lat Pulldown"]},
-        {name:"Row", sets:3, reps:"8-10", rest:"120s", cue:"Pull to hip; keep neck neutral.", options:["BB","DB"]},
+        {name:"Pull-ups or Lat Pulldown", sets:4, reps:"6-10", rest:"90-120s", cue:"Full stretch at bottom; no kipping.", options:["Pull-ups","Lat Pulldown"]},
+        {name:"Row", sets:3, reps:"8-10", rest:"120s", cue:"Pull to hip; keep neck neutral.", options:["Seated","Dumbbell"]},
         {name:"Three Point DB Row", sets:3, reps:"10/side", rest:"90s", cue:"Pause at top; controlled lower."},
         {name:"Face Pulls", sets:3, reps:"12-15", rest:"60s", cue:"Elbows high; squeeze rear delts."},
         {name:"Biceps Curl", sets:3, reps:"10-12", rest:"60-90s", cue:"No swing; full extension.", options:["BB","DB"]},
@@ -225,7 +304,7 @@
         {name:"Band external rotations", dose:"2x12", cue:"Elbow pinned to side; slow rotation."},
       ],
       lifts:[
-        {name:"Deadlift (moderate load)", sets:3, reps:"5", rest:"150-180s", cue:"Crisp reps; stop short of grinding."},
+        {name:"Deadlift (moderate load)", sets:3, reps:"5", rest:"120-150s", cue:"Crisp reps; stop short of grinding."},
         {name:"Incline Bench Press", sets:3, reps:"8-10", rest:"90s", cue:"Full range; do not bounce.", options:["BB","DB"]},
         {name:"Chin-ups or Assisted", sets:3, reps:"AMRAP", rest:"120s", cue:"Stop 1 rep before form breaks.", options:["Chin-ups","Assisted"]},
         {name:"Goblet Squat", sets:3, reps:"12", rest:"90s", cue:"Upright torso; elbows inside knees."},
@@ -281,6 +360,7 @@
       activeDayId: PLAN[0].id,
       sessions: {}, // weekStart -> dayId -> data
       viewWeekStart: null,
+      progression: { dayId: PLAN[0].id, liftKey: null },
       timers: {
         restDuration: 90,
         restRemaining: 90,
@@ -301,6 +381,7 @@
     "Leg Curl (Machine or Band)": "Leg Curl",
     "Hip Thrust (BB or DB)": "Hip Thrust",
     "Row (BB or DB)": "Row",
+    "Row (Seated or Dumbbell)": "Row",
     "Biceps Curl (BB or DB)": "Biceps Curl",
     "Rear Delt Fly (DB or Cable)": "Rear Delt Fly",
     "Triceps Pushdown (or Dips)": "Triceps Pushdown or Dips",
@@ -374,6 +455,7 @@
     workout:{elapsed:0, running:false, interval:null}
   };
   let currentRestLiftKey = null;
+  let currentRestLabel = "";
   let currentSession = null;
   let weeklyRolloverTimer = null;
 
@@ -552,6 +634,143 @@
     });
     return stats;
   }
+  function exerciseStatsForWeekDay(weekKey, dayId){
+    const sessions = state.sessions[weekKey] || {};
+    const stats = {};
+    const s = sessions[dayId];
+    if(!s || !s.liftSets) return stats;
+    Object.entries(s.liftSets).forEach(([key, arr]) => {
+      const name = displayNameFromStorageKey(key);
+      if(!stats[name]) stats[name] = {maxWeight:null, volume:0};
+      (arr || []).forEach(set => {
+        if(!set || !set.done) return;
+        const w = parseNum(set.weight);
+        const r = parseNum(set.reps);
+        if(w !== null){
+          stats[name].maxWeight = stats[name].maxWeight === null ? w : Math.max(stats[name].maxWeight, w);
+        }
+        if(w !== null && r !== null){
+          stats[name].volume += w * r;
+        }
+      });
+    });
+    return stats;
+  }
+  function liftStatsFromSets(sets){
+    let maxWeight = null;
+    let volume = 0;
+    let anyWeight = false;
+    let anyVolume = false;
+    (sets || []).forEach(set => {
+      if(!set || !set.done) return;
+      const w = parseNum(set.weight);
+      const r = parseNum(set.reps);
+      if(w !== null){
+        maxWeight = maxWeight === null ? w : Math.max(maxWeight, w);
+        anyWeight = true;
+      }
+      if(w !== null && r !== null){
+        volume += w * r;
+        anyVolume = true;
+      }
+    });
+    return {
+      maxWeight: anyWeight ? maxWeight : null,
+      volume: anyVolume ? volume : null
+    };
+  }
+  function progressionDataForLift(dayId, liftKey){
+    const weeks = Object.keys(state.sessions || {}).sort((a,b) => a.localeCompare(b));
+    const labels = [];
+    const maxValues = [];
+    const volValues = [];
+    weeks.forEach(wk => {
+      const s = state.sessions[wk] && state.sessions[wk][dayId];
+      if(!s || !s.liftSets) return;
+      const sets = s.liftSets[liftKey];
+      if(!sets || !sets.length) return;
+      const stats = liftStatsFromSets(sets);
+      if(stats.maxWeight === null && stats.volume === null) return;
+      labels.push(wk);
+      maxValues.push(stats.maxWeight);
+      volValues.push(stats.volume);
+    });
+    return {labels, maxValues, volValues};
+  }
+  function renderLineSvg(labels, values, color){
+    const numeric = (values || []).map(v => (Number.isFinite(v) ? v : null));
+    const defined = numeric.filter(v => v !== null);
+    if(!defined.length) return "";
+    let minVal = Math.min(...defined);
+    let maxVal = Math.max(...defined);
+    if(minVal === maxVal){
+      minVal -= 1;
+      maxVal += 1;
+    }
+    const w = 520;
+    const h = 160;
+    const padL = 40;
+    const padR = 12;
+    const padT = 12;
+    const padB = 26;
+    const innerW = w - padL - padR;
+    const innerH = h - padT - padB;
+    const n = labels.length;
+    const x = (i) => padL + (n <= 1 ? innerW / 2 : (i / (n - 1)) * innerW);
+    const y = (v) => padT + (1 - ((v - minVal) / (maxVal - minVal))) * innerH;
+
+    let d = "";
+    let started = false;
+    const circles = [];
+    numeric.forEach((v, i) => {
+      if(v === null) { started = false; return; }
+      const xi = x(i);
+      const yi = y(v);
+      d += `${started ? " L" : " M"} ${xi} ${yi}`;
+      started = true;
+      circles.push(`<circle cx="${xi}" cy="${yi}" r="3" fill="${color}"></circle>`);
+    });
+
+    const firstLabel = labels[0] ? escapeHtml(labels[0]) : "";
+    const lastLabel = labels[labels.length - 1] ? escapeHtml(labels[labels.length - 1]) : "";
+
+    return `
+      <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Progression chart">
+        <line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="var(--line)"></line>
+        <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="var(--line)"></line>
+        <path d="${d}" fill="none" stroke="${color}" stroke-width="2"></path>
+        ${circles.join("")}
+        <text x="${padL}" y="${padT + 10}" font-size="10" fill="var(--muted)">${formatNumber(maxVal)}</text>
+        <text x="${padL}" y="${h - padB - 4}" font-size="10" fill="var(--muted)">${formatNumber(minVal)}</text>
+        <text x="${padL}" y="${h - 6}" font-size="10" fill="var(--muted)">${firstLabel}</text>
+        <text x="${w - padR}" y="${h - 6}" font-size="10" fill="var(--muted)" text-anchor="end">${lastLabel}</text>
+      </svg>
+    `;
+  }
+  function renderProgressionChart(title, labels, values, color, unitLabel){
+    if(!labels.length || !(values || []).some(v => Number.isFinite(v))){
+      return `<div class="small">No data yet for this exercise.</div>`;
+    }
+    let latestVal = null;
+    let latestLabel = "";
+    for(let i = values.length - 1; i >= 0; i--){
+      if(Number.isFinite(values[i])){
+        latestVal = values[i];
+        latestLabel = labels[i] || "";
+        break;
+      }
+    }
+    const latestText = Number.isFinite(latestVal) ? `${formatNumber(latestVal)}${unitLabel ? ` ${unitLabel}` : ""}` : "-";
+    return `
+      <div style="margin-top:10px">
+        <div class="row" style="justify-content:space-between; align-items:center; margin-bottom:6px">
+          <div><b>${escapeHtml(title)}</b></div>
+          <div class="small">Latest ${escapeHtml(latestLabel)}: <b>${escapeHtml(latestText)}</b></div>
+        </div>
+        ${renderLineSvg(labels, values, color) || `<div class="small">No data yet for this exercise.</div>`}
+      </div>
+    `;
+  }
   function formatDelta(n){
     if(n === null || n === undefined || Number.isNaN(n)) return "-";
     const rounded = Math.round(n * 10) / 10;
@@ -669,14 +888,14 @@
       setTimeout(() => navigator.vibrate(120), 2000);
     }
   }
-  async function unlockAudio(){
+  async function unlockAudio(silent=false){
     try{
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if(!Ctx) return false;
       audioCtx = audioCtx || new Ctx();
       if(audioCtx.state === "suspended") await audioCtx.resume();
       audioUnlocked = audioCtx.state === "running";
-      if(audioUnlocked){
+      if(audioUnlocked && !silent){
         // short tap to confirm unlock
         const o = audioCtx.createOscillator();
         const g = audioCtx.createGain();
@@ -717,8 +936,13 @@
     const overlay = $("#restOverlay");
     if(overlay) overlay.classList.add("hidden");
   }
-  function startRestTimer(duration=null, liftKey=null){
-    if(timers.rest.running) return;
+  function startRestTimer(duration=null, liftKey=null, label=null){
+    if(timers.rest.running){
+      if(liftKey) currentRestLiftKey = liftKey;
+      currentRestLabel = label ? String(label) : currentRestLabel;
+      updateTimersUI();
+      return;
+    }
     if(Number.isFinite(duration) && duration > 0){
       timers.rest.duration = duration;
       timers.rest.remaining = duration;
@@ -726,6 +950,7 @@
       timers.rest.remaining = timers.rest.duration;
     }
     if(liftKey) currentRestLiftKey = liftKey;
+    currentRestLabel = label ? String(label) : "";
     timers.rest.running = true;
     updateWakeLock();
     timers.rest.interval = setInterval(() => {
@@ -765,6 +990,8 @@
     if(restPopupTime) restPopupTime.textContent = formatTime(timers.rest.remaining);
     const restPopupStatus = $("#restPopupStatus");
     if(restPopupStatus) restPopupStatus.textContent = timers.rest.running ? "Running" : "Paused";
+    const restPopupNext = $("#restPopupNext");
+    if(restPopupNext) restPopupNext.textContent = currentRestLabel ? `Next: ${currentRestLabel}` : "";
     const restPauseBtn = $("#restPauseBtn");
     if(restPauseBtn){
       restPauseBtn.innerHTML = `${timers.rest.running ? ICONS.pause : ICONS.play}<span class="label">${timers.rest.running ? "Pause" : "Resume"}</span>`;
@@ -772,7 +999,10 @@
     const restDurationLbl = $("#restDurationLbl");
     if(restDurationLbl) restDurationLbl.textContent = formatTime(timers.rest.duration);
     const enableAudioBtn = $("#enableAudioBtn");
-    if(enableAudioBtn) enableAudioBtn.style.display = audioUnlocked ? "none" : "inline-flex";
+    if(enableAudioBtn){
+      enableAudioBtn.style.display = "inline-flex";
+      enableAudioBtn.innerHTML = `${ICONS.sound}<span class="label">${audioUnlocked ? "Sound enabled" : "Enable sound"}</span>`;
+    }
   }
 
   function parseRestToSeconds(restStr){
@@ -841,6 +1071,13 @@
     }
   });
 
+  // Keep audio unlocked without forcing a beep on every user interaction.
+  const trySilentAudioUnlock = () => {
+    if(!audioUnlocked) unlockAudio(true);
+  };
+  document.addEventListener("pointerdown", trySilentAudioUnlock, {passive:true});
+  document.addEventListener("keydown", trySilentAudioUnlock, {passive:true});
+
   function wireTimers(){
     const restMin = $("#restMin");
     const restSec = $("#restSec");
@@ -889,10 +1126,10 @@
 
     if(restResetBtn){
       restResetBtn.onclick = () => {
-        stopRestTimer();
-        timers.rest.remaining = timers.rest.duration;
-        persistTimers();
-        updateTimersUI();
+        const modal = $("#restResetModal");
+        const overlay = $("#restResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
       };
     }
 
@@ -905,10 +1142,32 @@
       };
     }
 
+    const restResetConfirm = $("#restResetConfirm");
+    const restResetCancel = $("#restResetCancel");
+    const restResetOverlay = $("#restResetOverlay");
+    const closeRestReset = () => {
+      const modal = $("#restResetModal");
+      const overlay = $("#restResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(restResetConfirm){
+      restResetConfirm.onclick = () => {
+        stopRestTimer();
+        timers.rest.remaining = timers.rest.duration;
+        persistTimers();
+        updateTimersUI();
+        closeRestReset();
+      };
+    }
+    if(restResetCancel) restResetCancel.onclick = closeRestReset;
+    if(restResetOverlay) restResetOverlay.onclick = closeRestReset;
+
+
     const enableAudioBtn = $("#enableAudioBtn");
     if(enableAudioBtn){
       enableAudioBtn.onclick = () => {
-        unlockAudio();
+        unlockAudio(false);
         updateTimersUI();
       };
     }
@@ -956,13 +1215,33 @@
 
     if(workoutResetBtn){
       workoutResetBtn.onclick = () => {
-        if(!confirm("Reset workout timer?")) return;
+        const modal = $("#workoutResetModal");
+        const overlay = $("#workoutResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
+      };
+    }
+
+    const workoutResetConfirm = $("#workoutResetConfirm");
+    const workoutResetCancel = $("#workoutResetCancel");
+    const workoutResetOverlay = $("#workoutResetOverlay");
+    const closeWorkoutReset = () => {
+      const modal = $("#workoutResetModal");
+      const overlay = $("#workoutResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(workoutResetConfirm){
+      workoutResetConfirm.onclick = () => {
         stopWorkoutTimer();
         timers.workout.elapsed = 0;
         persistTimers();
         updateTimersUI();
+        closeWorkoutReset();
       };
     }
+    if(workoutResetCancel) workoutResetCancel.onclick = closeWorkoutReset;
+    if(workoutResetOverlay) workoutResetOverlay.onclick = closeWorkoutReset;
   }
 
   function liftOptionKey(dayId, lift){
@@ -1042,6 +1321,15 @@
   }
   function liftDetailKey(dayId, lift){
     return `${dayId}::${lift.name}`;
+  }
+  function getNextLift(day, lift){
+    if(!day || !day.lifts) return null;
+    const idx = day.lifts.findIndex(x => x.name === lift.name);
+    if(idx === -1) return null;
+    return day.lifts[idx + 1] || null;
+  }
+  function liftDisplayName(lift, option){
+    return displayNameFromStorageKey(liftStorageKey(lift, option));
   }
   function hasLiftData(sets){
     return (sets || []).some(s => s && (s.done || s.reps || s.weight || s.rpe));
@@ -1230,19 +1518,43 @@
       }
       return null;
     };
-    const exerciseNames = Array.from(new Set(PLAN.flatMap(d => d.lifts.flatMap(l => {
-      if(!l.options || !l.options.length) return [l.name];
-      const session = viewWeekSessions[d.id];
-      const opt = getUsedOptionForWeek(session, d.id, l);
-      return opt ? [`${l.name} (${opt})`] : [];
-    }))));
-    const currentStats = exerciseStatsForWeek(viewWeek);
-    const prevStats = prevWeekKeyStr ? exerciseStatsForWeek(prevWeekKeyStr) : {};
+    const getDayExercises = (day, session) => {
+      return day.lifts.map(lift => {
+        if(lift.options && lift.options.length){
+          const opt = getUsedOptionForWeek(session, day.id, lift) || lift.options[0];
+          return {
+            key: liftStorageKey(lift, opt),
+            label: `${lift.name} (${opt})`
+          };
+        }
+        return {key: lift.name, label: lift.name};
+      });
+    };
     const evalClass = weekSummary.evaluation === "Great"
       ? "evalGood"
       : weekSummary.evaluation === "Good"
         ? "evalOk"
         : "evalBad";
+
+    if(!state.progression) state.progression = {dayId: PLAN[0].id, liftKey: null};
+    const progDay = PLAN.find(d => d.id === state.progression.dayId) || PLAN[0];
+    const progOptions = progDay.lifts.flatMap(lift => {
+      if(lift.options && lift.options.length){
+        return lift.options.map(opt => ({
+          key: liftStorageKey(lift, opt),
+          label: `${lift.name} (${opt})`
+        }));
+      }
+      return [{key: lift.name, label: lift.name}];
+    });
+    let progLiftKey = state.progression.liftKey;
+    if(!progLiftKey || !progOptions.some(o => o.key === progLiftKey)){
+      progLiftKey = progOptions.length ? progOptions[0].key : null;
+      state.progression.dayId = progDay.id;
+      state.progression.liftKey = progLiftKey;
+      save(state);
+    }
+    const progData = progLiftKey ? progressionDataForLift(progDay.id, progLiftKey) : {labels:[], maxValues:[], volValues:[]};
 
     if(state.activeDayId === "dashboard"){
       app.innerHTML = `
@@ -1301,35 +1613,72 @@
             <details style="margin-top:12px">
               <summary class="summaryIcon">
                 <div class="summaryRow">
-                  <span>Exercise comparison to previous week</span>
+                  <span>Previous Week Comparison</span>
                   <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
                 </div>
               </summary>
               <div class="details-body">
-                <div class="dashTableWide">
-                  <div class="dashHead">Exercise</div>
-                  <div class="dashHead">Max</div>
-                  <div class="dashHead">Max &Delta;</div>
-                  <div class="dashHead">Volume</div>
-                  <div class="dashHead">Vol &Delta;</div>
-                  ${exerciseNames.map(name => {
-                    const cur = currentStats[name] || {};
-                    const prev = prevStats[name] || {};
-                    const curMax = cur.maxWeight ?? null;
-                    const prevMax = prev.maxWeight ?? null;
-                    const curVol = Number.isFinite(cur.volume) ? cur.volume : null;
-                    const prevVol = Number.isFinite(prev.volume) ? prev.volume : null;
-                    const maxDelta = (curMax !== null && prevMax !== null) ? (curMax - prevMax) : null;
-                    const volDelta = (curVol !== null && prevVol !== null) ? (curVol - prevVol) : null;
-                    return `
-                      <div class="dashCell">${escapeHtml(name)}</div>
-                      <div class="dashCell">${formatNumber(curMax)}</div>
-                      <div class="dashCell">${formatDelta(maxDelta)}</div>
-                      <div class="dashCell">${formatNumber(curVol)}</div>
-                      <div class="dashCell">${formatDelta(volDelta)}</div>
-                    `;
-                  }).join("")}
+                ${PLAN.map(d => {
+                  const session = viewWeekSessions[d.id];
+                  const exercises = getDayExercises(d, session);
+                  const curStats = exerciseStatsForWeekDay(viewWeek, d.id);
+                  const prevStats = prevWeekKeyStr ? exerciseStatsForWeekDay(prevWeekKeyStr, d.id) : {};
+                  return `
+                    <div class="small" style="margin:10px 0 6px"><b>${escapeHtml(d.title)}</b></div>
+                    <div class="dashTableWide" style="margin-bottom:18px">
+                      <div class="dashHead">Exercise</div>
+                      <div class="dashHead">Max</div>
+                      <div class="dashHead">Max &Delta;</div>
+                      <div class="dashHead">Volume</div>
+                      <div class="dashHead">Vol &Delta;</div>
+                      ${exercises.map(ex => {
+                        const name = ex.label;
+                        const cur = curStats[name] || {};
+                        const prev = prevStats[name] || {};
+                        const curMax = cur.maxWeight ?? null;
+                        const prevMax = prev.maxWeight ?? null;
+                        const curVol = Number.isFinite(cur.volume) ? cur.volume : null;
+                        const prevVol = Number.isFinite(prev.volume) ? prev.volume : null;
+                        const maxDelta = (curMax !== null && prevMax !== null) ? (curMax - prevMax) : null;
+                        const volDelta = (curVol !== null && prevVol !== null) ? (curVol - prevVol) : null;
+                        return `
+                          <div class="dashCell">${escapeHtml(name)}</div>
+                          <div class="dashCell">${formatNumber(curMax)}</div>
+                          <div class="dashCell">${formatDelta(maxDelta)}</div>
+                          <div class="dashCell">${formatNumber(curVol)}</div>
+                          <div class="dashCell">${formatDelta(volDelta)}</div>
+                        `;
+                      }).join("")}
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </details>
+            <details style="margin-top:12px" open>
+              <summary class="summaryIcon">
+                <div class="summaryRow">
+                  <span>Exercise Progression Charts</span>
+                  <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
                 </div>
+              </summary>
+              <div class="details-body">
+                <div class="row" style="gap:10px; flex-wrap:wrap; margin-bottom:8px">
+                  <div style="flex:1 1 160px; min-width:160px">
+                    <div class="small">Day</div>
+                    <select id="progDaySelect" class="inputMini" style="width:100%">
+                      ${PLAN.map(d => `<option value="${d.id}" ${d.id === progDay.id ? "selected":""}>${escapeHtml(d.title)}</option>`).join("")}
+                    </select>
+                  </div>
+                  <div style="flex:2 1 240px; min-width:220px">
+                    <div class="small">Exercise</div>
+                    <select id="progLiftSelect" class="inputMini" style="width:100%">
+                      ${progOptions.map(o => `<option value="${escapeHtml(o.key)}" ${o.key === progLiftKey ? "selected":""}>${escapeHtml(o.label)}</option>`).join("")}
+                    </select>
+                  </div>
+                </div>
+                <div class="small">Based on completed sets only.</div>
+                ${renderProgressionChart("Weight progression", progData.labels, progData.maxValues, "var(--accent)", "lbs")}
+                ${renderProgressionChart("Volume progression", progData.labels, progData.volValues, "var(--accent-2, var(--accent))", "lb-reps")}
               </div>
             </details>
           </div>
@@ -1340,6 +1689,31 @@
       if(weekSelect){
         weekSelect.onchange = () => {
           state.viewWeekStart = weekSelect.value;
+          save(state);
+          render();
+        };
+      }
+      const progDaySelect = $("#progDaySelect");
+      if(progDaySelect){
+        progDaySelect.onchange = () => {
+          const nextDayId = progDaySelect.value;
+          const nextDay = PLAN.find(d => d.id === nextDayId) || PLAN[0];
+          const nextOptions = nextDay.lifts.flatMap(lift => {
+            if(lift.options && lift.options.length){
+              return lift.options.map(opt => liftStorageKey(lift, opt));
+            }
+            return [lift.name];
+          });
+          state.progression.dayId = nextDay.id;
+          state.progression.liftKey = nextOptions.length ? nextOptions[0] : null;
+          save(state);
+          render();
+        };
+      }
+      const progLiftSelect = $("#progLiftSelect");
+      if(progLiftSelect){
+        progLiftSelect.onchange = () => {
+          state.progression.liftKey = progLiftSelect.value;
           save(state);
           render();
         };
@@ -1365,6 +1739,7 @@
     const liftsHtml = day.lifts.map(lift => {
       const option = getLiftOption(session, day.id, lift);
       const arr = ensureLiftArray(session, lift, option);
+      const allDone = arr.length > 0 && arr.every(set => set && set.done);
       const prevData = getPrevLiftData(day.id, lift, option);
       const prevOption = prevData.option;
       const prevArr = prevData.sets || [];
@@ -1405,7 +1780,10 @@
         <details data-detail="${escapeHtml(detailKey)}" ${isOpen ? "open" : ""}>
           <summary>
             <div class="summaryRow">
-              <span>${escapeHtml(lift.name)}</span>
+              <span style="display:flex; align-items:center; gap:8px">
+                ${allDone ? `<span aria-hidden="true" style="color:var(--good); display:inline-flex; align-items:center;">${ICONS.check}</span>` : ``}
+                <span>${escapeHtml(lift.name)}</span>
+              </span>
               <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
             </div>
           </summary>
@@ -1526,6 +1904,7 @@
           </div>
           <span class="badge" id="restPopupStatus">${timers.rest.running ? "Running" : "Paused"}</span>
         </div>
+        <div class="small" id="restPopupNext" style="margin-top:6px"></div>
         <div class="timerControls" style="margin-top:8px">
           <button class="btn" id="enableAudioBtn">${ICONS.sound}<span class="label">Enable sound</span></button>
           <button class="btn" id="restMinusBtn">${ICONS.minus}<span class="label">-15s</span></button>
@@ -1536,96 +1915,7 @@
         </div>
       </div>
 
-      <!--
-      <details class="card">
-        <summary class="summaryIcon">
-          <div class="summaryRow">
-            <span class="row" style="gap:8px; align-items:center">
-              <span>Weekly Dashboard</span>
-              <span class="badge">Week of ${viewWeek}</span>
-            </span>
-            <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
-          </div>
-        </summary>
-        <div class="details-body">
-          <div class="row" style="margin-bottom:10px">
-            <span class="small" style="min-width:110px">View week:</span>
-            <select id="weekSelect" class="inputMini" style="width:auto; min-width:140px">
-              ${allWeeks.length ? allWeeks.map(w => `
-                <option value="${w}" ${w === viewWeek ? "selected":""}>${w}</option>
-              `).join("") : `<option value="${viewWeek}" selected>${viewWeek}</option>`}
-            </select>
-            <span class="small">Dashboard only (workout view stays on current week).</span>
-          </div>
-          <div class="row">
-            <span class="pill">Days <b>${weekSummary.completed}/5</b></span>
-            <span class="pill">Sets <b>${weekSummary.doneSets}/${weekSummary.totalSets}</b></span>
-            <span class="pill">Mobility <b>${weekSummary.mobDone}/${weekSummary.mobTotal}</b></span>
-            <span class="pill">Abs <b>${weekSummary.absDone}/${weekSummary.absTotal}</b></span>
-            <span class="pill">Conditioning <b>${weekSummary.condTotal} min</b></span>
-            <span class="pill">Evaluation <b>${weekSummary.evaluation}</b><span class="evalFace ${evalClass}" aria-hidden="true">☺</span></span>
-          </div>
-          <div class="row" style="margin-top:8px">
-            <span class="small">Vs previous week:</span>
-            ${prevWeekSummary ? `
-              <span class="pill">Days <b>${weekSummary.completed - prevWeekSummary.completed >= 0 ? "+" : ""}${weekSummary.completed - prevWeekSummary.completed}</b></span>
-              <span class="pill">Sets <b>${weekSummary.doneSets - prevWeekSummary.doneSets >= 0 ? "+" : ""}${weekSummary.doneSets - prevWeekSummary.doneSets}</b></span>
-              <span class="pill">Mobility <b>${weekSummary.mobDone - prevWeekSummary.mobDone >= 0 ? "+" : ""}${weekSummary.mobDone - prevWeekSummary.mobDone}</b></span>
-              <span class="pill">Abs <b>${weekSummary.absDone - prevWeekSummary.absDone >= 0 ? "+" : ""}${weekSummary.absDone - prevWeekSummary.absDone}</b></span>
-              <span class="pill">Conditioning <b>${weekSummary.condTotal - prevWeekSummary.condTotal >= 0 ? "+" : ""}${weekSummary.condTotal - prevWeekSummary.condTotal} min</b></span>
-            ` : `<span class="pill">No previous week data</span>`}
-          </div>
-          <div class="dashTable">
-            <div class="dashHead">Day</div>
-            <div class="dashHead">Sets</div>
-            <div class="dashHead">Mobility</div>
-            <div class="dashHead">Abs</div>
-            <div class="dashHead">Cond.</div>
-            ${weekSummary.days.map(d => `
-              <div class="dashCell">${escapeHtml(d.title)}</div>
-              <div class="dashCell">${d.doneSets}/${d.totalSets}</div>
-              <div class="dashCell">${d.mobDone}/${d.mobTotal}</div>
-              <div class="dashCell">${d.abDone ? "Yes" : "No"}</div>
-              <div class="dashCell">${Math.round(d.cond)} min</div>
-            `).join("")}
-          </div>
-          <details style="margin-top:12px">
-            <summary class="summaryIcon">
-              <div class="summaryRow">
-                <span>Exercise comparison to previous week</span>
-                <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
-              </div>
-            </summary>
-            <div class="details-body">
-              <div class="dashTableWide">
-                <div class="dashHead">Exercise</div>
-                <div class="dashHead">Max</div>
-                <div class="dashHead">Max &Delta;</div>
-                <div class="dashHead">Volume</div>
-                <div class="dashHead">Vol &Delta;</div>
-                ${exerciseNames.map(name => {
-                  const cur = currentStats[name] || {};
-                  const prev = prevStats[name] || {};
-                  const curMax = cur.maxWeight ?? null;
-                  const prevMax = prev.maxWeight ?? null;
-                  const curVol = Number.isFinite(cur.volume) ? cur.volume : null;
-                  const prevVol = Number.isFinite(prev.volume) ? prev.volume : null;
-                  const maxDelta = (curMax !== null && prevMax !== null) ? (curMax - prevMax) : null;
-                  const volDelta = (curVol !== null && prevVol !== null) ? (curVol - prevVol) : null;
-                  return `
-                    <div class="dashCell">${escapeHtml(name)}</div>
-                    <div class="dashCell">${formatNumber(curMax)}</div>
-                    <div class="dashCell">${formatDelta(maxDelta)}</div>
-                    <div class="dashCell">${formatNumber(curVol)}</div>
-                    <div class="dashCell">${formatDelta(volDelta)}</div>
-                  `;
-                }).join("")}
-              </div>
-            </div>
-          </details>
-        </div>
-      </details>
-      -->\n<div class="card">
+      \n<div class="card">
         <div class="ch">
           <h2>Mobility Warm-up</h2>
           <span class="badge">Before lifting</span>
@@ -1777,9 +2067,34 @@
             updateAutoComplete(session, day);
             save(state);
             renderTabs();
+            if(field === "done"){
+              render();
+            }
             if(field === "done" && inp.checked){
               const restSeconds = getRestSecondsForLift(session, liftDef, liftOpt);
-              startRestTimer(restSeconds, liftStorageKey(liftDef, liftOpt));
+              const remainingSets = arr.some(s => s && !s.done);
+              const nextLift = remainingSets ? null : getNextLift(day, liftDef);
+              let restLabel = "";
+              if(remainingSets){
+                restLabel = liftDisplayName(liftDef, liftOpt);
+              }else if(nextLift){
+                const nextOpt = getLiftOption(session, day.id, nextLift);
+                restLabel = liftDisplayName(nextLift, nextOpt);
+              }else{
+                restLabel = "Session complete";
+              }
+              startRestTimer(restSeconds, liftStorageKey(liftDef, liftOpt), restLabel);
+
+              if(!remainingSets && nextLift){
+                const currentKey = liftDetailKey(day.id, liftDef);
+                const nextKey = liftDetailKey(day.id, nextLift);
+                openLifts.delete(currentKey);
+                openLifts.add(nextKey);
+                const currentEl = document.querySelector(`details[data-detail="${CSS.escape(currentKey)}"]`);
+                const nextEl = document.querySelector(`details[data-detail="${CSS.escape(nextKey)}"]`);
+                if(currentEl) currentEl.open = false;
+                if(nextEl) nextEl.open = true;
+              }
             }
           });
         }
@@ -1922,16 +2237,19 @@
     if(dayCompleteBtn){
       dayCompleteBtn.addEventListener("click", () => {
         if(session.dayLocked){
-          if(!confirm("Unlock this day and re-enable inputs?")) return;
-          session.dayLocked = false;
-        }else{
-          session.dayLocked = true;
-          session.completed = true;
-          stopRestTimer();
-          stopWorkoutTimer();
-          persistTimers();
-          hideRestPopup();
+          openUnlockDayModal(() => {
+            session.dayLocked = false;
+            save(state);
+            render();
+          });
+          return;
         }
+        session.dayLocked = true;
+        session.completed = true;
+        stopRestTimer();
+        stopWorkoutTimer();
+        persistTimers();
+        hideRestPopup();
         save(state);
         render();
       });
@@ -1985,6 +2303,7 @@
     $("#importFile").click();
   };
 
+  let pendingImport = null;
   $("#importFile").onchange = (e) => {
     const f = e.target.files[0];
     if(!f) return;
@@ -1993,9 +2312,11 @@
       try{
         const json = JSON.parse(ev.target.result);
         if(!json.weekStart || !json.sessions) throw new Error("Invalid format");
-        if(!confirm("This will overwrite your current data. Continue?")) return;
-        localStorage.setItem(KEY, JSON.stringify(json));
-        location.reload();
+        pendingImport = json;
+        const modal = $("#importModal");
+        const overlay = $("#importOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
       }catch(err){
         alert("Error importing file: " + err.message);
       }
@@ -2103,12 +2424,81 @@
   }
 
   $("#resetBtn").onclick = () => {
-    if(!confirm("Reset all saved data on this device?")) return;
-    localStorage.removeItem(KEY);
-    state = defaultState();
-    save(state);
-    render();
+    const modal = $("#appResetModal");
+    const overlay = $("#appResetOverlay");
+    if(modal) modal.classList.remove("hidden");
+    if(overlay) overlay.classList.remove("hidden");
   };
+
+  const appResetConfirm = $("#appResetConfirm");
+  const appResetCancel = $("#appResetCancel");
+  const appResetOverlay = $("#appResetOverlay");
+  const closeAppReset = () => {
+    const modal = $("#appResetModal");
+    const overlay = $("#appResetOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+  };
+  if(appResetConfirm){
+    appResetConfirm.onclick = () => {
+      localStorage.removeItem(KEY);
+      state = defaultState();
+      save(state);
+      render();
+      closeAppReset();
+    };
+  }
+  if(appResetCancel) appResetCancel.onclick = closeAppReset;
+  if(appResetOverlay) appResetOverlay.onclick = closeAppReset;
+
+  let unlockDayAction = null;
+  const openUnlockDayModal = (action) => {
+    unlockDayAction = action;
+    const modal = $("#unlockDayModal");
+    const overlay = $("#unlockDayOverlay");
+    if(modal) modal.classList.remove("hidden");
+    if(overlay) overlay.classList.remove("hidden");
+  };
+  const unlockDayConfirm = $("#unlockDayConfirm");
+  const unlockDayCancel = $("#unlockDayCancel");
+  const unlockDayOverlay = $("#unlockDayOverlay");
+  const closeUnlockDay = () => {
+    const modal = $("#unlockDayModal");
+    const overlay = $("#unlockDayOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+  };
+  if(unlockDayConfirm){
+    unlockDayConfirm.onclick = () => {
+      const action = unlockDayAction;
+      unlockDayAction = null;
+      if(action) action();
+      closeUnlockDay();
+    };
+  }
+  if(unlockDayCancel) unlockDayCancel.onclick = closeUnlockDay;
+  if(unlockDayOverlay) unlockDayOverlay.onclick = closeUnlockDay;
+
+  const importConfirm = $("#importConfirm");
+  const importCancel = $("#importCancel");
+  const importOverlay = $("#importOverlay");
+  const closeImport = () => {
+    const modal = $("#importModal");
+    const overlay = $("#importOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+    pendingImport = null;
+  };
+  if(importConfirm){
+    importConfirm.onclick = () => {
+      if(!pendingImport) return closeImport();
+      localStorage.setItem(KEY, JSON.stringify(pendingImport));
+      closeImport();
+      location.reload();
+    };
+  }
+  if(importCancel) importCancel.onclick = closeImport;
+  if(importOverlay) importOverlay.onclick = closeImport;
 
   $("#dashboardBtn").onclick = () => {
     state.activeDayId = "dashboard";

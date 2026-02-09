@@ -94,6 +94,84 @@
   </div>
 </div>
 
+<div class="devNotesOverlay hidden" id="workoutResetOverlay"></div>
+<div class="devNotesModal hidden" id="workoutResetModal" role="dialog" aria-modal="true" aria-labelledby="workoutResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="workoutResetTitle" style="margin:0">Reset workout timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the workout timer back to zero.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="workoutResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="workoutResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="restResetOverlay"></div>
+<div class="devNotesModal hidden" id="restResetModal" role="dialog" aria-modal="true" aria-labelledby="restResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="restResetTitle" style="margin:0">Reset rest timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the remaining time to the set duration.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="restResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="restResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="appResetOverlay"></div>
+<div class="devNotesModal hidden" id="appResetModal" role="dialog" aria-modal="true" aria-labelledby="appResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="appResetTitle" style="margin:0">Reset all data?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will erase all saved workouts on this device.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="appResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="appResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="unlockDayOverlay"></div>
+<div class="devNotesModal hidden" id="unlockDayModal" role="dialog" aria-modal="true" aria-labelledby="unlockDayTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="unlockDayTitle" style="margin:0">Unlock this day?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will re-enable all inputs for this day.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="unlockDayCancel" type="button">Cancel</button>
+    <button class="btn good" id="unlockDayConfirm" type="button">Unlock</button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="importOverlay"></div>
+<div class="devNotesModal hidden" id="importModal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="importTitle" style="margin:0">Overwrite current data?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will replace your current data with the imported file.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="importCancel" type="button">Cancel</button>
+    <button class="btn bad" id="importConfirm" type="button">Overwrite</button>
+  </div>
+</div>
+
 <script>
 (() => {
   const KEY = "workout_tracker_beach_pump_v1";
@@ -119,27 +197,56 @@
 
   const PLAN = [
     {
-      id:"pump", short:"Pump", title:"Beach Pump",
+      id:"d1", short:"Day 1", title:"Push + Core",
       mobility:[
-        {name:"Light cardio (bike / row / treadmill)", dose:"2 minutes", cue:"Easy pace to raise temperature."},
+        {name:"Light cardio (bike / row)", dose:"2 minutes", cue:"Easy pace to raise temperature."},
         {name:"Band pull-aparts", dose:"20 reps", cue:"Squeeze shoulder blades; keep ribs down."},
-        {name:"Bodyweight squats", dose:"20 reps", cue:"Smooth tempo; full range."},
         {name:"Push-ups", dose:"15 reps", cue:"Controlled; stop before form breaks."},
-        {name:"Arm circles / shoulder rolls", dose:"1 minute", cue:"Relax shoulders; smooth circles."}
+        {name:"Shoulder circles", dose:"1 minute", cue:"Relax shoulders; smooth circles."}
       ],
       lifts:[
-        {name:"A1 Incline Dumbbell Press", sets:4, reps:"12-15", rest:"20-30s", cue:"Controlled tempo with slow eccentric."},
-        {name:"A2 Lat Pulldown", sets:4, reps:"12-15", rest:"20-30s", cue:"1-second squeeze at bottom.", options:["Wide","Neutral"], cues:{
-          "Wide":"Pull to upper chest; keep elbows slightly forward.",
-          "Neutral":"Elbows closer to ribs; squeeze lats hard."
-        }},
-        {name:"B1 Leg Press", sets:3, reps:"20-25", rest:"30-40s", cue:"Constant tension; no lockout."},
-        {name:"B2 Walking Lunges", sets:3, reps:"12-16 steps", rest:"30-40s", cue:"Long stride; stable knee.", options:["Bodyweight","Dumbbells"]},
-        {name:"C1 Dumbbell Lateral Raises", sets:3, reps:"15-20", rest:"45s", cue:"Partial reps for last 5."},
-        {name:"C2 Cable Triceps Pushdown (Rope)", sets:3, reps:"15-20", rest:"45s", cue:"Slow controlled negative."},
-        {name:"C3 Curls", sets:3, reps:"15-20", rest:"45s", cue:"Full stretch at bottom.", options:["EZ-Bar","Dumbbell"]}
+        {name:"A1 Incline Dumbbell Press", sets:4, reps:"12-15", rest:"30s", cue:"Superset A; 4-5 rounds."},
+        {name:"A2 Cable Chest Fly (mid or low)", sets:4, reps:"15-20", rest:"30s", cue:"Superset A; smooth stretch."},
+        {name:"B1 Seated Dumbbell Shoulder Press", sets:4, reps:"12-15", rest:"30s", cue:"Superset B; 4 rounds."},
+        {name:"B2 Dumbbell Lateral Raises", sets:4, reps:"15-20", rest:"30s", cue:"Superset B; control the lower."},
+        {name:"C1 Rope Triceps Pushdown", sets:3, reps:"15-20", rest:"30s", cue:"Superset C; 3-4 rounds."},
+        {name:"C2 Overhead Cable Triceps Extension", sets:3, reps:"12-15", rest:"30s", cue:"Superset C; elbows fixed."}
       ],
-      conditioning:{label:"Finisher (5 minutes)", rx:"Bodyweight full-body circuit: 30s each x 2 rounds (no rest between moves, rest 30s between rounds)."}
+      conditioning:{label:"Pump Accessory + Core Finisher", rx:"Push-up mechanical dropset: standard -> knees -> incline for 5 minutes, minimal rest. Then repeat continuously for 5 minutes: plank 30-45s + hanging/captain's chair knee raises 12-15."}
+    },
+    {
+      id:"d2", short:"Day 2", title:"Pull + Posterior Chain",
+      mobility:[
+        {name:"Row machine", dose:"2 minutes", cue:"Easy pace to raise temperature."},
+        {name:"Hip hinges", dose:"15 reps", cue:"Soft knees; hinge at hips."},
+        {name:"Band rows", dose:"20 reps", cue:"Squeeze shoulder blades; steady tempo."}
+      ],
+      lifts:[
+        {name:"A1 Lat Pulldown", sets:4, reps:"12-15", rest:"30s", cue:"Superset A; 4-5 rounds."},
+        {name:"A2 Straight-Arm Pulldown", sets:4, reps:"15-20", rest:"30s", cue:"Superset A; lats stay engaged."},
+        {name:"B1 Seated Cable Row", sets:4, reps:"12-15", rest:"30s", cue:"Superset B; full stretch."},
+        {name:"B2 Chest-Supported DB Row", sets:4, reps:"12-15", rest:"30s", cue:"Superset B; pause at top."},
+        {name:"C1 Romanian Deadlift", sets:3, reps:"12-15", rest:"40s", cue:"Superset C; hinge, neutral spine.", options:["DB","Barbell"]},
+        {name:"C2 Hamstring Curl", sets:3, reps:"15-20", rest:"40s", cue:"Superset C; control the negative.", options:["Lying","Seated"]}
+      ],
+      conditioning:{label:"Rear Delt + Finisher", rx:"Rear delt pump for 5 minutes: face pulls 20 + rear delt fly 15, repeat continuously. Finisher 5 minutes: back extension hold 20-30s + bodyweight squats 25, repeat continuously."}
+    },
+    {
+      id:"d3", short:"Day 3", title:"Legs + Arms",
+      mobility:[
+        {name:"Bike or treadmill", dose:"2 minutes", cue:"Easy pace to raise temperature."},
+        {name:"Walking lunges", dose:"10/side", cue:"Controlled steps; stable knee."},
+        {name:"Bodyweight squats", dose:"20 reps", cue:"Smooth tempo; full range."}
+      ],
+      lifts:[
+        {name:"A1 Leg Press", sets:4, reps:"20-25", rest:"40s", cue:"Superset A; 4-5 rounds."},
+        {name:"A2 Goblet Squat or Hack Squat", sets:4, reps:"15-20", rest:"40s", cue:"Superset A; steady tempo.", options:["Goblet","Hack"]},
+        {name:"B1 Walking Dumbbell Lunges", sets:4, reps:"12-16 steps", rest:"40s", cue:"Superset B; long stride."},
+        {name:"B2 Hip Thrust or Glute Bridge Machine", sets:4, reps:"15-20", rest:"40s", cue:"Superset B; pause at top.", options:["Hip Thrust","Glute Bridge Machine"]},
+        {name:"C1 EZ-Bar or Dumbbell Curl", sets:3, reps:"15-20", rest:"30s", cue:"Superset C; full stretch.", options:["EZ-Bar","Dumbbell"]},
+        {name:"C2 Cable Curl or Preacher Machine", sets:3, reps:"12-15", rest:"30s", cue:"Superset C; slow negative.", options:["Cable Curl","Preacher Machine"]}
+      ],
+      conditioning:{label:"Calf Pump Block", rx:"Repeat continuously for 5 minutes: standing calf raises 25 + seated calf raises or tibialis raises 20."}
     }
   ];
 
@@ -678,10 +785,10 @@
 
     if(restResetBtn){
       restResetBtn.onclick = () => {
-        stopRestTimer();
-        timers.rest.remaining = timers.rest.duration;
-        persistTimers();
-        updateTimersUI();
+        const modal = $("#restResetModal");
+        const overlay = $("#restResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
       };
     }
 
@@ -738,13 +845,54 @@
 
     if(workoutResetBtn){
       workoutResetBtn.onclick = () => {
-        if(!confirm("Reset workout timer?")) return;
+        const modal = $("#workoutResetModal");
+        const overlay = $("#workoutResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
+      };
+    }
+
+    const restResetConfirm = $("#restResetConfirm");
+    const restResetCancel = $("#restResetCancel");
+    const restResetOverlay = $("#restResetOverlay");
+    const closeRestReset = () => {
+      const modal = $("#restResetModal");
+      const overlay = $("#restResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(restResetConfirm){
+      restResetConfirm.onclick = () => {
+        stopRestTimer();
+        timers.rest.remaining = timers.rest.duration;
+        persistTimers();
+        updateTimersUI();
+        closeRestReset();
+      };
+    }
+    if(restResetCancel) restResetCancel.onclick = closeRestReset;
+    if(restResetOverlay) restResetOverlay.onclick = closeRestReset;
+
+    const workoutResetConfirm = $("#workoutResetConfirm");
+    const workoutResetCancel = $("#workoutResetCancel");
+    const workoutResetOverlay = $("#workoutResetOverlay");
+    const closeWorkoutReset = () => {
+      const modal = $("#workoutResetModal");
+      const overlay = $("#workoutResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(workoutResetConfirm){
+      workoutResetConfirm.onclick = () => {
         stopWorkoutTimer();
         timers.workout.elapsed = 0;
         persistTimers();
         updateTimersUI();
+        closeWorkoutReset();
       };
     }
+    if(workoutResetCancel) workoutResetCancel.onclick = closeWorkoutReset;
+    if(workoutResetOverlay) workoutResetOverlay.onclick = closeWorkoutReset;
   }
 
   function liftOptionKey(dayId, lift){
@@ -1449,42 +1597,7 @@
           <span class="badge">Conditioning</span>
         </div>
         <div class="cb">
-          ${day.id === "pump" ? `
           <div class="small">${escapeHtml(day.conditioning.rx)}</div>
-          <ul class="small" style="margin:8px 0 0 16px; padding:0; line-height:1.6">
-            <li>Air squats</li>
-            <li>Push-ups</li>
-            <li>Alternating reverse lunges</li>
-            <li>Plank shoulder taps</li>
-            <li>Glute bridges</li>
-            <li>Mountain climbers</li>
-          </ul>
-          ` : `
-          <div class="small">${escapeHtml(day.conditioning.rx)}</div>
-          `}
-          <div class="hr"></div>
-          ${day.id === "d1" ? `
-          <div class="row">
-            <div style="flex:1 1 140px">
-              <div class="small" style="margin-bottom:6px">Push-ups set 1 reps</div>
-              <input id="pushupSet1" type="number" style="width:100%; padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);"
-                     inputmode="numeric" min="0" step="1" placeholder="e.g., 22" value="${escapeHtml((session.conditioningPushups && session.conditioningPushups.set1) || "")}">
-            </div>
-            <div style="flex:1 1 140px">
-              <div class="small" style="margin-bottom:6px">Push-ups set 2 reps</div>
-              <input id="pushupSet2" type="number" style="width:100%; padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);"
-                     inputmode="numeric" min="0" step="1" placeholder="e.g., 18" value="${escapeHtml((session.conditioningPushups && session.conditioningPushups.set2) || "")}">
-            </div>
-          </div>
-          ` : `
-          <div class="row">
-            <div style="flex:1 1 220px">
-              <div class="small" style="margin-bottom:6px">Conditioning minutes completed (optional)</div>
-              <input id="condMin" type="number" style="width:100%; padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);"
-                     inputmode="numeric" min="0" step="0.1" placeholder="e.g., 15" value="${escapeHtml(session.conditioningMinutes||"")}">
-            </div>
-          </div>
-          `}
         </div>
       </div>
 
@@ -1688,16 +1801,19 @@
     if(dayCompleteBtn){
       dayCompleteBtn.addEventListener("click", () => {
         if(session.dayLocked){
-          if(!confirm("Unlock this day and re-enable inputs?")) return;
-          session.dayLocked = false;
-        }else{
-          session.dayLocked = true;
-          session.completed = true;
-          stopRestTimer();
-          stopWorkoutTimer();
-          persistTimers();
-          hideRestPopup();
+          openUnlockDayModal(() => {
+            session.dayLocked = false;
+            save(state);
+            render();
+          });
+          return;
         }
+        session.dayLocked = true;
+        session.completed = true;
+        stopRestTimer();
+        stopWorkoutTimer();
+        persistTimers();
+        hideRestPopup();
         save(state);
         render();
       });
@@ -1741,6 +1857,7 @@
     $("#importFile").click();
   };
 
+  let pendingImport = null;
   $("#importFile").onchange = (e) => {
     const f = e.target.files[0];
     if(!f) return;
@@ -1749,9 +1866,11 @@
       try{
         const json = JSON.parse(ev.target.result);
         if(!json.weekStart || !json.sessions) throw new Error("Invalid format");
-        if(!confirm("This will overwrite your current data. Continue?")) return;
-        localStorage.setItem(KEY, JSON.stringify(json));
-        location.reload();
+        pendingImport = json;
+        const modal = $("#importModal");
+        const overlay = $("#importOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
       }catch(err){
         alert("Error importing file: " + err.message);
       }
@@ -1859,12 +1978,81 @@
   }
 
   $("#resetBtn").onclick = () => {
-    if(!confirm("Reset all saved data on this device?")) return;
-    localStorage.removeItem(KEY);
-    state = defaultState();
-    save(state);
-    render();
+    const modal = $("#appResetModal");
+    const overlay = $("#appResetOverlay");
+    if(modal) modal.classList.remove("hidden");
+    if(overlay) overlay.classList.remove("hidden");
   };
+
+  const appResetConfirm = $("#appResetConfirm");
+  const appResetCancel = $("#appResetCancel");
+  const appResetOverlay = $("#appResetOverlay");
+  const closeAppReset = () => {
+    const modal = $("#appResetModal");
+    const overlay = $("#appResetOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+  };
+  if(appResetConfirm){
+    appResetConfirm.onclick = () => {
+      localStorage.removeItem(KEY);
+      state = defaultState();
+      save(state);
+      render();
+      closeAppReset();
+    };
+  }
+  if(appResetCancel) appResetCancel.onclick = closeAppReset;
+  if(appResetOverlay) appResetOverlay.onclick = closeAppReset;
+
+  let unlockDayAction = null;
+  const openUnlockDayModal = (action) => {
+    unlockDayAction = action;
+    const modal = $("#unlockDayModal");
+    const overlay = $("#unlockDayOverlay");
+    if(modal) modal.classList.remove("hidden");
+    if(overlay) overlay.classList.remove("hidden");
+  };
+  const unlockDayConfirm = $("#unlockDayConfirm");
+  const unlockDayCancel = $("#unlockDayCancel");
+  const unlockDayOverlay = $("#unlockDayOverlay");
+  const closeUnlockDay = () => {
+    const modal = $("#unlockDayModal");
+    const overlay = $("#unlockDayOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+  };
+  if(unlockDayConfirm){
+    unlockDayConfirm.onclick = () => {
+      const action = unlockDayAction;
+      unlockDayAction = null;
+      if(action) action();
+      closeUnlockDay();
+    };
+  }
+  if(unlockDayCancel) unlockDayCancel.onclick = closeUnlockDay;
+  if(unlockDayOverlay) unlockDayOverlay.onclick = closeUnlockDay;
+
+  const importConfirm = $("#importConfirm");
+  const importCancel = $("#importCancel");
+  const importOverlay = $("#importOverlay");
+  const closeImport = () => {
+    const modal = $("#importModal");
+    const overlay = $("#importOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+    pendingImport = null;
+  };
+  if(importConfirm){
+    importConfirm.onclick = () => {
+      if(!pendingImport) return closeImport();
+      localStorage.setItem(KEY, JSON.stringify(pendingImport));
+      closeImport();
+      location.reload();
+    };
+  }
+  if(importCancel) importCancel.onclick = closeImport;
+  if(importOverlay) importOverlay.onclick = closeImport;
 
   const dashboardBtn = $("#dashboardBtn");
   if(dashboardBtn){
