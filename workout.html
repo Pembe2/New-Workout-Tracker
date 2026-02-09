@@ -834,13 +834,16 @@
       audioUnlocked = false;
     }
   }
-  function playBeep(){
+  async function playBeep(){
     try{
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if(!Ctx) return;
       audioCtx = audioCtx || new Ctx();
-      if(audioCtx.state === "suspended") audioCtx.resume();
-      audioUnlocked = audioCtx.state === "running";
+      await resumeAudioIfNeeded();
+      if(!audioUnlocked){
+        updateTimersUI();
+        return;
+      }
       const drop = (t) => {
 
         const carrier = audioCtx.createOscillator();
@@ -881,7 +884,10 @@
       drop(base);
       drop(base + 1.0);
       drop(base + 2.0);
-    }catch(e){}
+    }catch(e){
+      audioUnlocked = false;
+    }
+    updateTimersUI();
     if(navigator.vibrate){
       navigator.vibrate(120);
       setTimeout(() => navigator.vibrate(120), 1000);
