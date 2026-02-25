@@ -16,7 +16,7 @@
     <div class="head">
       <div>
         <h1>🍑 Booty Builder Workout</h1>
-        <div class="sub">Glute + hamstring add-on. Saves on-device.</div>
+        <div class="sub"></div>
       </div>
       <div class="row" style="position:relative">
         <button class="btn menuBtn iconOnly" id="menuToggle" aria-label="Menu">
@@ -26,6 +26,9 @@
         </button>
         <input type="file" id="importFile" style="display:none" accept=".json">
       </div>
+    </div>
+    <div class="syncRow">
+      <span class="badge syncBadge" id="syncStatus">Sync: -</span>
     </div>
   </div>
 </header>
@@ -45,6 +48,14 @@
         <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 1 0 9.8 9.8z"/>
       </svg>
       Theme
+    </button>
+    <button class="menuItem" id="logoutBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <path d="M16 17l5-5-5-5"/>
+        <path d="M21 12H9"/>
+      </svg>
+      Logout
     </button>
     <button class="menuItem" id="importBtn">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -188,9 +199,12 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
 <script>
-(() => {
+(async () => {
   const KEY = "workout_tracker_booty_builder_v1";
+  const MIGRATION_KEY = `${KEY}_migrated_v1`;
   const ICONS = {
     add: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
     remove: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
@@ -308,8 +322,59 @@
   function load(){
     try{ return JSON.parse(localStorage.getItem(KEY)) || null; }catch(e){ return null; }
   }
-  function save(state){
+  const SYNC_KEY = `${KEY}_last_sync`;
+  const SYNC_STATUS_KEY = `${KEY}_last_sync_status`;
+  function formatClock(ts){
+    try{
+      return new Date(ts).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+    }catch(e){
+      return "";
+    }
+  }
+  function setSyncStatus(state){
+    const el = $("#syncStatus");
+    if(!el) return;
+    el.classList.remove("saving", "error");
+    if(state === "saving"){
+      el.classList.add("saving");
+      el.textContent = "Sync: Saving...";
+      localStorage.setItem(SYNC_STATUS_KEY, "saving");
+      return;
+    }
+    if(state === "error"){
+      el.classList.add("error");
+      el.textContent = "Sync: Error";
+      localStorage.setItem(SYNC_STATUS_KEY, "error");
+      return;
+    }
+    const last = localStorage.getItem(SYNC_KEY);
+    if(last){
+      el.textContent = `Sync: ${formatClock(last)}`;
+      localStorage.setItem(SYNC_STATUS_KEY, "ok");
+    } else {
+      el.textContent = "Sync: Not yet";
+      localStorage.setItem(SYNC_STATUS_KEY, "idle");
+    }
+  }
+  let remoteSaveTimer = null;
+  function scheduleRemoteSave(nextState){
+    if(!window.AuthClient || !AuthClient.isLoggedIn()) return;
+    if(remoteSaveTimer) clearTimeout(remoteSaveTimer);
+    setSyncStatus("saving");
+    remoteSaveTimer = setTimeout(async () => {
+      try{
+        await AuthClient.saveWorkout(KEY, nextState);
+        localStorage.setItem(SYNC_KEY, new Date().toISOString());
+        setSyncStatus("ok");
+      }catch(e){
+        console.warn("Remote save failed", e);
+        setSyncStatus("error");
+      }
+    }, 800);
+  }
+  function save(state, opts={}){
     localStorage.setItem(KEY, JSON.stringify(state));
+    if(!opts.skipRemote) scheduleRemoteSave(state);
   }
 
   function defaultState(){
@@ -327,7 +392,14 @@
     };
   }
 
+  if(window.AuthClient && AuthClient.init){
+    try{ await AuthClient.init(); }catch(e){}
+  }
   let state = load() || defaultState();
+  if(window.AuthClient && !AuthClient.isLoggedIn()){
+    window.location.href = "login.html";
+    return;
+  }
   const openLifts = new Set();
   const timers = {
     rest:{duration:90, remaining:90, running:false, interval:null},
@@ -1793,6 +1865,17 @@
     else document.body.classList.remove("light");
     save(state);
   };
+  const logoutBtn = $("#logoutBtn");
+  if(logoutBtn){
+    if(!window.AuthClient || !AuthClient.isLoggedIn()){
+      logoutBtn.style.display = "none";
+    } else {
+      logoutBtn.onclick = async () => {
+        await AuthClient.logout();
+        window.location.href = "login.html";
+      };
+    }
+  }
 
   const menuToggle = $("#menuToggle");
   const menuPopup = $("#menuPopup");
@@ -1974,6 +2057,29 @@
   save(state);
   scheduleWeeklyRollover();
   render();
+  setSyncStatus("ok");
+  (async () => {
+    if(!window.AuthClient || !AuthClient.isLoggedIn()) return;
+    try{
+      const remote = await AuthClient.getWorkout(KEY);
+      if(remote && remote.data){
+        state = remote.data;
+        save(state, {skipRemote:true});
+        render();
+        return;
+      }
+    }catch(e){
+      if(!e || e.status !== 404) console.warn("Remote load failed", e);
+    }
+    if(localStorage.getItem(KEY) && !localStorage.getItem(MIGRATION_KEY)){
+      try{
+        await AuthClient.saveWorkout(KEY, state);
+        localStorage.setItem(MIGRATION_KEY, "1");
+      }catch(e){
+        console.warn("Migration failed", e);
+      }
+    }
+  })();
 
 })();
 </script>

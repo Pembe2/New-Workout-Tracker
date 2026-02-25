@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Workout Tracker - Login</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+<main class="landing">
+  <div class="landingCard">
+    <h1 class="landingTitle">Workout Hub</h1>
+    <p class="landingSub">Sign in to sync and access your workouts.</p>
+    <div class="authCard">
+      <div class="authHeader">Account</div>
+      <div class="authRow">
+        <input class="authInput" id="authUser" type="email" autocomplete="username" placeholder="Email">
+        <input class="authInput" id="authPass" type="password" autocomplete="current-password" placeholder="Password">
+      </div>
+      <div class="authActions">
+        <button class="btn primary" id="loginBtn" type="button">Login</button>
+        <button class="btn" id="registerBtn" type="button">Register</button>
+      </div>
+      <div class="authStatus" id="authStatus"></div>
+    </div>
+  </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<script>
+(async () => {
+  const userEl = document.getElementById("authUser");
+  const passEl = document.getElementById("authPass");
+  const loginBtn = document.getElementById("loginBtn");
+  const registerBtn = document.getElementById("registerBtn");
+  const statusEl = document.getElementById("authStatus");
+
+  function setStatus(msg, isError=false){
+    statusEl.textContent = msg || "";
+    statusEl.classList.toggle("error", !!isError);
+  }
+
+  if(window.AuthClient && AuthClient.init){
+    try{
+      await AuthClient.init();
+    }catch(e){
+      setStatus("Auth init failed.", true);
+    }
+  }
+
+  if(window.AuthClient && AuthClient.isLoggedIn()){
+    window.location.href = "index.html";
+    return;
+  }
+
+  async function uploadLocalHistory(){
+    const keys = [
+      "workout_tracker_fatloss_v2",
+      "workout_tracker_beach_pump_v1",
+      "workout_tracker_booty_builder_v1",
+      "workout_tracker_ab_5_min_v1"
+    ];
+    const suffix = "_migrated_v1";
+    for(const key of keys){
+      const migratedKey = `${key}${suffix}`;
+      if(localStorage.getItem(migratedKey)) continue;
+      const raw = localStorage.getItem(key);
+      if(!raw) continue;
+      try{
+        const data = JSON.parse(raw);
+        await AuthClient.saveWorkout(key, data);
+        localStorage.setItem(migratedKey, "1");
+      }catch(e){
+        console.warn("History upload failed for", key, e);
+      }
+    }
+  }
+
+  async function handleLogin(isRegister){
+    try{
+      setStatus("Working...");
+      const email = userEl.value.trim();
+      const password = passEl.value;
+      if(!email || !password){
+        setStatus("Enter email and password.", true);
+        return;
+      }
+      if(isRegister){
+        await AuthClient.register(email, password);
+      } else {
+        await AuthClient.login(email, password);
+      }
+      await uploadLocalHistory();
+      setStatus("Signed in. History uploaded.");
+      window.location.href = "index.html";
+    }catch(e){
+      setStatus(e.message || "Login failed.", true);
+    }
+  }
+
+  loginBtn.addEventListener("click", () => handleLogin(false));
+  registerBtn.addEventListener("click", () => handleLogin(true));
+
+})();
+</script>
+</body>
+</html>

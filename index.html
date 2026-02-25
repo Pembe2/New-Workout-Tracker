@@ -9,10 +9,27 @@
 
 </head>
 <body>
-<main class="landing">
-  <div class="landingCard">
-    <h1 class="landingTitle">Workout Hub</h1>
-    <p class="landingSub">Choose a workout to open. Your data stays on this device.</p>
+<div class="safe-area-fix"></div>
+<header>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <h1>Workout Hub</h1>
+      </div>
+      <div class="row" style="position:relative">
+        <button class="btn menuBtn iconOnly" id="menuToggle" aria-label="Menu">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M3 6h18M3 12h18M3 18h18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="landingCard landingCard--compact">
+    <div class="landingTitle landingTitle--compact">Choose a workout to open</div>
+    <div class="landingSub">(Your data syncs to your account.)</div>
     <div class="actions">
       <a class="btn" href="workout.html">Lean Muscle Workout</a>
       <a class="btn" href="beach-pump.html">Beach Pump Workout</a>
@@ -21,6 +38,143 @@
     </div>
   </div>
 </main>
+<div class="menuLayer" id="menuLayer">
+  <div class="menuOverlay" id="menuOverlay"></div>
+  <div class="menuPopup" id="menuPopup">
+    <button class="menuItem" id="backupAllBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v12M8 11l4 4 4-4M4 21h16"/>
+      </svg>
+      Backup All
+    </button>
+    <button class="menuItem" id="restoreAllBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 21V9M8 13l4-4 4 4M4 3h16"/>
+      </svg>
+      Restore All
+    </button>
+    <button class="menuItem bad" id="logoutBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <path d="M16 17l5-5-5-5"/>
+        <path d="M21 12H9"/>
+      </svg>
+      Logout
+    </button>
+  </div>
+</div>
+<input type="file" id="restoreAllFile" style="display:none" accept=".json">
+<div class="footerAuth" id="authStatus"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<script>
+(async () => {
+  const logoutBtn = document.getElementById("logoutBtn");
+  const backupAllBtn = document.getElementById("backupAllBtn");
+  const restoreAllBtn = document.getElementById("restoreAllBtn");
+  const restoreAllFile = document.getElementById("restoreAllFile");
+  const statusEl = document.getElementById("authStatus");
+  const menuToggle = document.getElementById("menuToggle");
+  const menuPopup = document.getElementById("menuPopup");
+  const menuOverlay = document.getElementById("menuOverlay");
+
+  function setStatus(msg, isError=false){
+    statusEl.innerHTML = msg || "";
+    statusEl.classList.toggle("error", !!isError);
+  }
+
+  if(window.AuthClient && AuthClient.init){
+    try{
+      await AuthClient.init();
+    }catch(e){
+      setStatus("Auth init failed.", true);
+    }
+  }
+
+  if(!window.AuthClient || !AuthClient.isLoggedIn()){
+    window.location.href = "login.html";
+    return;
+  }
+
+  setStatus(`Signed in as<br>${AuthClient.getUsername()}`);
+
+  if(menuToggle && menuPopup && menuOverlay){
+    menuToggle.addEventListener("click", () => {
+      menuPopup.classList.toggle("show");
+      menuOverlay.classList.toggle("show");
+    });
+    menuOverlay.addEventListener("click", () => {
+      menuPopup.classList.remove("show");
+      menuOverlay.classList.remove("show");
+    });
+    menuPopup.querySelectorAll(".menuItem").forEach(b => {
+      b.addEventListener("click", () => menuOverlay.click());
+    });
+  }
+
+  if(logoutBtn){
+    logoutBtn.addEventListener("click", async () => {
+      await AuthClient.logout();
+      window.location.href = "login.html";
+    });
+  }
+  if(backupAllBtn){
+    backupAllBtn.addEventListener("click", () => {
+      const keys = [
+        "workout_tracker_fatloss_v2",
+        "workout_tracker_beach_pump_v1",
+        "workout_tracker_booty_builder_v1",
+        "workout_tracker_ab_5_min_v1"
+      ];
+      const payload = {
+        exported_at: new Date().toISOString(),
+        data: {}
+      };
+      keys.forEach(key => {
+        const raw = localStorage.getItem(key);
+        if(raw){
+          try{ payload.data[key] = JSON.parse(raw); }
+          catch(e){ payload.data[key] = { error: "Invalid JSON" }; }
+        }
+      });
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `workout-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+  }
+  if(restoreAllBtn && restoreAllFile){
+    restoreAllBtn.addEventListener("click", () => {
+      restoreAllFile.click();
+    });
+    restoreAllFile.addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      if(!f) return;
+      const r = new FileReader();
+      r.onload = (ev) => {
+        try{
+          const payload = JSON.parse(ev.target.result);
+          if(!payload || !payload.data) throw new Error("Invalid backup format");
+          Object.entries(payload.data).forEach(([key, value]) => {
+            if(value && typeof value === "object"){
+              localStorage.setItem(key, JSON.stringify(value));
+            }
+          });
+          setStatus("Restore complete. Refreshing...");
+          setTimeout(() => window.location.reload(), 400);
+        }catch(err){
+          setStatus("Restore failed: " + err.message, true);
+        }
+      };
+      r.readAsText(f);
+    });
+  }
+})();
+</script>
 </body>
 </html>
-
