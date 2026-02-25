@@ -56,6 +56,12 @@
     cachedUser = null;
   }
 
+  async function resetPassword(email) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
+    return { ok: true };
+  }
+
   async function getUserId() {
     if (cachedUser) return cachedUser.id;
     const { data, error } = await supabase.auth.getUser();
@@ -98,6 +104,7 @@
     register,
     login,
     logout,
+    resetPassword,
     getWorkout,
     saveWorkout,
   };

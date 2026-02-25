@@ -317,13 +317,20 @@
     }
   }
   let remoteSaveTimer = null;
+  let remoteReady = false;
+  function withTimeout(promise, ms){
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Sync timeout")), ms))
+    ]);
+  }
   function scheduleRemoteSave(nextState){
-    if(!window.AuthClient || !AuthClient.isLoggedIn()) return;
+    if(!window.AuthClient || !AuthClient.isLoggedIn() || !remoteReady) return;
     if(remoteSaveTimer) clearTimeout(remoteSaveTimer);
     setSyncStatus("saving");
     remoteSaveTimer = setTimeout(async () => {
       try{
-        await AuthClient.saveWorkout(KEY, nextState);
+        await withTimeout(AuthClient.saveWorkout(KEY, nextState), 10000);
         localStorage.setItem(SYNC_KEY, new Date().toISOString());
         setSyncStatus("ok");
       }catch(e){
@@ -1679,6 +1686,7 @@
         state = remote.data;
         save(state, {skipRemote:true});
         render();
+        remoteReady = true;
         return;
       }
     }catch(e){
@@ -1692,6 +1700,7 @@
         console.warn("Migration failed", e);
       }
     }
+    remoteReady = true;
   })();
 
 })();

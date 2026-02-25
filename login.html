@@ -22,11 +22,24 @@
       <div class="authActions">
         <button class="btn primary" id="loginBtn" type="button">Login</button>
         <button class="btn" id="registerBtn" type="button">Register</button>
+        <button class="btn" id="resetBtn" type="button">Forgot password</button>
       </div>
       <div class="authStatus" id="authStatus"></div>
     </div>
   </div>
 </main>
+<div class="devNotesOverlay hidden" id="confirmOverlay"></div>
+<div class="devNotesModal hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="confirmTitle" style="margin:0">Confirm password</h3>
+  </div>
+  <div class="small" style="margin:10px 0 8px">Re-enter your password to register.</div>
+  <input class="authInput" id="authPassConfirm" type="password" autocomplete="new-password" placeholder="Confirm password">
+  <div class="row" style="justify-content:flex-end; gap:8px; margin-top:10px">
+    <button class="btn" id="confirmCancel" type="button">Cancel</button>
+    <button class="btn primary" id="confirmRegister" type="button">Register</button>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="auth.js"></script>
 <script>
@@ -35,7 +48,13 @@
   const passEl = document.getElementById("authPass");
   const loginBtn = document.getElementById("loginBtn");
   const registerBtn = document.getElementById("registerBtn");
+  const resetBtn = document.getElementById("resetBtn");
   const statusEl = document.getElementById("authStatus");
+  const confirmOverlay = document.getElementById("confirmOverlay");
+  const confirmModal = document.getElementById("confirmModal");
+  const passConfirmEl = document.getElementById("authPassConfirm");
+  const confirmCancel = document.getElementById("confirmCancel");
+  const confirmRegister = document.getElementById("confirmRegister");
 
   function setStatus(msg, isError=false){
     statusEl.textContent = msg || "";
@@ -78,6 +97,16 @@
     }
   }
 
+  function openConfirm(){
+    if(confirmOverlay) confirmOverlay.classList.remove("hidden");
+    if(confirmModal) confirmModal.classList.remove("hidden");
+    if(passConfirmEl) passConfirmEl.value = "";
+  }
+  function closeConfirm(){
+    if(confirmOverlay) confirmOverlay.classList.add("hidden");
+    if(confirmModal) confirmModal.classList.add("hidden");
+  }
+
   async function handleLogin(isRegister){
     try{
       setStatus("Working...");
@@ -101,7 +130,40 @@
   }
 
   loginBtn.addEventListener("click", () => handleLogin(false));
-  registerBtn.addEventListener("click", () => handleLogin(true));
+  registerBtn.addEventListener("click", () => openConfirm());
+  if(confirmCancel) confirmCancel.addEventListener("click", () => closeConfirm());
+  if(confirmOverlay) confirmOverlay.addEventListener("click", () => closeConfirm());
+  if(confirmRegister){
+    confirmRegister.addEventListener("click", async () => {
+      const confirm = passConfirmEl.value;
+      const password = passEl.value;
+      if(!confirm){
+        setStatus("Confirm your password.", true);
+        return;
+      }
+      if(password !== confirm){
+        setStatus("Passwords do not match.", true);
+        return;
+      }
+      closeConfirm();
+      await handleLogin(true);
+    });
+  }
+  if(resetBtn){
+    resetBtn.addEventListener("click", async () => {
+      try{
+        const email = userEl.value.trim();
+        if(!email){
+          setStatus("Enter your email first.", true);
+          return;
+        }
+        await AuthClient.resetPassword(email);
+        setStatus("Password reset email sent.");
+      }catch(e){
+        setStatus(e.message || "Reset failed.", true);
+      }
+    });
+  }
 
 })();
 </script>
