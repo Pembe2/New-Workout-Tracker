@@ -233,7 +233,7 @@
         {name:"Scap push-ups", dose:"2x10", cue:"Move shoulder blades; elbows stay locked."},
       ],
       lifts:[
-        {name:"Bench Press", sets:4, reps:"6-8", rest:"90-150s", cue:"Stop with 1-2 reps in reserve; controlled descent.", options:["BB","DB"]},
+        {name:"Bench Press", sets:4, reps:"6-8", rest:"90-120s", cue:"Stop with 1-2 reps in reserve; controlled descent.", options:["BB","DB"]},
         {name:"Incline Bench Press", sets:3, reps:"8-10", rest:"90s", cue:"Full range; do not bounce.", options:["BB","DB"]},
         {name:"DB Overhead Press", sets:3, reps:"6-8", rest:"90-120s", cue:"Glutes tight; avoid excessive low-back arch.", options:["Standing","Seated"], cues:{
           "Standing": "Glutes tight, ribs down; avoid excessive low-back arch.",
@@ -257,8 +257,8 @@
         {name:"Ankle dorsiflexion rocks", dose:"2x10/side", cue:"Heel stays down; knee tracks over toes."},
       ],
       lifts:[
-        {name:"Squat", sets:4, reps:"5-8", rest:"120-180s", cue:"Brace hard; consistent depth; clean reps.", options:["Back","Front"]},
-        {name:"Romanian Deadlift", sets:3, reps:"8", rest:"120s", cue:"Hinge; neutral spine; feel hamstrings."},
+        {name:"Squat", sets:4, reps:"5-8", rest:"90-120s", cue:"Brace hard; consistent depth; clean reps.", options:["Back","Front"]},
+        {name:"Romanian Deadlift", sets:3, reps:"8", rest:"90-120s", cue:"Hinge; neutral spine; feel hamstrings."},
         {name:"Walking Lunges", sets:3, reps:"12/leg", rest:"90s", cue:"Long stride; stable knee."},
         {name:"Standing Calf Raises", sets:4, reps:"12-15", rest:"60s", cue:"Pause at top and bottom."},
         {name:"Plank", sets:3, reps:"45-60s", rest:"45-60s", cue:"Ribs down; squeeze glutes; breathe.", options:["Front","Side"]},
@@ -276,7 +276,7 @@
       ],
       lifts:[
         {name:"Pull-ups or Lat Pulldown", sets:4, reps:"6-10", rest:"90-120s", cue:"Full stretch at bottom; no kipping.", options:["Pull-ups","Lat Pulldown"]},
-        {name:"Row", sets:3, reps:"8-10", rest:"120s", cue:"Pull to hip; keep neck neutral.", options:["Seated","Dumbbell"]},
+        {name:"Row", sets:3, reps:"8-10", rest:"90-120s", cue:"Pull to hip; keep neck neutral.", options:["Seated","Dumbbell"]},
         {name:"Three Point DB Row", sets:3, reps:"10/side", rest:"90s", cue:"Pause at top; controlled lower."},
         {name:"Face Pulls", sets:3, reps:"12-15", rest:"60s", cue:"Elbows high; squeeze rear delts."},
         {name:"Biceps Curl", sets:3, reps:"10-12", rest:"60-90s", cue:"No swing; full extension.", options:["BB","DB"]},
@@ -318,9 +318,9 @@
         {name:"Band external rotations", dose:"2x12", cue:"Elbow pinned to side; slow rotation."},
       ],
       lifts:[
-        {name:"Deadlift (moderate load)", sets:3, reps:"5", rest:"120-150s", cue:"Crisp reps; stop short of grinding."},
+        {name:"Deadlift (moderate load)", sets:3, reps:"8-10", rest:"90-120s", cue:"Crisp reps; stop short of grinding."},
         {name:"Incline Bench Press", sets:3, reps:"8-10", rest:"90s", cue:"Full range; do not bounce.", options:["BB","DB"]},
-        {name:"Chin-ups or Assisted", sets:3, reps:"AMRAP", rest:"120s", cue:"Stop 1 rep before form breaks.", options:["Chin-ups","Assisted"]},
+        {name:"Chin-ups or Assisted", sets:3, reps:"AMRAP", rest:"90s", cue:"Stop 1 rep before form breaks.", options:["Chin-ups","Assisted"]},
         {name:"Goblet Squat", sets:3, reps:"12", rest:"90s", cue:"Upright torso; elbows inside knees."},
         {name:"Farmer's Carries", sets:3, reps:"40-60s", rest:"60-90s", cue:"Tall posture; slow controlled steps."},
         { name:"Seated Cable Row or Chest-Supported Row", sets:3, reps:"10-12", rest:"90s", cue:"Pause at squeeze; no jerking.", options:["Cable","Chest-Supported"] },
@@ -637,6 +637,10 @@
     });
     $("#weekLbl").textContent = state.weekStart;
     $("#completedLbl").textContent = String(countCompleted());
+    const dashboardBtn = $("#dashboardBtn");
+    if(dashboardBtn){
+      dashboardBtn.classList.toggle("primary", state.activeDayId === "dashboard");
+    }
   }
 
   function escapeHtml(s){
@@ -988,6 +992,34 @@
     g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
     o.stop(audioCtx.currentTime + 0.15);
   }
+  function primeAudioFromGesture(){
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return false;
+      audioCtx = audioCtx || new Ctx();
+      if(audioCtx.state === "suspended"){
+        audioCtx.resume().catch(() => {});
+      }
+      audioUnlocked = audioCtx.state === "running";
+      // Synchronous "silent" tap to satisfy Safari's gesture requirement.
+      const buf = audioCtx.createBuffer(1, 1, audioCtx.sampleRate || 44100);
+      const src = audioCtx.createBufferSource();
+      const g = audioCtx.createGain();
+      g.gain.value = 0.0001;
+      src.buffer = buf;
+      src.connect(g);
+      g.connect(audioCtx.destination);
+      src.start(0);
+      src.stop(0.02);
+      audioUnlocked = audioCtx.state === "running";
+      updateTimersUI();
+      return audioUnlocked;
+    }catch(e){
+      audioUnlocked = false;
+      updateTimersUI();
+      return false;
+    }
+  }
   async function unlockAudio(silent=false){
     try{
       const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -1088,8 +1120,6 @@
     if(restPauseBtn){
       restPauseBtn.innerHTML = `${timers.rest.running ? ICONS.pause : ICONS.play}<span class="label">${timers.rest.running ? "Pause" : "Resume"}</span>`;
     }
-    const restDurationLbl = $("#restDurationLbl");
-    if(restDurationLbl) restDurationLbl.textContent = formatTime(timers.rest.duration);
     const enableAudioBtn = $("#enableAudioBtn");
     if(enableAudioBtn){
       enableAudioBtn.style.display = "inline-flex";
@@ -1174,38 +1204,11 @@
   });
 
   function wireTimers(){
-    const restMin = $("#restMin");
-    const restSec = $("#restSec");
-    const restSetBtn = $("#restSetBtn");
     const restPauseBtn = $("#restPauseBtn");
     const restResetBtn = $("#restResetBtn");
     const restCloseBtn = $("#restCloseBtn");
     const restPlusBtn = $("#restPlusBtn");
     const restMinusBtn = $("#restMinusBtn");
-
-    if(restMin && restSec){
-      const m = Math.floor(timers.rest.duration / 60);
-      const s = timers.rest.duration % 60;
-      restMin.value = String(m);
-      restSec.value = String(s);
-    }
-
-    if(restSetBtn){
-      restSetBtn.onclick = () => {
-        const m = clamp(parseInt(restMin.value || "0", 10) || 0, 0, 59);
-        const s = clamp(parseInt(restSec.value || "0", 10) || 0, 0, 59);
-        const total = Math.max(5, (m * 60) + s);
-        stopRestTimer();
-        timers.rest.duration = total;
-        timers.rest.remaining = total;
-        if(currentRestLiftKey && currentSession){
-          setRestOverride(currentSession, currentRestLiftKey, total);
-          save(state);
-        }
-        persistTimers();
-        updateTimersUI();
-      };
-    }
 
     if(restPauseBtn){
       restPauseBtn.onclick = () => {
@@ -1261,10 +1264,10 @@
 
     const enableAudioBtn = $("#enableAudioBtn");
     if(enableAudioBtn){
-      enableAudioBtn.onclick = async () => {
+      enableAudioBtn.onclick = () => {
         audioEnabled = !audioEnabled;
         if(audioEnabled){
-          const ok = await unlockAudio(true);
+          const ok = primeAudioFromGesture();
           if(ok) playConfirmBeep();
         }
         updateTimersUI();
@@ -1627,17 +1630,43 @@
       }
       return null;
     };
-    const getDayExercises = (day, session) => {
-      return day.lifts.map(lift => {
+    const formatSetLine = (set, idx) => {
+      const parts = [];
+      if(set.reps) parts.push(`${set.reps} reps`);
+      if(set.weight) parts.push(`${set.weight} lbs`);
+      if(set.rpe) parts.push(`RPE ${set.rpe}`);
+      if(!parts.length && set.done) parts.push("Done");
+      if(!parts.length) parts.push("No data");
+      return `Set ${idx + 1}: ${parts.join(" · ")}`;
+    };
+    const getLoggedExercisesForDay = (day, session) => {
+      if(!session || !session.liftSets) return [];
+      const results = [];
+      day.lifts.forEach(lift => {
         if(lift.options && lift.options.length){
-          const opt = getUsedOptionForWeek(session, day.id, lift) || lift.options[0];
-          return {
-            key: liftStorageKey(lift, opt),
-            label: `${lift.name} (${opt})`
-          };
+          const prefix = `${lift.name}::`;
+          const optionKeys = lift.options.map(opt => liftStorageKey(lift, opt));
+          const usedOptionKeys = optionKeys.filter(k => session.liftSets[k] && hasLiftData(session.liftSets[k]));
+          const extraKeys = Object.keys(session.liftSets)
+            .filter(k => k.startsWith(prefix) && !optionKeys.includes(k) && hasLiftData(session.liftSets[k]));
+          const keys = usedOptionKeys.concat(extraKeys);
+          keys.forEach(k => {
+            results.push({
+              key: k,
+              label: displayNameFromStorageKey(k),
+              sets: session.liftSets[k] || []
+            });
+          });
+          if(!keys.length && session.liftSets[lift.name] && hasLiftData(session.liftSets[lift.name])){
+            results.push({key: lift.name, label: lift.name, sets: session.liftSets[lift.name] || []});
+          }
+        }else{
+          if(session.liftSets[lift.name] && hasLiftData(session.liftSets[lift.name])){
+            results.push({key: lift.name, label: lift.name, sets: session.liftSets[lift.name] || []});
+          }
         }
-        return {key: lift.name, label: lift.name};
       });
+      return results;
     };
     const evalClass = weekSummary.evaluation === "Great"
       ? "evalGood"
@@ -1722,43 +1751,39 @@
             <details style="margin-top:12px">
               <summary class="summaryIcon">
                 <div class="summaryRow">
-                  <span>Previous Week Comparison</span>
+                  <span>Week Summary</span>
                   <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
                 </div>
               </summary>
               <div class="details-body">
                 ${PLAN.map(d => {
                   const session = viewWeekSessions[d.id];
-                  const exercises = getDayExercises(d, session);
-                  const curStats = exerciseStatsForWeekDay(viewWeek, d.id);
-                  const prevStats = prevWeekKeyStr ? exerciseStatsForWeekDay(prevWeekKeyStr, d.id) : {};
+                  const exercises = getLoggedExercisesForDay(d, session);
                   return `
-                    <div class="small" style="margin:10px 0 6px"><b>${escapeHtml(d.title)}</b></div>
-                    <div class="dashTableWide" style="margin-bottom:18px">
-                      <div class="dashHead">Exercise</div>
-                      <div class="dashHead">Max</div>
-                      <div class="dashHead">Max &Delta;</div>
-                      <div class="dashHead">Volume</div>
-                      <div class="dashHead">Vol &Delta;</div>
-                      ${exercises.map(ex => {
-                        const name = ex.label;
-                        const cur = curStats[name] || {};
-                        const prev = prevStats[name] || {};
-                        const curMax = cur.maxWeight ?? null;
-                        const prevMax = prev.maxWeight ?? null;
-                        const curVol = Number.isFinite(cur.volume) ? cur.volume : null;
-                        const prevVol = Number.isFinite(prev.volume) ? prev.volume : null;
-                        const maxDelta = (curMax !== null && prevMax !== null) ? (curMax - prevMax) : null;
-                        const volDelta = (curVol !== null && prevVol !== null) ? (curVol - prevVol) : null;
-                        return `
-                          <div class="dashCell">${escapeHtml(name)}</div>
-                          <div class="dashCell">${formatNumber(curMax)}</div>
-                          <div class="dashCell">${formatDelta(maxDelta)}</div>
-                          <div class="dashCell">${formatNumber(curVol)}</div>
-                          <div class="dashCell">${formatDelta(volDelta)}</div>
-                        `;
-                      }).join("")}
-                    </div>
+                    <details class="card" style="margin:10px 0">
+                      <summary class="summaryIcon">
+                        <div class="summaryRow">
+                          <span>${escapeHtml(d.title)}</span>
+                          <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+                        </div>
+                      </summary>
+                      <div class="details-body">
+                        ${exercises.length ? exercises.map(ex => {
+                          const setLines = [];
+                          (ex.sets || []).forEach((set, idx) => {
+                            if(!set || !(set.done || set.reps || set.weight || set.rpe)) return;
+                            setLines.push(`<div class="small" style="margin-left:10px">${escapeHtml(formatSetLine(set, idx))}</div>`);
+                          });
+                          if(!setLines.length){
+                            setLines.push(`<div class="small" style="margin-left:10px">No set data.</div>`);
+                          }
+                          return `
+                            <div class="small" style="margin-top:8px"><b>${escapeHtml(ex.label)}</b></div>
+                            ${setLines.join("")}
+                          `;
+                        }).join("") : `<div class="small">No exercises logged.</div>`}
+                      </div>
+                    </details>
                   `;
                 }).join("")}
               </div>
@@ -1956,51 +1981,9 @@
     }).join("");
 
     app.innerHTML = `
-      <div class="card stickyTop">
+      <div class="card">
         <div class="ch">
           <h2>${escapeHtml(day.title)}</h2>
-        </div>
-        <div class="cb">
-          <div class="row" style="justify-content:space-between">
-            <div>
-              <div class="small">Workout timer</div>
-              <div class="time compact" id="workoutTime">${formatTime(timers.workout.elapsed)}</div>
-            </div>
-            <span class="badge" id="workoutStatus">${timers.workout.running ? "Running" : "Paused"}</span>
-          </div>
-          <div class="timerControls">
-            <button class="btn good" id="workoutStartBtn">${ICONS.play}<span class="label">Start</span></button>
-            <button class="btn" id="workoutPauseBtn">${ICONS.pause}<span class="label">Pause</span></button>
-            <button class="btn bad" id="workoutResetBtn">${ICONS.reset}<span class="label">Reset</span></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="cb">
-            <details style="margin-top:12px">
-            <summary class="summaryIcon">
-              <div class="summaryRow">
-                <span>Rest Time Duration</span>
-                <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
-              </div>
-            </summary>
-            <div class="details-body">
-              <div class="row" style="justify-content:space-between">
-                <div>
-                  <div class="small">Rest timer setup</div>
-                  <div class="time" id="restDurationLbl">${formatTime(timers.rest.duration)}</div>
-                </div>
-                <span class="badge">Set duration</span>
-              </div>
-              <div class="row" style="margin-top:6px">
-                <input class="inputMini" id="restMin" inputmode="numeric" placeholder="min">
-                <input class="inputMini" id="restSec" inputmode="numeric" placeholder="sec">
-                <button class="btn" id="restSetBtn">${ICONS.clock}<span class="label">Set</span></button>
-              </div>
-              <div class="small" style="margin-top:6px">Auto-starts when you mark a set done.</div>
-            </div>
-          </details>
         </div>
       </div>
 
@@ -2025,13 +2008,18 @@
         <div class="small" id="restPopupSoundStatus" style="margin-top:6px"></div>
       </div>
 
-      \n<div class="card">
-        <div class="ch">
-          <h2>Mobility Warm-up</h2>
-          <span class="badge">Before lifting</span>
+      \n<details class="card" open>
+        <summary class="summaryIcon">
+          <div class="summaryRow">
+            <span>Mobility Warm-up</span>
+            <span class="badge">Before lifting</span>
+            <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+          </div>
+        </summary>
+        <div class="details-body">
+          ${mobilityHtml}
         </div>
-        <div class="cb">${mobilityHtml}</div>
-      </div>
+      </details>
 
       <div class="card">
         <div class="ch">

@@ -1500,23 +1500,9 @@
     })();
 
     app.innerHTML = `
-      <div class="card stickyTop">
+      <div class="card">
         <div class="ch">
           <h2>${escapeHtml(day.title)}</h2>
-        </div>
-        <div class="cb">
-          <div class="row" style="justify-content:space-between">
-            <div>
-              <div class="small">Workout timer</div>
-              <div class="time compact" id="workoutTime">${formatTime(timers.workout.elapsed)}</div>
-            </div>
-            <span class="badge" id="workoutStatus">${timers.workout.running ? "Running" : "Paused"}</span>
-          </div>
-          <div class="timerControls">
-            <button class="btn good" id="workoutStartBtn">${ICONS.play}<span class="label">Start</span></button>
-            <button class="btn" id="workoutPauseBtn">${ICONS.pause}<span class="label">Pause</span></button>
-            <button class="btn bad" id="workoutResetBtn">${ICONS.reset}<span class="label">Reset</span></button>
-          </div>
         </div>
       </div>
 

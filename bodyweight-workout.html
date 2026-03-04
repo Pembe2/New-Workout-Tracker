@@ -1,0 +1,1768 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Bodyweight Workout</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+<div class="safe-area-fix"></div>
+
+<header>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <h1>Bodyweight Workout</h1>
+        <div class="sub">No gym • 30 min • Bodyweight + bands</div>
+      </div>
+      <div class="row" style="position:relative">
+        <button class="btn menuBtn iconOnly" id="menuToggle" aria-label="Menu">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M3 6h18M3 12h18M3 18h18"/>
+          </svg>
+        </button>
+        <input type="file" id="importFile" style="display:none" accept=".json">
+      </div>
+    </div>
+    <div class="syncRow">
+      <span class="badge syncBadge" id="syncStatus">Sync: -</span>
+    </div>
+  </div>
+</header>
+
+<div class="menuLayer" id="menuLayer">
+  <div class="menuOverlay" id="menuOverlay"></div>
+  <div class="menuPopup" id="menuPopup">
+    <a class="menuItem" href="index.html">Workout Index</a>
+    <div class="hr" style="margin:4px 0"></div>
+    <button class="menuItem" id="devNotesBtn">
+      <img class="icon devNotesIcon devNotesIcon--dark" src="middle finger - white.svg" alt="">
+      <img class="icon devNotesIcon devNotesIcon--light" src="middle finger -black.svg" alt="">
+      Dev Notes
+    </button>
+    <button class="menuItem" id="themeToggle">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 1 0 9.8 9.8z"/>
+      </svg>
+      Theme
+    </button>
+    <button class="menuItem" id="logoutBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <path d="M16 17l5-5-5-5"/>
+        <path d="M21 12H9"/>
+      </svg>
+      Logout
+    </button>
+    <button class="menuItem" id="importBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v12M8 11l4 4 4-4M4 21h16"/>
+      </svg>
+      Import
+    </button>
+    <button class="menuItem" id="exportBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 21V9M8 13l4-4 4 4M4 3h16"/>
+      </svg>
+      Export
+    </button>
+    <button class="menuItem bad" id="resetWeekBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset Week
+    </button>
+  </div>
+</div>
+
+<main id="app"></main>
+
+<div class="footerTabs">
+  <div class="footerInner">
+    <div class="tabs" id="tabs"></div>
+    <div class="kpi">
+      <span class="badge">Week: <span class="mono" id="weekLbl"></span></span>
+      <span class="badge">Complete: <span class="mono" id="completedLbl">0</span>/5</span>
+    </div>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="devNotesOverlay"></div>
+<div class="devNotesModal hidden" id="devNotesModal" role="dialog" aria-modal="true" aria-labelledby="devNotesTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="devNotesTitle" style="margin:0">Developer Comments</h3>
+    <button class="btn" id="devNotesClose" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+      Close
+    </button>
+  </div>
+  <div class="devNotesList" id="devNotesList"></div>
+  <div class="small" style="margin-bottom:6px">Add a comment</div>
+  <textarea id="devNotesInput" style="width:100%; height:80px; padding:10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text); font-family:var(--sans); font-size:13px;" placeholder="Type a comment..."></textarea>
+  <div class="row" style="justify-content:flex-end; margin-top:8px">
+    <button class="btn good" id="devNotesAdd" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Add
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="restResetOverlay"></div>
+<div class="devNotesModal hidden" id="restResetModal" role="dialog" aria-modal="true" aria-labelledby="restResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="restResetTitle" style="margin:0">Reset interval timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the remaining time to the set duration.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="restResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="restResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="intervalResetOverlay"></div>
+<div class="devNotesModal hidden" id="intervalResetModal" role="dialog" aria-modal="true" aria-labelledby="intervalResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="intervalResetTitle" style="margin:0">Reset interval timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the interval timer back to the start.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="intervalResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="intervalResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="weekResetOverlay"></div>
+<div class="devNotesModal hidden" id="weekResetModal" role="dialog" aria-modal="true" aria-labelledby="weekResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="weekResetTitle" style="margin:0">Reset this week?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will erase all saved entries for the current week.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="weekResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="weekResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="importOverlay"></div>
+<div class="devNotesModal hidden" id="importModal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="importTitle" style="margin:0">Overwrite current data?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will replace your current data with the imported file.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="importCancel" type="button">Cancel</button>
+    <button class="btn bad" id="importConfirm" type="button">Overwrite</button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="workoutResetOverlay"></div>
+<div class="devNotesModal hidden" id="workoutResetModal" role="dialog" aria-modal="true" aria-labelledby="workoutResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="workoutResetTitle" style="margin:0">Reset workout timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the workout timer back to zero.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="workoutResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="workoutResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<script>
+(async () => {
+  const KEY = "workout_tracker_bodyweight_30_min_v1";
+  const MIGRATION_KEY = `${KEY}_migrated_v1`;
+  const ICONS = {
+    add: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+    remove: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
+    copy: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="10" height="10" rx="2"/><rect x="5" y="5" width="10" height="10" rx="2"/></svg>`,
+    play: `<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l12 7-12 7z"/></svg>`,
+    pause: `<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>`,
+    reset: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6"/><path d="M3 4v4h4"/></svg>`,
+    clock: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`,
+    sound: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9a5 5 0 0 1 0 6"/></svg>`,
+    minus: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>`,
+    plus: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,
+    close: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`,
+    check: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>`,
+    unlock: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0"/></svg>`,
+    trash: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>`,
+    chevron: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>`
+  };
+
+  // Bodyweight workout plan (30 min, interval-based)
+
+  const DEFAULT_WORK = 30;
+  const DEFAULT_REST = 15;
+  const WARMUP_WORK = 60;
+
+  const PLAN = [
+    {
+      id:"d1", short:"Push", title:"Day 1 - Push",
+      warmup:[
+        {name:"Arm circles"},
+        {name:"Scap push-ups"},
+        {name:"Walkouts"},
+        {name:"Shoulder taps"}
+      ],
+      circuitA:{
+        rounds:4,
+        exercises:[
+          {name:"Push-ups"},
+          {name:"Pike push-ups"},
+          {name:"Dips (chair/bench)"},
+          {name:"Decline push-ups"},
+          {name:"Band pull-aparts"}
+        ]
+      },
+      circuitB:{
+        rounds:2,
+        exercises:[
+          {name:"Incline push-ups"},
+          {name:"Diamond push-ups"},
+          {name:"Plank shoulder taps"},
+          {name:"Slow push-ups"},
+          {name:"Band pull-aparts"}
+        ]
+      },
+      finisher:{
+        rounds:1,
+        exercises:[
+          {name:"Plank"},
+          {name:"Plank"},
+          {name:"Plank"},
+          {name:"Plank"},
+          {name:"Plank"}
+        ]
+      }
+    },
+    {
+      id:"d2", short:"Lower", title:"Day 2 - Lower Body",
+      warmup:[
+        {name:"Bodyweight squats"},
+        {name:"Hip hinges"},
+        {name:"Glute bridges"},
+        {name:"Calf pulses"}
+      ],
+      circuitA:{
+        rounds:4,
+        exercises:[
+          {name:"Squats"},
+          {name:"Reverse lunges"},
+          {name:"Banded side lunges (band around thighs)"},
+          {name:"Single-leg RDL"},
+          {name:"Calf raises"}
+        ]
+      },
+      circuitB:{
+        rounds:2,
+        exercises:[
+          {name:"Wall sit"},
+          {name:"Step-ups"},
+          {name:"Split squat hold"},
+          {name:"Glute bridge hold"},
+          {name:"Calf pulses"}
+        ]
+      },
+      finisher:{
+        rounds:1,
+        exercises:[
+          {name:"Wall sit"},
+          {name:"Wall sit"},
+          {name:"Wall sit"},
+          {name:"Wall sit"},
+          {name:"Wall sit"}
+        ]
+      }
+    },
+    {
+      id:"d3", short:"Pull", title:"Day 3 - Pull + Posture",
+      warmup:[
+        {name:"Cat-cow"},
+        {name:"T-spine openers"},
+        {name:"Band pull-aparts"},
+        {name:"Scap squeezes"}
+      ],
+      circuitA:{
+        rounds:4,
+        exercises:[
+          {name:"Prone Y raises"},
+          {name:"Prone T raises"},
+          {name:"Prone W raises"},
+          {name:"Reverse snow angels"},
+          {name:"Superman hold"}
+        ]
+      },
+      circuitB:{
+        rounds:2,
+        exercises:[
+          {name:"Band pull-aparts"},
+          {name:"Dead bug"},
+          {name:"Hollow hold"},
+          {name:"Scap push-ups"},
+          {name:"Prone swimmers"}
+        ]
+      },
+      finisher:{
+        rounds:1,
+        exercises:[
+          {name:"Hollow hold"},
+          {name:"Hollow hold"},
+          {name:"Hollow hold"},
+          {name:"Hollow hold"},
+          {name:"Hollow hold"}
+        ]
+      }
+    },
+    {
+      id:"d4", short:"Cond", title:"Day 4 - Conditioning + Core",
+      warmup:[
+        {name:"High knees"},
+        {name:"Mountain climbers"},
+        {name:"Jumping jacks"},
+        {name:"Shoulder taps"}
+      ],
+      circuitA:{
+        rounds:4,
+        exercises:[
+          {name:"Burpees (or no-jump)"},
+          {name:"Jump squats"},
+          {name:"Push-ups"},
+          {name:"Mountain climbers"},
+          {name:"Walkouts"}
+        ]
+      },
+      circuitB:{
+        rounds:2,
+        exercises:[
+          {name:"Squat pulses"},
+          {name:"Plank shoulder taps"},
+          {name:"Fast feet"},
+          {name:"Push-up hold"},
+          {name:"Alternating side plank"}
+        ]
+      },
+      finisher:{
+        rounds:1,
+        exercises:[
+          {name:"Alternating side plank"},
+          {name:"Alternating side plank"},
+          {name:"Alternating side plank"},
+          {name:"Alternating side plank"},
+          {name:"Alternating side plank"}
+        ]
+      }
+    },
+    {
+      id:"d5", short:"Full", title:"Day 5 - Full Body",
+      warmup:[
+        {name:"Bodyweight squats"},
+        {name:"Push-ups"},
+        {name:"Hip hinges"},
+        {name:"Glute bridges"}
+      ],
+      circuitA:{
+        rounds:4,
+        exercises:[
+          {name:"Squat jumps"},
+          {name:"Push-ups"},
+          {name:"Reverse lunge + knee drive"},
+          {name:"Band-resisted lateral walk (band around thighs)"},
+          {name:"Plank shoulder taps"}
+        ]
+      },
+      circuitB:{
+        rounds:2,
+        exercises:[
+          {name:"Squat hold"},
+          {name:"Push-up hold"},
+          {name:"Glute bridge hold"},
+          {name:"Mountain climbers"},
+          {name:"Band pull-aparts"}
+        ]
+      },
+      finisher:{
+        rounds:1,
+        exercises:[
+          {name:"Plank"},
+          {name:"Plank"},
+          {name:"Plank"},
+          {name:"Plank"},
+          {name:"Plank"}
+        ]
+      }
+    }
+  ];
+
+  const $ = (s, el=document) => el.querySelector(s);
+
+  function isoDate(d=new Date()){ return d.toISOString().slice(0,10); }
+  function weekStartKey(d=new Date()){
+    const x = new Date(d);
+    const day = (x.getDay()+6)%7; // Mon=0
+    x.setDate(x.getDate()-day);
+    return isoDate(x);
+  }
+  function weekStartKeyWithCutoff(d=new Date()){
+    const x = new Date(d);
+    if(x.getDay() === 0 && x.getHours() >= 23){
+      return weekStartKey(addDays(x, 1));
+    }
+    return weekStartKey(x);
+  }
+  function addDays(d, n){
+    const x = new Date(d);
+    x.setDate(x.getDate() + n);
+    return x;
+  }
+  function nextSundayAt23(d=new Date()){
+    const x = new Date(d);
+    const day = x.getDay(); // Sun=0
+    let daysUntil = (7 - day) % 7;
+    if(day === 0 && x.getHours() >= 23) daysUntil = 7;
+    const target = addDays(x, daysUntil);
+    target.setHours(23, 0, 0, 0);
+    return target;
+  }
+
+  function load(){
+    try{ return JSON.parse(localStorage.getItem(KEY)) || null; }catch(e){ return null; }
+  }
+  const SYNC_KEY = `${KEY}_last_sync`;
+  const SYNC_STATUS_KEY = `${KEY}_last_sync_status`;
+  function formatClock(ts){
+    try{
+      return new Date(ts).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+    }catch(e){
+      return "";
+    }
+  }
+  function setSyncStatus(state){
+    const el = $("#syncStatus");
+    if(!el) return;
+    el.classList.remove("saving", "error");
+    if(state === "saving"){
+      el.classList.add("saving");
+      el.textContent = "Sync: Saving...";
+      localStorage.setItem(SYNC_STATUS_KEY, "saving");
+      return;
+    }
+    if(state === "error"){
+      el.classList.add("error");
+      el.textContent = "Sync: Error";
+      localStorage.setItem(SYNC_STATUS_KEY, "error");
+      return;
+    }
+    const last = localStorage.getItem(SYNC_KEY);
+    if(last){
+      el.textContent = `Sync: ${formatClock(last)}`;
+      localStorage.setItem(SYNC_STATUS_KEY, "ok");
+    } else {
+      el.textContent = "Sync: Not yet";
+      localStorage.setItem(SYNC_STATUS_KEY, "idle");
+    }
+  }
+  let remoteSaveTimer = null;
+  let remoteReady = false;
+  function withTimeout(promise, ms){
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Sync timeout")), ms))
+    ]);
+  }
+  function scheduleRemoteSave(nextState){
+    if(!window.AuthClient || !AuthClient.isLoggedIn() || !remoteReady) return;
+    if(intervalTimer.running && !syncStatusArmed) return;
+    if(syncStatusArmed) syncStatusArmed = false;
+    if(remoteSaveTimer) clearTimeout(remoteSaveTimer);
+    remoteSaveTimer = setTimeout(async () => {
+      try{
+        setSyncStatus("saving");
+        await withTimeout(AuthClient.saveWorkout(KEY, nextState), 10000);
+        localStorage.setItem(SYNC_KEY, new Date().toISOString());
+        setSyncStatus("ok");
+      }catch(e){
+        console.warn("Remote save failed", e);
+        setSyncStatus("error");
+      }
+    }, 800);
+  }
+  function save(state, opts={}){
+    localStorage.setItem(KEY, JSON.stringify(state));
+    if(!opts.skipRemote) scheduleRemoteSave(state);
+  }
+
+  function defaultState(){
+    return {
+      weekStart: weekStartKeyWithCutoff(),
+      activeDayId: PLAN[0].id,
+      sessions: {}, // weekStart -> dayId -> data
+      timers: {
+        restDuration: 90,
+        restRemaining: 90,
+        workoutElapsed: 0,
+        theme: "dark",
+        interval: {
+          dayId: PLAN[0].id,
+          index: 0,
+          phase: "work",
+          remaining: 0,
+          running: false
+        }
+      }
+    };
+  }
+
+  if(window.AuthClient && AuthClient.init){
+    try{ await AuthClient.init(); }catch(e){}
+  }
+  let state = load() || defaultState();
+  if(window.AuthClient && !AuthClient.isLoggedIn()){
+    window.location.href = "login.html";
+    return;
+  }
+  const openLifts = new Set();
+  const timers = {
+    rest:{duration:90, remaining:90, running:false, interval:null},
+    workout:{elapsed:0, running:false, interval:null}
+  };
+  const intervalTimer = {
+    dayId: PLAN[0].id,
+    index: 0,
+    phase: "work",
+    remaining: 0,
+    running: false,
+    interval: null
+  };
+  let syncStatusArmed = false;
+  let intervalItems = [];
+  let weeklyRolloverTimer = null;
+
+  // Apply theme immediately
+  if(!state.theme) state.theme = "dark";
+  if(state.theme === "light") document.body.classList.add("light");
+  else document.body.classList.remove("light");
+
+  function ensureWeek(){
+    const wk = weekStartKeyWithCutoff();
+    if(state.weekStart !== wk){
+      state.weekStart = wk;
+      state.activeDayId = PLAN[0].id;
+    }
+    if(!state.sessions || typeof state.sessions !== "object") state.sessions = {};
+    if(!state.sessions[state.weekStart]) state.sessions[state.weekStart] = {};
+    Object.keys(state.sessions).forEach(k => {
+      if(k !== state.weekStart) delete state.sessions[k];
+    });
+  }
+
+  function scheduleWeeklyRollover(){
+    if(weeklyRolloverTimer){
+      clearTimeout(weeklyRolloverTimer);
+      weeklyRolloverTimer = null;
+    }
+    const now = new Date();
+    const target = nextSundayAt23(now);
+    const ms = Math.max(1000, target.getTime() - now.getTime());
+    weeklyRolloverTimer = setTimeout(() => {
+      ensureWeek();
+      save(state);
+      render();
+      scheduleWeeklyRollover();
+    }, ms);
+  }
+
+  function ensureTimers(){
+    if(!state.timers) state.timers = {restDuration:90, restRemaining:90, workoutElapsed:0, interval:{}};
+    if(!Number.isFinite(state.timers.restDuration)) state.timers.restDuration = 90;
+    if(!Number.isFinite(state.timers.restRemaining)) state.timers.restRemaining = state.timers.restDuration;
+    if(!Number.isFinite(state.timers.workoutElapsed)) state.timers.workoutElapsed = 0;
+    timers.rest.duration = state.timers.restDuration;
+    timers.rest.remaining = state.timers.restRemaining;
+    timers.workout.elapsed = state.timers.workoutElapsed;
+  }
+
+  function persistTimers(){
+    state.timers = {
+      restDuration: timers.rest.duration,
+      restRemaining: timers.rest.remaining,
+      workoutElapsed: timers.workout.elapsed,
+      interval: {
+        dayId: intervalTimer.dayId,
+        index: intervalTimer.index,
+        phase: intervalTimer.phase,
+        remaining: intervalTimer.remaining,
+        running: false
+      }
+    };
+    save(state);
+  }
+
+  function buildIntervalItems(day){
+    const items = [];
+    day.warmup.forEach(ex => {
+      items.push({
+        name: ex.name,
+        work: WARMUP_WORK,
+        rest: 0,
+        group: "Warm-up",
+        round: 1,
+        rounds: 1
+      });
+    });
+    const addCircuit = (circuit, label) => {
+      for(let r = 1; r <= circuit.rounds; r++){
+        circuit.exercises.forEach(ex => {
+          items.push({
+            name: ex.name,
+            work: DEFAULT_WORK,
+            rest: DEFAULT_REST,
+            group: label,
+            round: r,
+            rounds: circuit.rounds
+          });
+        });
+      }
+    };
+    addCircuit(day.circuitA, "Circuit A");
+    addCircuit(day.circuitB, "Circuit B");
+    day.finisher.exercises.forEach(ex => {
+      items.push({
+        name: ex.name,
+        work: DEFAULT_WORK,
+        rest: DEFAULT_REST,
+        group: "Finisher",
+        round: 1,
+        rounds: 1
+      });
+    });
+    return items;
+  }
+
+  function ensureIntervalTimer(day){
+    intervalItems = buildIntervalItems(day);
+    if(!state.timers.interval || state.timers.interval.dayId !== day.id){
+      state.timers.interval = {dayId: day.id, index: 0, phase: "work", remaining: 0, running: false};
+    }
+    const saved = state.timers.interval;
+    const maxIndex = Math.max(0, intervalItems.length - 1);
+    intervalTimer.dayId = day.id;
+    intervalTimer.index = clamp(saved.index || 0, 0, maxIndex);
+    intervalTimer.phase = saved.phase === "rest" ? "rest" : "work";
+    intervalTimer.running = false;
+    intervalTimer.interval = null;
+    const current = intervalItems[intervalTimer.index];
+    const fallback = intervalTimer.phase === "rest" ? (current ? current.rest : 0) : (current ? current.work : 0);
+    intervalTimer.remaining = Number.isFinite(saved.remaining) && saved.remaining > 0 ? saved.remaining : fallback;
+    persistTimers();
+  }
+
+  function advanceIntervalPhase(){
+    const prevIndex = intervalTimer.index;
+    const lastIndex = intervalItems.length - 1;
+    const current = intervalItems[intervalTimer.index];
+    if(!current){
+      pauseIntervalTimer();
+      intervalTimer.remaining = 0;
+      return;
+    }
+    playBeep();
+    if(intervalTimer.phase === "work"){
+      if(current.rest > 0 && intervalTimer.index < lastIndex){
+        intervalTimer.phase = "rest";
+        intervalTimer.remaining = current.rest;
+      }else if(intervalTimer.index < lastIndex){
+        intervalTimer.index += 1;
+        intervalTimer.phase = "work";
+        intervalTimer.remaining = intervalItems[intervalTimer.index].work;
+      }else{
+        pauseIntervalTimer();
+        intervalTimer.remaining = 0;
+      }
+    }else{
+      if(intervalTimer.index < lastIndex){
+        intervalTimer.index += 1;
+        intervalTimer.phase = "work";
+        intervalTimer.remaining = intervalItems[intervalTimer.index].work;
+      }else{
+        pauseIntervalTimer();
+        intervalTimer.remaining = 0;
+      }
+    }
+    if(prevIndex !== intervalTimer.index && intervalTimer.phase === "work"){
+      syncStatusArmed = true;
+    }
+    persistTimers();
+  }
+
+  function startIntervalTimer(){
+    if(intervalTimer.running || !intervalItems.length) return;
+    if(intervalTimer.remaining <= 0){
+      const current = intervalItems[intervalTimer.index];
+      intervalTimer.remaining = intervalTimer.phase === "rest" ? current.rest : current.work;
+    }
+    intervalTimer.running = true;
+    updateWakeLock();
+    intervalTimer.interval = setInterval(() => {
+      intervalTimer.remaining -= 1;
+      if(intervalTimer.remaining <= 0){
+        intervalTimer.remaining = 0;
+        advanceIntervalPhase();
+      }
+      persistTimers();
+      updateIntervalUI();
+    }, 1000);
+    updateIntervalUI();
+  }
+
+  function pauseIntervalTimer(){
+    if(intervalTimer.interval){
+      clearInterval(intervalTimer.interval);
+      intervalTimer.interval = null;
+    }
+    intervalTimer.running = false;
+    updateWakeLock();
+    persistTimers();
+  }
+
+  function resetIntervalTimer(){
+    pauseIntervalTimer();
+    intervalTimer.index = 0;
+    intervalTimer.phase = "work";
+    const current = intervalItems[0];
+    intervalTimer.remaining = current ? current.work : 0;
+    persistTimers();
+    updateIntervalUI();
+  }
+
+  function skipIntervalPhase(){
+    pauseIntervalTimer();
+    advanceIntervalPhase();
+    startIntervalTimer();
+  }
+
+  function getIntervalDisplay(){
+    const current = intervalItems[intervalTimer.index];
+    const lastIndex = intervalItems.length - 1;
+    const phaseLabel = intervalTimer.phase === "rest" ? "Rest" : "Exercise";
+    let currentLabel = current ? current.name : "No exercises";
+    let nextLabel = "Next: Done";
+    if(intervalTimer.phase === "rest"){
+      currentLabel = "Rest";
+      if(intervalTimer.index < lastIndex){
+        nextLabel = `Next: ${intervalItems[intervalTimer.index + 1].name}`;
+      }
+    }else if(current){
+      if(current.group){
+        if(current.group.startsWith("Circuit") && current.rounds > 1){
+          currentLabel = `${current.group} Round ${current.round}/${current.rounds}: ${current.name}`;
+        }else{
+          currentLabel = `${current.group}: ${current.name}`;
+        }
+      }
+      if(current.rest > 0 && intervalTimer.index < lastIndex){
+        nextLabel = "Next: Rest";
+      }else if(intervalTimer.index < lastIndex){
+        nextLabel = `Next: ${intervalItems[intervalTimer.index + 1].name}`;
+      }
+    }
+    let roundLabel = intervalItems.length ? `Move ${intervalTimer.index + 1} / ${intervalItems.length}` : "No moves";
+    if(current && current.group){
+      if(current.group.startsWith("Circuit") && current.rounds > 1){
+        roundLabel = `${current.group} ${current.round}/${current.rounds}`;
+      }else{
+        roundLabel = current.group;
+      }
+    }
+    return {phaseLabel, currentLabel, nextLabel, roundLabel};
+  }
+
+  function getIntervalTotalRemaining(){
+    if(!intervalItems.length) return 0;
+    let total = Math.max(0, intervalTimer.remaining || 0);
+    const lastIndex = intervalItems.length - 1;
+    if(intervalTimer.phase === "work"){
+      for(let i = intervalTimer.index; i <= lastIndex; i++){
+        const item = intervalItems[i];
+        if(!item) continue;
+        if(i === intervalTimer.index){
+          if(item.rest > 0 && i < lastIndex) total += item.rest;
+        }else{
+          total += item.work;
+          if(item.rest > 0 && i < lastIndex) total += item.rest;
+        }
+      }
+    }else{
+      for(let i = intervalTimer.index + 1; i <= lastIndex; i++){
+        const item = intervalItems[i];
+        if(!item) continue;
+        total += item.work;
+        if(item.rest > 0 && i < lastIndex) total += item.rest;
+      }
+    }
+    return total;
+  }
+
+  function updateIntervalUI(){
+    const timeEl = $("#intervalTime");
+    if(timeEl) timeEl.textContent = formatTime(intervalTimer.remaining);
+    const statusEl = $("#intervalStatus");
+    if(statusEl) statusEl.textContent = intervalTimer.running ? "Running" : "Ready";
+    const phaseEl = $("#intervalPhaseLbl");
+    const currentEl = $("#intervalExerciseLbl");
+    const nextEl = $("#intervalNextLbl");
+    const roundEl = $("#intervalRoundLbl");
+    const display = getIntervalDisplay();
+    if(phaseEl) phaseEl.textContent = display.phaseLabel;
+    if(currentEl) currentEl.textContent = display.currentLabel;
+    if(nextEl) nextEl.textContent = display.nextLabel;
+    if(roundEl) roundEl.textContent = display.roundLabel;
+    const pauseBtn = $("#intervalPauseBtn");
+    if(pauseBtn){
+      pauseBtn.innerHTML = `${intervalTimer.running ? ICONS.pause : ICONS.play}<span class="label">${intervalTimer.running ? "Pause" : "Resume"}</span>`;
+    }
+    const intervalAudioBtn = $("#intervalAudioBtn");
+    if(intervalAudioBtn) intervalAudioBtn.style.display = audioUnlocked ? "none" : "inline-flex";
+    const totalRemainingEl = $("#intervalTotalRemaining");
+    if(totalRemainingEl) totalRemainingEl.textContent = formatTime(getIntervalTotalRemaining());
+  }
+
+  function compactItems(items){
+    const map = new Map();
+    items.forEach(item => {
+      map.set(item.name, (map.get(item.name) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({name, count}));
+  }
+
+  function buildDisplayGroups(day){
+    const intervalLabel = `${DEFAULT_WORK}s work / ${DEFAULT_REST}s rest`;
+    const finisherItems = compactItems(day.finisher.exercises).map(item => ({
+      name: item.count > 1 ? `${item.name} x${item.count}` : item.name,
+      key: item.name
+    }));
+    return [
+      {
+        key: "warmup",
+        title: "Warm-up (4 min)",
+        note: "60s each",
+        items: day.warmup.map(ex => ({name: ex.name, key: ex.name}))
+      },
+      {
+        key: "circuitA",
+        title: `Circuit A (${day.circuitA.rounds} rounds)`,
+        note: intervalLabel,
+        items: day.circuitA.exercises.map(ex => ({name: ex.name, key: ex.name}))
+      },
+      {
+        key: "circuitB",
+        title: `Circuit B (${day.circuitB.rounds} rounds)`,
+        note: intervalLabel,
+        items: day.circuitB.exercises.map(ex => ({name: ex.name, key: ex.name}))
+      },
+      {
+        key: "finisher",
+        title: "Finisher (about 4 min)",
+        note: intervalLabel,
+        items: finisherItems
+      }
+    ];
+  }
+
+  function getChecklistKeys(day){
+    const groups = buildDisplayGroups(day);
+    const keys = [];
+    groups.forEach(group => {
+      group.items.forEach(item => {
+        keys.push(`${group.key}::${item.key}`);
+      });
+    });
+    return keys;
+  }
+
+  function getSession(dayId){
+    ensureWeek();
+    const wk = state.weekStart;
+    if(!state.sessions[wk][dayId]){
+      state.sessions[wk][dayId] = {
+        completed:false,
+        liftDone:{}
+      };
+    }
+    return state.sessions[wk][dayId];
+  }
+
+  function countCompleted(){
+    ensureWeek();
+    const wk = state.weekStart;
+    const obj = state.sessions[wk] || {};
+    return Object.values(obj).filter(s => s && s.completed).length;
+  }
+
+  function renderTabs(){
+    const tabs = $("#tabs");
+    if(!tabs) return;
+    tabs.innerHTML = "";
+    PLAN.forEach(d => {
+      const b = document.createElement("button");
+      b.className = "tab" + (d.id === state.activeDayId ? " active" : "");
+      b.textContent = d.short;
+      b.onclick = () => { state.activeDayId = d.id; save(state); render(); };
+      tabs.appendChild(b);
+    });
+    const weekLbl = $("#weekLbl");
+    if(weekLbl) weekLbl.textContent = state.weekStart;
+    const completedLbl = $("#completedLbl");
+    if(completedLbl) completedLbl.textContent = String(countCompleted());
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
+  function formatTime(totalSec){
+    const s = Math.max(0, Math.floor(totalSec));
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return `${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`;
+  }
+
+  let audioCtx = null;
+  let audioUnlocked = false;
+  let noiseBuffer = null;
+  let wakeLock = null;
+  let wakeLockEnabled = false;
+  async function resumeAudioIfNeeded(){
+    try{
+      if(!audioCtx) return;
+      if(audioCtx.state === "suspended") await audioCtx.resume();
+      audioUnlocked = audioCtx.state === "running";
+    }catch(e){
+      audioUnlocked = false;
+    }
+  }
+  function playBeep(){
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return;
+      audioCtx = audioCtx || new Ctx();
+      if(audioCtx.state === "suspended") audioCtx.resume();
+      audioUnlocked = audioCtx.state === "running";
+      const drop = (t) => {
+
+        const carrier = audioCtx.createOscillator();
+        const mod = audioCtx.createOscillator();
+        const modGain = audioCtx.createGain();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        carrier.type = "sine";
+        carrier.frequency.setValueAtTime(640, t);
+        carrier.frequency.exponentialRampToValueAtTime(420, t + 0.18);
+
+        mod.type = "sine";
+        mod.frequency.setValueAtTime(28, t);
+        modGain.gain.setValueAtTime(10, t);
+        modGain.gain.exponentialRampToValueAtTime(0.1, t + 0.25);
+
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(1800, t);
+        filter.Q.value = 0.7;
+
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.9, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+
+        mod.connect(modGain);
+        modGain.connect(carrier.frequency);
+        carrier.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        carrier.start(t);
+        mod.start(t);
+        carrier.stop(t + 0.24);
+        mod.stop(t + 0.24);
+      };
+      const base = audioCtx.currentTime + 0.02;
+      drop(base);
+      drop(base + 1.0);
+      drop(base + 2.0);
+    }catch(e){}
+    if(navigator.vibrate){
+      navigator.vibrate(120);
+      setTimeout(() => navigator.vibrate(120), 1000);
+      setTimeout(() => navigator.vibrate(120), 2000);
+    }
+  }
+  async function unlockAudio(){
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return false;
+      audioCtx = audioCtx || new Ctx();
+      if(audioCtx.state === "suspended") await audioCtx.resume();
+      audioUnlocked = audioCtx.state === "running";
+      if(audioUnlocked){
+        // short tap to confirm unlock
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = "sine";
+        o.frequency.value = 880;
+        g.gain.value = 0.35;
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start();
+        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
+        o.stop(audioCtx.currentTime + 0.15);
+      }
+      updateTimersUI();
+      return audioUnlocked;
+    }catch(e){
+      updateTimersUI();
+      return false;
+    }
+  }
+
+  function stopRestTimer(){
+    if(timers.rest.interval){
+      clearInterval(timers.rest.interval);
+      timers.rest.interval = null;
+    }
+    timers.rest.running = false;
+    updateWakeLock();
+  }
+  function showRestPopup(){
+    const el = $("#restPopup");
+    if(el) el.classList.remove("hidden");
+    const overlay = $("#restOverlay");
+    if(overlay) overlay.classList.remove("hidden");
+  }
+  function hideRestPopup(){
+    const el = $("#restPopup");
+    if(el) el.classList.add("hidden");
+    const overlay = $("#restOverlay");
+    if(overlay) overlay.classList.add("hidden");
+  }
+  function startRestTimer(){
+    if(!$("#restPopup")) return;
+    if(timers.rest.running) return;
+    timers.rest.remaining = timers.rest.duration;
+    timers.rest.running = true;
+    updateWakeLock();
+    timers.rest.interval = setInterval(() => {
+      timers.rest.remaining -= 1;
+      if(timers.rest.remaining <= 0){
+        timers.rest.remaining = 0;
+        stopRestTimer();
+        playBeep();
+        setTimeout(() => hideRestPopup(), 2600);
+      }
+      persistTimers();
+      updateTimersUI();
+    }, 1000);
+    showRestPopup();
+    updateTimersUI();
+  }
+
+  function stopWorkoutTimer(){
+    if(timers.workout.interval){
+      clearInterval(timers.workout.interval);
+      timers.workout.interval = null;
+    }
+    timers.workout.running = false;
+    updateWakeLock();
+  }
+
+  function updateTimersUI(){
+    const restTimeEl = $("#restTime");
+    const workoutTimeEl = $("#workoutTime");
+    if(restTimeEl) restTimeEl.textContent = formatTime(timers.rest.remaining);
+    if(workoutTimeEl) workoutTimeEl.textContent = formatTime(timers.workout.elapsed);
+    const restStatus = $("#restStatus");
+    if(restStatus) restStatus.textContent = timers.rest.running ? "Running" : "Ready";
+    const workoutStatus = $("#workoutStatus");
+    if(workoutStatus) workoutStatus.textContent = timers.workout.running ? "Running" : "Paused";
+    const restPopupTime = $("#restPopupTime");
+    if(restPopupTime) restPopupTime.textContent = formatTime(timers.rest.remaining);
+    const restPopupStatus = $("#restPopupStatus");
+    if(restPopupStatus) restPopupStatus.textContent = timers.rest.running ? "Running" : "Paused";
+    const restPauseBtn = $("#restPauseBtn");
+    if(restPauseBtn){
+      restPauseBtn.innerHTML = `${timers.rest.running ? ICONS.pause : ICONS.play}<span class="label">${timers.rest.running ? "Pause" : "Resume"}</span>`;
+    }
+    const restDurationLbl = $("#restDurationLbl");
+    if(restDurationLbl) restDurationLbl.textContent = formatTime(timers.rest.duration);
+    const enableAudioBtn = $("#enableAudioBtn");
+    if(enableAudioBtn) enableAudioBtn.style.display = audioUnlocked ? "none" : "inline-flex";
+    updateIntervalUI();
+  }
+
+  async function requestWakeLock(){
+    if(!("wakeLock" in navigator)) return;
+    try{
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLockEnabled = true;
+      wakeLock.addEventListener("release", () => {
+        wakeLockEnabled = false;
+      });
+    }catch(e){
+      wakeLockEnabled = false;
+    }
+  }
+  function releaseWakeLock(){
+    if(wakeLock){
+      wakeLock.release().catch(() => {});
+      wakeLock = null;
+    }
+    wakeLockEnabled = false;
+  }
+  function updateWakeLock(){
+    const shouldHold = timers.rest.running || intervalTimer.running;
+    if(shouldHold){
+      if(document.visibilityState === "visible" && !wakeLockEnabled){
+        requestWakeLock();
+      }
+    }else{
+      releaseWakeLock();
+    }
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible"){
+      resumeAudioIfNeeded();
+      updateTimersUI();
+      updateWakeLock();
+    }
+  });
+
+  function wireTimers(){
+    const restMin = $("#restMin");
+    const restSec = $("#restSec");
+    const restSetBtn = $("#restSetBtn");
+    const restPauseBtn = $("#restPauseBtn");
+    const restResetBtn = $("#restResetBtn");
+    const restCloseBtn = $("#restCloseBtn");
+    const restPlusBtn = $("#restPlusBtn");
+    const restMinusBtn = $("#restMinusBtn");
+
+    if(restMin && restSec){
+      const m = Math.floor(timers.rest.duration / 60);
+      const s = timers.rest.duration % 60;
+      restMin.value = String(m);
+      restSec.value = String(s);
+    }
+
+    if(restSetBtn){
+      restSetBtn.onclick = () => {
+        const m = clamp(parseInt(restMin.value || "0", 10) || 0, 0, 59);
+        const s = clamp(parseInt(restSec.value || "0", 10) || 0, 0, 59);
+        const total = Math.max(5, (m * 60) + s);
+        stopRestTimer();
+        timers.rest.duration = total;
+        timers.rest.remaining = total;
+        persistTimers();
+        updateTimersUI();
+      };
+    }
+
+    if(restPauseBtn){
+      restPauseBtn.onclick = () => {
+        if(timers.rest.running){
+          stopRestTimer();
+        }else{
+          startRestTimer();
+        }
+        persistTimers();
+        updateTimersUI();
+      };
+    }
+
+    if(restResetBtn){
+      restResetBtn.onclick = () => {
+        const modal = $("#restResetModal");
+        const overlay = $("#restResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
+      };
+    }
+
+    if(restCloseBtn){
+      restCloseBtn.onclick = () => {
+        stopRestTimer();
+        persistTimers();
+        hideRestPopup();
+        updateTimersUI();
+      };
+    }
+
+    const restResetConfirm = $("#restResetConfirm");
+    const restResetCancel = $("#restResetCancel");
+    const restResetOverlay = $("#restResetOverlay");
+    const closeRestReset = () => {
+      const modal = $("#restResetModal");
+      const overlay = $("#restResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(restResetConfirm){
+      restResetConfirm.onclick = () => {
+        stopRestTimer();
+        timers.rest.remaining = timers.rest.duration;
+        persistTimers();
+        updateTimersUI();
+        closeRestReset();
+      };
+    }
+    if(restResetCancel) restResetCancel.onclick = closeRestReset;
+    if(restResetOverlay) restResetOverlay.onclick = closeRestReset;
+
+    const enableAudioBtn = $("#enableAudioBtn");
+    if(enableAudioBtn){
+      enableAudioBtn.onclick = () => {
+        unlockAudio();
+        updateTimersUI();
+      };
+    }
+
+    const adjustRest = (delta) => {
+      timers.rest.remaining = clamp(timers.rest.remaining + delta, 5, 60 * 30);
+      persistTimers();
+      updateTimersUI();
+    };
+    if(restPlusBtn) restPlusBtn.onclick = () => adjustRest(15);
+    if(restMinusBtn) restMinusBtn.onclick = () => adjustRest(-15);
+
+    const workoutStartBtn = $("#workoutStartBtn");
+    const workoutPauseBtn = $("#workoutPauseBtn");
+    const workoutResetBtn = $("#workoutResetBtn");
+
+    if(workoutStartBtn){
+      workoutStartBtn.onclick = () => {
+        if(timers.workout.running) return;
+        timers.workout.running = true;
+        updateWakeLock();
+        timers.workout.interval = setInterval(() => {
+          timers.workout.elapsed += 1;
+          persistTimers();
+          updateTimersUI();
+        }, 1000);
+        updateTimersUI();
+      };
+    }
+
+    if(workoutPauseBtn){
+      workoutPauseBtn.onclick = () => {
+        stopWorkoutTimer();
+        persistTimers();
+        updateTimersUI();
+      };
+    }
+
+    if(workoutResetBtn){
+      workoutResetBtn.onclick = () => {
+        const modal = $("#workoutResetModal");
+        const overlay = $("#workoutResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
+      };
+    }
+
+    const intervalStartBtn = $("#intervalStartBtn");
+    const intervalPauseBtn = $("#intervalPauseBtn");
+    const intervalResetBtn = $("#intervalResetBtn");
+    const intervalSkipBtn = $("#intervalSkipBtn");
+
+    if(intervalStartBtn){
+      intervalStartBtn.onclick = () => {
+        startIntervalTimer();
+      };
+    }
+
+    if(intervalPauseBtn){
+      intervalPauseBtn.onclick = () => {
+        if(intervalTimer.running){
+          pauseIntervalTimer();
+        }else{
+          startIntervalTimer();
+        }
+        updateIntervalUI();
+      };
+    }
+
+    if(intervalResetBtn){
+      intervalResetBtn.onclick = () => {
+        const modal = $("#intervalResetModal");
+        const overlay = $("#intervalResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
+      };
+    }
+
+    if(intervalSkipBtn){
+      intervalSkipBtn.onclick = () => {
+        skipIntervalPhase();
+      };
+    }
+
+    const intervalAudioBtn = $("#intervalAudioBtn");
+    if(intervalAudioBtn){
+      intervalAudioBtn.onclick = () => {
+        unlockAudio();
+        updateIntervalUI();
+      };
+    }
+
+    const intervalResetConfirm = $("#intervalResetConfirm");
+    const intervalResetCancel = $("#intervalResetCancel");
+    const intervalResetOverlay = $("#intervalResetOverlay");
+    const closeIntervalReset = () => {
+      const modal = $("#intervalResetModal");
+      const overlay = $("#intervalResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(intervalResetConfirm){
+      intervalResetConfirm.onclick = () => {
+        resetIntervalTimer();
+        closeIntervalReset();
+      };
+    }
+    if(intervalResetCancel) intervalResetCancel.onclick = closeIntervalReset;
+    if(intervalResetOverlay) intervalResetOverlay.onclick = closeIntervalReset;
+
+    const workoutResetConfirm = $("#workoutResetConfirm");
+    const workoutResetCancel = $("#workoutResetCancel");
+    const workoutResetOverlay = $("#workoutResetOverlay");
+    const closeWorkoutReset = () => {
+      const modal = $("#workoutResetModal");
+      const overlay = $("#workoutResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(workoutResetConfirm){
+      workoutResetConfirm.onclick = () => {
+        stopWorkoutTimer();
+        timers.workout.elapsed = 0;
+        persistTimers();
+        updateTimersUI();
+        closeWorkoutReset();
+      };
+    }
+    if(workoutResetCancel) workoutResetCancel.onclick = closeWorkoutReset;
+    if(workoutResetOverlay) workoutResetOverlay.onclick = closeWorkoutReset;
+  }
+
+  function updateAutoComplete(session, day){
+    const keys = getChecklistKeys(day);
+    if(!keys.length){
+      session.completed = false;
+      return;
+    }
+    const doneCount = keys.filter(k => session.liftDone && session.liftDone[k]).length;
+    session.completed = doneCount === keys.length;
+  }
+
+  function render(){
+    ensureWeek();
+    ensureTimers();
+    if(!PLAN.length) return;
+    const validIds = new Set(PLAN.map(d => d.id));
+    if(!validIds.has(state.activeDayId)){
+      state.activeDayId = PLAN[0].id;
+      save(state);
+    }
+    const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
+    const session = getSession(day.id);
+    const prevCompleted = session.completed;
+    updateAutoComplete(session, day);
+    if(session.completed !== prevCompleted) save(state);
+    ensureIntervalTimer(day);
+    const intervalDisplay = getIntervalDisplay();
+
+    const app = $("#app");
+    const groups = buildDisplayGroups(day);
+    const checklistHtml = groups.map(group => `
+      <div class="card">
+        <div class="ch">
+          <h2>${escapeHtml(group.title)}</h2>
+          <span class="badge">${escapeHtml(group.note)}</span>
+        </div>
+        <div class="cb">
+          ${group.items.map(item => {
+            const key = `${group.key}::${item.key}`;
+            const checked = !!(session.liftDone && session.liftDone[key]);
+            return `
+              <div class="checkbox">
+                <input type="checkbox" ${checked ? "checked":""} data-lift="${escapeHtml(key)}">
+                <div>
+                  <div class="t">${escapeHtml(item.name)}</div>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `).join("");
+
+    app.innerHTML = `
+      <div class="card stickyTop">
+        <div class="ch">
+          <h2>${escapeHtml(day.title)}</h2>
+        </div>
+        <div class="cb">
+          <div class="row" style="justify-content:space-between; align-items:center">
+            <div style="display:flex; gap:25px; align-items:center">
+              <div>
+                <div class="small">Interval timer</div>
+                <div class="time compact" id="intervalTime">${formatTime(intervalTimer.remaining)}</div>
+              </div>
+              <div>
+                <div class="small">Time remaining</div>
+                <div class="time compact" id="intervalTotalRemaining">${formatTime(getIntervalTotalRemaining())}</div>
+              </div>
+            </div>
+            <span class="badge" id="intervalStatus">${intervalTimer.running ? "Running" : "Ready"}</span>
+          </div>
+          <div class="row" style="margin-top:6px; justify-content:space-between; align-items:center">
+            <div>
+              <div style="font-weight:700" id="intervalExerciseLbl">${escapeHtml(intervalDisplay.currentLabel)}</div>
+              <div class="small" id="intervalNextLbl">${escapeHtml(intervalDisplay.nextLabel)}</div>
+            </div>
+            <span class="pill" id="intervalRoundLbl">${escapeHtml(intervalDisplay.roundLabel)}</span>
+          </div>
+          <div class="timerControls">
+            <button class="btn good" id="intervalStartBtn">${ICONS.play}<span class="label">Start</span></button>
+            <button class="btn" id="intervalPauseBtn">${ICONS.pause}<span class="label">Pause</span></button>
+            <button class="btn" id="intervalSkipBtn">${ICONS.chevron}<span class="label">Next</span></button>
+            <button class="btn bad" id="intervalResetBtn">${ICONS.reset}<span class="label">Reset</span></button>
+            <button class="btn" id="intervalAudioBtn">${ICONS.sound}<span class="label">Enable sound</span></button>
+          </div>
+          <div class="small" style="margin-top:6px">30s work / 15s rest for circuits and finisher. Warm-up is 60s each.</div>
+        </div>
+      </div>
+
+      ${checklistHtml}
+
+      <div class="card">
+        <div class="cb">
+          <button class="btn" type="button" onclick="history.length > 1 ? history.back() : (location.href='index.html')">Back to workout index</button>
+        </div>
+      </div>
+    `;
+    // Wire events (lift completion)
+    app.querySelectorAll('input[type="checkbox"][data-lift]').forEach(cb => {
+      cb.addEventListener("change", () => {
+        if(!session.liftDone) session.liftDone = {};
+        session.liftDone[cb.getAttribute("data-lift")] = cb.checked;
+        updateAutoComplete(session, day);
+        save(state);
+        renderTabs();
+      });
+    });
+    renderTabs();
+    updateTimersUI();
+    wireTimers();
+  }
+
+  // Export / Reset
+  $("#exportBtn").onclick = () => {
+    const data = localStorage.getItem(KEY) || "{}";
+    const blob = new Blob([data], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `workout-tracker-export-${isoDate()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  $("#importBtn").onclick = () => {
+    $("#importFile").click();
+  };
+
+  let pendingImport = null;
+  $("#importFile").onchange = (e) => {
+    const f = e.target.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => {
+      try{
+        const json = JSON.parse(ev.target.result);
+        if(!json.weekStart || !json.sessions) throw new Error("Invalid format");
+        pendingImport = json;
+        const modal = $("#importModal");
+        const overlay = $("#importOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
+      }catch(err){
+        alert("Error importing file: " + err.message);
+      }
+    };
+    r.readAsText(f);
+  };
+
+  $("#themeToggle").onclick = () => {
+    state.theme = state.theme === "light" ? "dark" : "light";
+    if(state.theme === "light") document.body.classList.add("light");
+    else document.body.classList.remove("light");
+    save(state);
+  };
+  const logoutBtn = $("#logoutBtn");
+  if(logoutBtn){
+    if(!window.AuthClient || !AuthClient.isLoggedIn()){
+      logoutBtn.style.display = "none";
+    } else {
+      logoutBtn.onclick = async () => {
+        await AuthClient.logout();
+        window.location.href = "login.html";
+      };
+    }
+  }
+
+  const menuToggle = $("#menuToggle");
+  const menuPopup = $("#menuPopup");
+  const menuOverlay = $("#menuOverlay");
+  if(menuToggle){
+    menuToggle.onclick = () => {
+      menuPopup.classList.toggle("show");
+      menuOverlay.classList.toggle("show");
+    };
+    menuOverlay.onclick = () => {
+      menuPopup.classList.remove("show");
+      menuOverlay.classList.remove("show");
+    };
+    // Close menu when clicking an item
+    menuPopup.querySelectorAll(".menuItem").forEach(b => b.addEventListener("click", () => menuOverlay.click()));
+  }
+
+  // Developer comments (local only)
+  const DEV_NOTES_KEY = `${KEY}__dev_notes`;
+  function loadDevNotes(){
+    try{ return JSON.parse(localStorage.getItem(DEV_NOTES_KEY)) || []; }catch(e){ return []; }
+  }
+  function saveDevNotes(notes){
+    localStorage.setItem(DEV_NOTES_KEY, JSON.stringify(notes));
+  }
+  function renderDevNotesList(){
+    const list = $("#devNotesList");
+    if(!list) return;
+    const notes = loadDevNotes();
+    list.innerHTML = "";
+    if(!notes.length){
+      const empty = document.createElement("div");
+      empty.className = "small";
+      empty.textContent = "No comments yet.";
+      list.appendChild(empty);
+      return;
+    }
+    notes.forEach(note => {
+      const row = document.createElement("div");
+      row.className = "devNoteRow";
+      row.innerHTML = `
+        <div class="devNoteText">${escapeHtml(note.text)}</div>
+        <button class="btn bad" type="button" data-note-id="${note.id}">${ICONS.trash}<span class="label">Delete</span></button>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll("button[data-note-id]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-note-id");
+        const next = loadDevNotes().filter(n => n.id !== id);
+        saveDevNotes(next);
+        renderDevNotesList();
+      });
+    });
+  }
+  function openDevNotes(){
+    const modal = $("#devNotesModal");
+    const overlay = $("#devNotesOverlay");
+    if(!modal || !overlay) return;
+    renderDevNotesList();
+    modal.classList.remove("hidden");
+    overlay.classList.remove("hidden");
+    const input = $("#devNotesInput");
+    if(input) input.focus();
+  }
+  function closeDevNotes(){
+    const modal = $("#devNotesModal");
+    const overlay = $("#devNotesOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+  }
+  const devNotesBtn = $("#devNotesBtn");
+  if(devNotesBtn) devNotesBtn.onclick = openDevNotes;
+  const devNotesClose = $("#devNotesClose");
+  if(devNotesClose) devNotesClose.onclick = closeDevNotes;
+  const devNotesOverlay = $("#devNotesOverlay");
+  if(devNotesOverlay) devNotesOverlay.onclick = closeDevNotes;
+  const devNotesAdd = $("#devNotesAdd");
+  if(devNotesAdd){
+    devNotesAdd.onclick = () => {
+      const input = $("#devNotesInput");
+      if(!input) return;
+      const text = input.value.trim();
+      if(!text) return;
+      const notes = loadDevNotes();
+      notes.push({id:`n_${Date.now()}_${Math.random().toString(36).slice(2,6)}`, text});
+      saveDevNotes(notes);
+      input.value = "";
+      renderDevNotesList();
+      input.focus();
+    };
+  }
+
+  const resetWeekBtn = $("#resetWeekBtn");
+  if(resetWeekBtn){
+    resetWeekBtn.onclick = () => {
+      const modal = $("#weekResetModal");
+      const overlay = $("#weekResetOverlay");
+      if(modal) modal.classList.remove("hidden");
+      if(overlay) overlay.classList.remove("hidden");
+    };
+  }
+
+  const weekResetConfirm = $("#weekResetConfirm");
+  const weekResetCancel = $("#weekResetCancel");
+  const weekResetOverlay = $("#weekResetOverlay");
+  const closeWeekReset = () => {
+    const modal = $("#weekResetModal");
+    const overlay = $("#weekResetOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+  };
+  if(weekResetConfirm){
+    weekResetConfirm.onclick = () => {
+      ensureWeek();
+      state.sessions[state.weekStart] = {};
+      state.activeDayId = PLAN[0].id;
+      resetIntervalTimer();
+      stopRestTimer();
+      timers.rest.remaining = timers.rest.duration;
+      stopWorkoutTimer();
+      timers.workout.elapsed = 0;
+      persistTimers();
+      save(state);
+      render();
+      closeWeekReset();
+    };
+  }
+  if(weekResetCancel) weekResetCancel.onclick = closeWeekReset;
+  if(weekResetOverlay) weekResetOverlay.onclick = closeWeekReset;
+
+  const importConfirm = $("#importConfirm");
+  const importCancel = $("#importCancel");
+  const importOverlay = $("#importOverlay");
+  const closeImport = () => {
+    const modal = $("#importModal");
+    const overlay = $("#importOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+    pendingImport = null;
+  };
+  if(importConfirm){
+    importConfirm.onclick = () => {
+      if(!pendingImport) return closeImport();
+      localStorage.setItem(KEY, JSON.stringify(pendingImport));
+      closeImport();
+      location.reload();
+    };
+  }
+  if(importCancel) importCancel.onclick = closeImport;
+  if(importOverlay) importOverlay.onclick = closeImport;
+
+  // Init
+  ensureWeek();
+  save(state);
+  scheduleWeeklyRollover();
+  render();
+  setSyncStatus("ok");
+  (async () => {
+    if(!window.AuthClient || !AuthClient.isLoggedIn()) return;
+    try{
+      const remote = await AuthClient.getWorkout(KEY);
+      if(remote && remote.data){
+        state = remote.data;
+        save(state, {skipRemote:true});
+        render();
+        remoteReady = true;
+        return;
+      }
+    }catch(e){
+      if(!e || e.status !== 404) console.warn("Remote load failed", e);
+    }
+    if(localStorage.getItem(KEY) && !localStorage.getItem(MIGRATION_KEY)){
+      try{
+        await AuthClient.saveWorkout(KEY, state);
+        localStorage.setItem(MIGRATION_KEY, "1");
+      }catch(e){
+        console.warn("Migration failed", e);
+      }
+    }
+    remoteReady = true;
+  })();
+
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
