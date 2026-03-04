@@ -1510,6 +1510,23 @@
     if(session.completed !== prevCompleted) save(state);
 
     const app = $("#app");
+    const dayTotalSets = day.lifts.reduce((sum, l) => sum + l.sets, 0);
+    let dayDoneSets = 0;
+    if(session.liftSets){
+      Object.values(session.liftSets).forEach(arr => {
+        dayDoneSets += (arr || []).filter(x => x && x.done).length;
+      });
+    }
+    const dayMobTotal = day.mobility.length;
+    const dayMobDone = Object.values(session.mobilityDone || {}).filter(Boolean).length;
+    const dayCondMinutes = parseFloat(session.conditioningMinutes) || 0;
+    const keyLifts = day.lifts.slice(0, 3).map(l => l.name).join(" • ");
+    const keyText = keyLifts ? `Key lifts: ${keyLifts}${day.lifts.length > 3 ? ` +${day.lifts.length - 3} more` : ""}` : "";
+    const statusLabel = session.completed ? "Complete" : (session.dayLocked ? "Locked" : "In progress");
+    const statusClass = session.completed ? "good" : (session.dayLocked ? "bad" : "");
+    const setsRatio = dayTotalSets ? clamp(dayDoneSets / dayTotalSets, 0, 1) : 0;
+    const mobRatio = dayMobTotal ? clamp(dayMobDone / dayMobTotal, 0, 1) : 0;
+    const overallRatio = clamp((setsRatio * 0.7) + (mobRatio * 0.3), 0, 1);
 
     const viewWeek = state.viewWeekStart || state.weekStart;
     const weekSummary = (() => {
@@ -1981,9 +1998,32 @@
     }).join("");
 
     app.innerHTML = `
-      <div class="card">
+      <div class="card dayHero">
         <div class="ch">
-          <h2>${escapeHtml(day.title)}</h2>
+          <div class="dayTitle">
+            <div class="row">
+              <span class="badge">${escapeHtml(day.short)}</span>
+              <span class="badge">${day.lifts.length} exercises</span>
+              <span class="badge">${dayTotalSets} sets</span>
+              <span class="badge">${day.mobility.length} mobility</span>
+            </div>
+            <h2>${escapeHtml(day.title)}</h2>
+            ${keyText ? `<div class="small">${escapeHtml(keyText)}</div>` : ""}
+          </div>
+            <div class="dayStatus">
+              <span class="badge ${statusClass}">${statusLabel}</span>
+              <div class="small">${dayDoneSets}/${dayTotalSets} sets · ${dayMobDone}/${dayMobTotal} mobility</div>
+            ${day.id === "d1" ? `
+              <div class="small">Push-ups: ${escapeHtml((session.conditioningPushups && session.conditioningPushups.set1) || 0)} + ${escapeHtml((session.conditioningPushups && session.conditioningPushups.set2) || 0)} reps</div>
+            ` : `
+              <div class="small">Conditioning: ${dayCondMinutes ? dayCondMinutes : 0} min</div>
+            `}
+            </div>
+        </div>
+        <div class="cb">
+          <div class="progress" aria-hidden="true">
+            <div class="progressFill" style="width:${Math.round(overallRatio * 100)}%"></div>
+          </div>
         </div>
       </div>
 
@@ -2008,7 +2048,7 @@
         <div class="small" id="restPopupSoundStatus" style="margin-top:6px"></div>
       </div>
 
-      \n<details class="card" open>
+      \n<details class="card mobilityCard" open>
         <summary class="summaryIcon">
           <div class="summaryRow">
             <span>Mobility Warm-up</span>
