@@ -1535,6 +1535,7 @@
     document.documentElement.style.setProperty("--vv-bottom", `${bottomOffset}px`);
   }
 
+  let topbarVisible = false;
   function updateTopbarVisibility(){
     const topbar = $("#dayTopbar");
     const hero = $("#dayHero");
@@ -1543,16 +1544,23 @@
     const offsetTop = vv ? vv.offsetTop : 0;
     const heroRect = hero.getBoundingClientRect();
     const show = heroRect.bottom <= (8 + offsetTop);
+    if(show === topbarVisible) return;
+    topbarVisible = show;
     topbar.classList.toggle("is-visible", show);
   }
 
   let topbarBound = false;
+  let topbarRaf = 0;
   function initTopbarVisibility(){
     if(topbarBound) return;
     topbarBound = true;
     const handler = () => {
-      updateViewportVars();
-      updateTopbarVisibility();
+      if(topbarRaf) return;
+      topbarRaf = requestAnimationFrame(() => {
+        topbarRaf = 0;
+        updateViewportVars();
+        updateTopbarVisibility();
+      });
     };
     window.addEventListener("scroll", handler, {passive:true});
     window.addEventListener("resize", handler);
