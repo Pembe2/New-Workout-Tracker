@@ -134,23 +134,6 @@ main{max-width:820px; margin:0 auto; padding:14px 14px calc(148px + env(safe-are
   text-align:right;
   min-width:160px;
 }
-.dayTopbar{
-  display:none;
-  padding:14px 14px 16px;
-}
-.dayTopbar.is-visible{
-  display:block;
-}
-.dayTopbarTitle{
-  font-weight:900;
-  font-size:13px;
-  letter-spacing:.2px;
-  margin-bottom:12px;
-}
-.topbarSentinel{
-  height:1px;
-  margin-top:-6px;
-}
 .progress{
   height:10px;
   border-radius:999px;
@@ -478,7 +461,7 @@ body.light .restPopup::before{
 .stickyTop{
   position:sticky;
   top:calc(8px + var(--sat));
-  z-index:0;
+  z-index:5;
 }
 .stickyTop.card{
   background:var(--card);

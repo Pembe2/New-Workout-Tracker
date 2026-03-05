@@ -1535,39 +1535,11 @@
     document.documentElement.style.setProperty("--vv-bottom", `${bottomOffset}px`);
   }
 
-  let topbarVisible = false;
-  function updateTopbarVisibility(){
-    const topbar = $("#dayTopbar");
-    const sentinel = $("#topbarSentinel");
-    if(!topbar || !sentinel) return;
-    const vv = window.visualViewport;
-    const offsetTop = vv ? vv.offsetTop : 0;
-    const rect = sentinel.getBoundingClientRect();
-    const showAt = offsetTop - 8;
-    const hideAt = offsetTop + 8;
-    const shouldShow = rect.top <= showAt;
-    const shouldHide = rect.top > hideAt;
-    let next = topbarVisible;
-    if(shouldShow) next = true;
-    else if(shouldHide) next = false;
-    if(next === topbarVisible) return;
-    topbarVisible = next;
-    topbar.classList.toggle("is-visible", next);
-  }
-
-  let topbarBound = false;
-  let topbarRaf = 0;
-  function initTopbarVisibility(){
-    if(topbarBound) return;
-    topbarBound = true;
-    const handler = () => {
-      if(topbarRaf) return;
-      topbarRaf = requestAnimationFrame(() => {
-        topbarRaf = 0;
-        updateViewportVars();
-        updateTopbarVisibility();
-      });
-    };
+  let viewportVarsBound = false;
+  function initViewportVars(){
+    if(viewportVarsBound) return;
+    viewportVarsBound = true;
+    const handler = () => updateViewportVars();
     window.addEventListener("scroll", handler, {passive:true});
     window.addEventListener("resize", handler);
     if(window.visualViewport){
@@ -2071,14 +2043,7 @@
     }).join("");
 
     app.innerHTML = `
-      <div class="card stickyTop dayTopbar" id="dayTopbar">
-        <div class="dayTopbarTitle">${escapeHtml(day.title)}</div>
-        <div class="progress" aria-hidden="true">
-          <div class="progressFill" id="dayProgressFill" style="width:${Math.round(overallRatio * 100)}%"></div>
-        </div>
-      </div>
-
-      <div class="card dayHero" id="dayHero">
+      <div class="card stickyTop dayHero" id="dayHero">
         <div class="ch">
           <div class="dayTitle">
             <div class="row dayMeta">
@@ -2095,9 +2060,12 @@
           <div class="dayStatus">
           </div>
         </div>
+        <div class="cb">
+          <div class="progress" aria-hidden="true">
+            <div class="progressFill" id="dayProgressFill" style="width:${Math.round(overallRatio * 100)}%"></div>
+          </div>
+        </div>
       </div>
-
-      <div id="topbarSentinel" class="topbarSentinel" aria-hidden="true"></div>
 
       <div id="restOverlay" class="restOverlay hidden"></div>
       <div id="restPopup" class="restPopup hidden">
@@ -2478,8 +2446,7 @@
       hideRestPopup();
     }
     updateDayProgressUI();
-    initTopbarVisibility();
-    updateTopbarVisibility();
+    initViewportVars();
 
     const weekSelect = $("#weekSelect");
     if(weekSelect){
