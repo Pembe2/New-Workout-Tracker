@@ -1579,17 +1579,27 @@
   function updateViewportVars(){
     const vv = window.visualViewport;
     if(!vv) return;
-    const bottomOffset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    const layoutH = document.documentElement.clientHeight || window.innerHeight;
+    const bottomOffset = Math.max(0, layoutH - vv.height - vv.offsetTop);
     document.documentElement.style.setProperty("--vv-bottom", `${bottomOffset}px`);
+    document.documentElement.style.setProperty("--vv-top", `${Math.max(0, vv.offsetTop)}px`);
   }
 
   let viewportVarsBound = false;
   function initViewportVars(){
     if(viewportVarsBound) return;
     viewportVarsBound = true;
-    const handler = () => updateViewportVars();
+    let raf = 0;
+    const handler = () => {
+      if(raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        updateViewportVars();
+      });
+    };
     window.addEventListener("scroll", handler, {passive:true});
     window.addEventListener("resize", handler);
+    window.addEventListener("orientationchange", handler);
     if(window.visualViewport){
       window.visualViewport.addEventListener("scroll", handler);
       window.visualViewport.addEventListener("resize", handler);

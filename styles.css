@@ -22,6 +22,7 @@
   --input-bg:rgba(12,21,43,.80);
   --badge-bg:rgba(12,21,43,.62);
   --vv-bottom: 0px;
+  --vv-top: 0px;
 }
 body.light{
   --bg:#f2f4f7;
@@ -460,7 +461,7 @@ body.light .restPopup::before{
 .time.compact{font-size:22px}
 .stickyTop{
   position:sticky;
-  top:calc(8px + var(--sat));
+  top:calc(8px + var(--sat) + var(--vv-top));
   z-index:5;
 }
 .stickyTop.card{
