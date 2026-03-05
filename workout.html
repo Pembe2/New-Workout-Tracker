@@ -1538,15 +1538,21 @@
   let topbarVisible = false;
   function updateTopbarVisibility(){
     const topbar = $("#dayTopbar");
-    const hero = $("#dayHero");
-    if(!topbar || !hero) return;
+    const sentinel = $("#topbarSentinel");
+    if(!topbar || !sentinel) return;
     const vv = window.visualViewport;
     const offsetTop = vv ? vv.offsetTop : 0;
-    const heroRect = hero.getBoundingClientRect();
-    const show = heroRect.bottom <= (8 + offsetTop);
-    if(show === topbarVisible) return;
-    topbarVisible = show;
-    topbar.classList.toggle("is-visible", show);
+    const rect = sentinel.getBoundingClientRect();
+    const showAt = offsetTop - 8;
+    const hideAt = offsetTop + 8;
+    const shouldShow = rect.top <= showAt;
+    const shouldHide = rect.top > hideAt;
+    let next = topbarVisible;
+    if(shouldShow) next = true;
+    else if(shouldHide) next = false;
+    if(next === topbarVisible) return;
+    topbarVisible = next;
+    topbar.classList.toggle("is-visible", next);
   }
 
   let topbarBound = false;
@@ -2090,6 +2096,8 @@
           </div>
         </div>
       </div>
+
+      <div id="topbarSentinel" class="topbarSentinel" aria-hidden="true"></div>
 
       <div id="restOverlay" class="restOverlay hidden"></div>
       <div id="restPopup" class="restPopup hidden">
