@@ -227,6 +227,7 @@
   const PLAN = [
     {
       id:"d1", short:"Day 1", title:"Upper Push",
+      muscleGroups:["Chest","Shoulders","Triceps"],
       mobility:[
         {name:"Thoracic extensions (foam roller)", dose:"2x8 slow reps", cue:"Exhale into extension; avoid cranking the neck."},
         {name:"Band shoulder pass-throughs", dose:"2x10", cue:"Ribs down; smooth range."},
@@ -251,6 +252,7 @@
     },
     {
       id:"d2", short:"Day 2", title:"Lower Body",
+      muscleGroups:["Quads","Glutes","Hamstrings","Calves","Core"],
       mobility:[
         {name:"90/90 hip switches", dose:"2x6/side", cue:"Stay tall; move slowly into range."},
         {name:"World's Greatest Stretch", dose:"1-2x/side", cue:"Long exhale; rotate through upper back."},
@@ -269,6 +271,7 @@
     },
     {
       id:"d3", short:"Day 3", title:"Upper Pull",
+      muscleGroups:["Back","Lats","Rear Delts","Biceps"],
       mobility:[
         {name:"Dead hang (passive)", dose:"2x20-40s", cue:"Relax shoulders; no forced stretch."},
         {name:"Band pull-aparts", dose:"2x15", cue:"Squeeze shoulder blades; avoid arching back."},
@@ -290,6 +293,7 @@
     },
     {
       id:"d4", short:"Day 4", title:"Conditioning + Core",
+      muscleGroups:["Conditioning","Core","Glutes","Quads","Posterior Chain"],
       mobility:[
         {name:"Couch stretch (hip flexor)", dose:"1-2x45s/side", cue:"Posterior pelvic tilt; squeeze glute."},
         {name:"Open books (T-spine rotation)", dose:"1x8/side", cue:"Knees stacked; slow rotation."},
@@ -312,6 +316,7 @@
     },
     {
       id:"d5", short:"Day 5", title:"Full Body",
+      muscleGroups:["Posterior Chain","Chest","Back","Quads","Glutes"],
       mobility:[
         {name:"Glute bridge", dose:"2x10", cue:"Posterior tilt; feel glutes, not low back."},
         {name:"Hamstring floss (gentle)", dose:"1x10", cue:"No ballistic stretching; easy range."},
@@ -424,6 +429,7 @@
   function save(state, opts={}){
     localStorage.setItem(KEY, JSON.stringify(state));
     if(!opts.skipRemote) scheduleRemoteSave(state);
+    updateDayProgressUI();
   }
 
   function defaultState(){
@@ -1499,6 +1505,39 @@
     session.completed = anyMob || anySet;
   }
 
+  function getDayProgressRatio(day, session){
+    const totalSets = day.lifts.reduce((sum, l) => sum + l.sets, 0);
+    let doneSets = 0;
+    if(session.liftSets){
+      Object.values(session.liftSets).forEach(arr => {
+        doneSets += (arr || []).filter(x => x && x.done).length;
+      });
+    }
+    const mobTotal = day.mobility.length;
+    const mobDone = Object.values(session.mobilityDone || {}).filter(Boolean).length;
+    const setsRatio = totalSets ? clamp(doneSets / totalSets, 0, 1) : 0;
+    const mobRatio = mobTotal ? clamp(mobDone / mobTotal, 0, 1) : 0;
+    return clamp((setsRatio * 0.7) + (mobRatio * 0.3), 0, 1);
+  }
+
+  function updateDayProgressUI(){
+    const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
+    const session = getSession(day.id);
+    const ratio = getDayProgressRatio(day, session);
+    const fill = $("#dayProgressFill");
+    if(fill) fill.style.width = `${Math.round(ratio * 100)}%`;
+  }
+
+  function initTopbarObserver(){
+    const topbar = $("#dayTopbar");
+    const hero = $("#dayHero");
+    if(!topbar || !hero || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([entry]) => {
+      topbar.classList.toggle("is-visible", !entry.isIntersecting);
+    }, {rootMargin: "0px 0px -60px 0px", threshold: 0.1});
+    io.observe(hero);
+  }
+
   function render(){
     ensureWeek();
     ensureTimers();
@@ -1511,28 +1550,17 @@
 
     const app = $("#app");
     const dayTotalSets = day.lifts.reduce((sum, l) => sum + l.sets, 0);
-    let dayDoneSets = 0;
-    if(session.liftSets){
-      Object.values(session.liftSets).forEach(arr => {
-        dayDoneSets += (arr || []).filter(x => x && x.done).length;
-      });
-    }
-    const dayMobTotal = day.mobility.length;
-    const dayMobDone = Object.values(session.mobilityDone || {}).filter(Boolean).length;
-    const dayCondMinutes = parseFloat(session.conditioningMinutes) || 0;
     const estMin = Math.max(20, Math.round(
       (dayTotalSets * 2.2) +
       (day.lifts.length * 1.5) +
       (day.mobility.length * 1.5) +
       (day.id === "d1" ? 6 : 8)
     ));
-    const keyLifts = day.lifts.slice(0, 3).map(l => l.name).join(" • ");
-    const keyText = keyLifts ? `Key lifts: ${keyLifts}${day.lifts.length > 3 ? ` +${day.lifts.length - 3} more` : ""}` : "";
+    const groupList = (day.muscleGroups || []).join(" • ");
+    const keyText = groupList ? `Targeted Muscle Groups: ${groupList}` : "";
     const statusLabel = session.completed ? "Complete" : (session.dayLocked ? "Locked" : "In progress");
     const statusClass = session.completed ? "good" : (session.dayLocked ? "bad" : "");
-    const setsRatio = dayTotalSets ? clamp(dayDoneSets / dayTotalSets, 0, 1) : 0;
-    const mobRatio = dayMobTotal ? clamp(dayMobDone / dayMobTotal, 0, 1) : 0;
-    const overallRatio = clamp((setsRatio * 0.7) + (mobRatio * 0.3), 0, 1);
+    const overallRatio = getDayProgressRatio(day, session);
 
     const viewWeek = state.viewWeekStart || state.weekStart;
     const weekSummary = (() => {
@@ -2004,7 +2032,14 @@
     }).join("");
 
     app.innerHTML = `
-      <div class="card dayHero">
+      <div class="card stickyTop dayTopbar" id="dayTopbar">
+        <div class="dayTopbarTitle">${escapeHtml(day.title)}</div>
+        <div class="progress" aria-hidden="true">
+          <div class="progressFill" id="dayProgressFill" style="width:${Math.round(overallRatio * 100)}%"></div>
+        </div>
+      </div>
+
+      <div class="card dayHero" id="dayHero">
         <div class="ch">
           <div class="dayTitle">
             <div class="row dayMeta">
@@ -2019,11 +2054,6 @@
             ${keyText ? `<div class="small dayKeyLifts">${escapeHtml(keyText)}</div>` : ""}
           </div>
           <div class="dayStatus">
-          </div>
-        </div>
-        <div class="cb">
-          <div class="progress" aria-hidden="true">
-            <div class="progressFill" style="width:${Math.round(overallRatio * 100)}%"></div>
           </div>
         </div>
       </div>
@@ -2406,6 +2436,8 @@
     }else{
       hideRestPopup();
     }
+    updateDayProgressUI();
+    initTopbarObserver();
 
     const weekSelect = $("#weekSelect");
     if(weekSelect){
