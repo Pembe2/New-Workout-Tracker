@@ -27,9 +27,6 @@
         <input type="file" id="importFile" style="display:none" accept=".json">
       </div>
     </div>
-    <div class="syncRow">
-      <span class="badge syncBadge" id="syncStatus">Sync: -</span>
-    </div>
   </div>
 </header>
 
@@ -371,6 +368,8 @@
   }
   const SYNC_KEY = `${KEY}_last_sync`;
   const SYNC_STATUS_KEY = `${KEY}_last_sync_status`;
+  const REST_FOCUS_KEY = `${KEY}_rest_focus`;
+  const AUDIO_ENABLED_KEY = `${KEY}_audio_enabled`;
   function formatClock(ts){
     try{
       return new Date(ts).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
@@ -541,6 +540,7 @@
   };
   let currentRestLiftKey = null;
   let currentRestLabel = "";
+  let restPopupOpen = false;
   let currentSession = null;
   let weeklyRolloverTimer = null;
 
@@ -588,6 +588,20 @@
     timers.rest.duration = state.timers.restDuration;
     timers.rest.remaining = state.timers.restRemaining;
     timers.workout.elapsed = state.timers.workoutElapsed;
+    currentRestLiftKey = state.timers.restLiftKey || currentRestLiftKey;
+    currentRestLabel = state.timers.restLabel || currentRestLabel;
+    restPopupOpen = !!state.timers.restOpen;
+    timers.rest.running = !!state.timers.restRunning;
+    const lastTs = state.timers.restLastTs ? new Date(state.timers.restLastTs).getTime() : null;
+    if(timers.rest.running && lastTs){
+      const elapsed = Math.floor((Date.now() - lastTs) / 1000);
+      timers.rest.remaining = Math.max(0, timers.rest.remaining - elapsed);
+      if(timers.rest.remaining === 0){
+        timers.rest.running = false;
+      }else{
+        startRestInterval();
+      }
+    }
     persistTimers();
   }
 
@@ -595,7 +609,12 @@
     state.timers = {
       restDuration: timers.rest.duration,
       restRemaining: timers.rest.remaining,
-      workoutElapsed: timers.workout.elapsed
+      workoutElapsed: timers.workout.elapsed,
+      restLiftKey: currentRestLiftKey,
+      restLabel: currentRestLabel,
+      restOpen: restPopupOpen,
+      restRunning: timers.rest.running,
+      restLastTs: timers.rest.running ? new Date().toISOString() : null
     };
     save(state);
   }
@@ -911,7 +930,7 @@
 
   let audioCtx = null;
   let audioUnlocked = false;
-  let audioEnabled = false;
+  let audioEnabled = localStorage.getItem(AUDIO_ENABLED_KEY) === "1";
   let noiseBuffer = null;
   let wakeLock = null;
   let wakeLockEnabled = false;
@@ -1052,6 +1071,7 @@
       timers.rest.interval = null;
     }
     timers.rest.running = false;
+    persistTimers();
     updateWakeLock();
   }
   function showRestPopup(){
@@ -1059,12 +1079,34 @@
     if(el) el.classList.remove("hidden");
     const overlay = $("#restOverlay");
     if(overlay) overlay.classList.remove("hidden");
+    if(!restPopupOpen){
+      restPopupOpen = true;
+      persistTimers();
+    }
   }
   function hideRestPopup(){
     const el = $("#restPopup");
     if(el) el.classList.add("hidden");
     const overlay = $("#restOverlay");
     if(overlay) overlay.classList.add("hidden");
+    if(restPopupOpen){
+      restPopupOpen = false;
+      persistTimers();
+    }
+  }
+  function startRestInterval(){
+    if(timers.rest.interval) return;
+    timers.rest.interval = setInterval(() => {
+      timers.rest.remaining -= 1;
+      if(timers.rest.remaining <= 0){
+        timers.rest.remaining = 0;
+        stopRestTimer();
+        playBeep();
+        setTimeout(() => hideRestPopup(), 2600);
+      }
+      persistTimers();
+      updateTimersUI();
+    }, 1000);
   }
   function startRestTimer(duration=null, liftKey=null, label=null){
     if(timers.rest.running){
@@ -1083,19 +1125,10 @@
     currentRestLabel = label ? String(label) : "";
     timers.rest.running = true;
     updateWakeLock();
-    timers.rest.interval = setInterval(() => {
-      timers.rest.remaining -= 1;
-      if(timers.rest.remaining <= 0){
-        timers.rest.remaining = 0;
-        stopRestTimer();
-        playBeep();
-        setTimeout(() => hideRestPopup(), 2600);
-      }
-      persistTimers();
-      updateTimersUI();
-    }, 1000);
+    startRestInterval();
     showRestPopup();
     updateTimersUI();
+    persistTimers();
   }
 
   function stopWorkoutTimer(){
@@ -1129,17 +1162,16 @@
     const enableAudioBtn = $("#enableAudioBtn");
     if(enableAudioBtn){
       enableAudioBtn.style.display = "inline-flex";
-      enableAudioBtn.innerHTML = `${ICONS.sound}<span class="label">${audioEnabled ? "Sound on" : "Sound off"}</span>`;
+      enableAudioBtn.innerHTML = `${ICONS.sound}<span class="label">Enable sound</span>`;
+    }
+    const muteSoundBtn = $("#muteSoundBtn");
+    if(muteSoundBtn){
+      muteSoundBtn.style.display = audioEnabled ? "inline-flex" : "none";
+      muteSoundBtn.innerHTML = `${ICONS.sound}<span class="label">Mute sound</span>`;
     }
     const restPopupSoundStatus = $("#restPopupSoundStatus");
     if(restPopupSoundStatus){
-      if(!audioEnabled){
-        restPopupSoundStatus.textContent = "Sound off";
-      }else if(audioUnlocked){
-        restPopupSoundStatus.textContent = "Sound on";
-      }else{
-        restPopupSoundStatus.textContent = "Sound off (tap to re-enable)";
-      }
+      restPopupSoundStatus.textContent = "Tap Enable sound to reload and activate audio.";
     }
   }
 
@@ -1213,6 +1245,7 @@
     const restPauseBtn = $("#restPauseBtn");
     const restResetBtn = $("#restResetBtn");
     const restCloseBtn = $("#restCloseBtn");
+    const muteSoundBtn = $("#muteSoundBtn");
     const restPlusBtn = $("#restPlusBtn");
     const restMinusBtn = $("#restMinusBtn");
 
@@ -1223,7 +1256,6 @@
         }else{
           startRestTimer();
         }
-        persistTimers();
         updateTimersUI();
       };
     }
@@ -1234,6 +1266,13 @@
         const overlay = $("#restResetOverlay");
         if(modal) modal.classList.remove("hidden");
         if(overlay) overlay.classList.remove("hidden");
+      };
+    }
+    if(muteSoundBtn){
+      muteSoundBtn.onclick = () => {
+        audioEnabled = false;
+        localStorage.setItem(AUDIO_ENABLED_KEY, "0");
+        updateTimersUI();
       };
     }
 
@@ -1271,12 +1310,10 @@
     const enableAudioBtn = $("#enableAudioBtn");
     if(enableAudioBtn){
       enableAudioBtn.onclick = () => {
-        audioEnabled = !audioEnabled;
-        if(audioEnabled){
-          const ok = primeAudioFromGesture();
-          if(ok) playConfirmBeep();
-        }
-        updateTimersUI();
+        audioEnabled = true;
+        localStorage.setItem(AUDIO_ENABLED_KEY, "1");
+        persistTimers();
+        location.reload();
       };
     }
 
@@ -1449,6 +1486,22 @@
     const targetY = window.scrollY + rect.top - (stickyRect.height + stickyTop + gap);
     window.scrollTo({top: Math.max(0, targetY), behavior: "smooth"});
   }
+  function focusRestExerciseIfNeeded(){
+    if(localStorage.getItem(REST_FOCUS_KEY) !== "1") return;
+    localStorage.removeItem(REST_FOCUS_KEY);
+    if(!timers.rest.running || !currentRestLiftKey) return;
+    const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
+    const baseName = String(currentRestLiftKey).split("::")[0];
+    const liftDef = day.lifts.find(l => l.name === baseName);
+    if(!liftDef) return;
+    const detailKey = liftDetailKey(day.id, liftDef);
+    openLifts.add(detailKey);
+    const detailsEl = document.querySelector(`details[data-detail="${CSS.escape(detailKey)}"]`);
+    if(detailsEl){
+      detailsEl.open = true;
+      scrollExerciseJustBelowSticky(detailsEl);
+    }
+  }
   function hasLiftData(sets){
     return (sets || []).some(s => s && (s.done || s.reps || s.weight || s.rpe));
   }
@@ -1497,12 +1550,7 @@
       session.completed = true;
       return;
     }
-    const anyMob = Object.values(session.mobilityDone || {}).some(Boolean);
-    const anySet = day.lifts.some(l => {
-      const arr = getLiftSets(session, day.id, l);
-      return arr.some(s => s && s.done);
-    });
-    session.completed = anyMob || anySet;
+    session.completed = false;
   }
 
   function getDayProgressRatio(day, session){
@@ -2047,9 +2095,9 @@
         <div class="ch">
           <div class="dayTitle">
             <div class="row dayMeta">
-              <span class="badge">${escapeHtml(day.short)}</span>
               <span class="badge">${day.lifts.length} exercises</span>
               <span class="badge">Approx. ${estMin} min</span>
+              <span class="badge syncBadge" id="syncStatus">Sync: -</span>
             </div>
             <h2 class="dayHeading">
               <span>${escapeHtml(day.title)}</span>
@@ -2072,15 +2120,21 @@
         <div class="row">
           <div>
             <div class="small">Rest timer</div>
-            <div class="time" id="restPopupTime">${formatTime(timers.rest.remaining)}</div>
+            <div class="row restTimeRow">
+              <div class="time" id="restPopupTime">${formatTime(timers.rest.remaining)}</div>
+              <div class="pillSplit restAdjust">
+                <button class="pillBtn" id="restMinusBtn">${ICONS.minus}<span class="label">15s</span></button>
+                <button class="pillBtn" id="restPlusBtn">${ICONS.plus}<span class="label">15s</span></button>
+              </div>
+            </div>
           </div>
-          <span class="badge" id="restPopupStatus">${timers.rest.running ? "Running" : "Paused"}</span>
         </div>
         <div class="small" id="restPopupNext" style="margin-top:6px"></div>
-        <div class="timerControls" style="margin-top:8px">
+        <div class="timerRow">
           <button class="btn" id="enableAudioBtn">${ICONS.sound}<span class="label">Enable sound</span></button>
-          <button class="btn" id="restMinusBtn">${ICONS.minus}<span class="label">-15s</span></button>
-          <button class="btn" id="restPlusBtn">${ICONS.plus}<span class="label">+15s</span></button>
+          <button class="btn" id="muteSoundBtn">${ICONS.sound}<span class="label">Mute</span></button>
+        </div>
+        <div class="timerRow">
           <button class="btn" id="restPauseBtn">${ICONS.pause}<span class="label">Pause</span></button>
           <button class="btn bad" id="restResetBtn">${ICONS.reset}<span class="label">Reset</span></button>
           <button class="btn" id="restCloseBtn">${ICONS.close}<span class="label">Close</span></button>
@@ -2440,13 +2494,14 @@
     updateTimersUI();
     wireTimers();
     applyDayLock(app, session.dayLocked);
-    if(timers.rest.running){
+    if(restPopupOpen){
       showRestPopup();
     }else{
       hideRestPopup();
     }
     updateDayProgressUI();
     initViewportVars();
+    focusRestExerciseIfNeeded();
 
     const weekSelect = $("#weekSelect");
     if(weekSelect){
