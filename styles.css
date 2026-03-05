@@ -21,6 +21,7 @@
   --ui-bg:rgba(12,21,43,.9);
   --input-bg:rgba(12,21,43,.80);
   --badge-bg:rgba(12,21,43,.62);
+  --vv-bottom: 0px;
 }
 body.light{
   --bg:#f2f4f7;
@@ -322,7 +323,7 @@ summary::-webkit-details-marker{display:none}
   display:flex; justify-content:center;
 }
 .footerTabs{
-  position:fixed; bottom:0; left:0; right:0; z-index:20;
+  position:fixed; bottom:var(--vv-bottom); left:0; right:0; z-index:20;
   background:var(--header-bg);
   border-top:1px solid var(--line);
   backdrop-filter: blur(10px);
@@ -574,7 +575,7 @@ body.light .restPopup::before{
   position:fixed;
   left:0;
   right:0;
-  bottom:0;
+  bottom:var(--vv-bottom);
   padding:10px 14px calc(10px + env(safe-area-inset-bottom));
   background:var(--header-bg);
   border-top:1px solid var(--line);
