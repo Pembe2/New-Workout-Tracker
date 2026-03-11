@@ -207,6 +207,7 @@
     reset: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6"/><path d="M3 4v4h4"/></svg>`,
     clock: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`,
     sound: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9a5 5 0 0 1 0 6"/></svg>`,
+    soundOff: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M23 9l-6 6"/><path d="M17 9l6 6"/></svg>`,
     minus: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>`,
     plus: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,
     close: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`,
@@ -616,7 +617,7 @@
       restRunning: timers.rest.running,
       restLastTs: timers.rest.running ? new Date().toISOString() : null
     };
-    save(state);
+    save(state, {skipRemote:true});
   }
 
   function getSession(dayId){
@@ -1162,16 +1163,19 @@
     const enableAudioBtn = $("#enableAudioBtn");
     if(enableAudioBtn){
       enableAudioBtn.style.display = "inline-flex";
-      enableAudioBtn.innerHTML = `${ICONS.sound}<span class="label">Enable sound</span>`;
-    }
-    const muteSoundBtn = $("#muteSoundBtn");
-    if(muteSoundBtn){
-      muteSoundBtn.style.display = audioEnabled ? "inline-flex" : "none";
-      muteSoundBtn.innerHTML = `${ICONS.sound}<span class="label">Mute sound</span>`;
+      enableAudioBtn.innerHTML = audioEnabled
+        ? `${ICONS.soundOff}<span class="label">Sound off</span>`
+        : `${ICONS.sound}<span class="label">Sound on</span>`;
     }
     const restPopupSoundStatus = $("#restPopupSoundStatus");
     if(restPopupSoundStatus){
-      restPopupSoundStatus.textContent = "Tap Enable sound to reload and activate audio.";
+      if(!audioEnabled){
+        restPopupSoundStatus.textContent = "Sound is off. Tap Enable sound to turn it on.";
+      }else if(!audioUnlocked){
+        restPopupSoundStatus.textContent = "Sound needs a tap to unlock. Tap Enable sound.";
+      }else{
+        restPopupSoundStatus.textContent = "Sound is enabled.";
+      }
     }
   }
 
@@ -1245,7 +1249,7 @@
     const restPauseBtn = $("#restPauseBtn");
     const restResetBtn = $("#restResetBtn");
     const restCloseBtn = $("#restCloseBtn");
-    const muteSoundBtn = $("#muteSoundBtn");
+    const reloadPageBtn = $("#reloadPageBtn");
     const restPlusBtn = $("#restPlusBtn");
     const restMinusBtn = $("#restMinusBtn");
 
@@ -1268,11 +1272,14 @@
         if(overlay) overlay.classList.remove("hidden");
       };
     }
-    if(muteSoundBtn){
-      muteSoundBtn.onclick = () => {
-        audioEnabled = false;
-        localStorage.setItem(AUDIO_ENABLED_KEY, "0");
-        updateTimersUI();
+    if(reloadPageBtn){
+      reloadPageBtn.onclick = () => {
+        if(timers.rest.running && currentRestLiftKey){
+          localStorage.setItem(REST_FOCUS_KEY, "1");
+        }
+        restPopupOpen = true;
+        persistTimers();
+        location.reload();
       };
     }
 
@@ -1310,10 +1317,18 @@
     const enableAudioBtn = $("#enableAudioBtn");
     if(enableAudioBtn){
       enableAudioBtn.onclick = () => {
+        if(audioEnabled){
+          audioEnabled = false;
+          localStorage.setItem(AUDIO_ENABLED_KEY, "0");
+          updateTimersUI();
+          return;
+        }
         audioEnabled = true;
         localStorage.setItem(AUDIO_ENABLED_KEY, "1");
+        primeAudioFromGesture();
+        unlockAudio();
         persistTimers();
-        location.reload();
+        updateTimersUI();
       };
     }
 
@@ -1563,9 +1578,9 @@
     }
     const mobTotal = day.mobility.length;
     const mobDone = Object.values(session.mobilityDone || {}).filter(Boolean).length;
-    const setsRatio = totalSets ? clamp(doneSets / totalSets, 0, 1) : 0;
-    const mobRatio = mobTotal ? clamp(mobDone / mobTotal, 0, 1) : 0;
-    return clamp((setsRatio * 0.7) + (mobRatio * 0.3), 0, 1);
+    const total = totalSets + mobTotal;
+    const done = doneSets + mobDone;
+    return total ? clamp(done / total, 0, 1) : 0;
   }
 
   function updateDayProgressUI(){
@@ -2131,8 +2146,8 @@
         </div>
         <div class="small" id="restPopupNext" style="margin-top:6px"></div>
         <div class="timerRow">
+          <button class="btn" id="reloadPageBtn" aria-label="Reload page">${ICONS.reset}<span class="label">Reload</span></button>
           <button class="btn" id="enableAudioBtn">${ICONS.sound}<span class="label">Enable sound</span></button>
-          <button class="btn" id="muteSoundBtn">${ICONS.sound}<span class="label">Mute</span></button>
         </div>
         <div class="timerRow">
           <button class="btn" id="restPauseBtn">${ICONS.pause}<span class="label">Pause</span></button>
