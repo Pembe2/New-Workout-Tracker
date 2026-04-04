@@ -436,6 +436,7 @@
     return {
       weekStart: weekStartKeyWithCutoff(),
       activeDayId: PLAN[0].id,
+      metricsVersion: 2,
       sessions: {}, // weekStart -> dayId -> data
       viewWeekStart: null,
       progression: { dayId: PLAN[0].id, liftKey: null },
@@ -522,6 +523,12 @@
     });
     return changed;
   }
+  function migrateMetricsVersion(stateObj){
+    if(!stateObj) return false;
+    if(stateObj.metricsVersion === 2) return false;
+    stateObj.metricsVersion = 2;
+    return true;
+  }
 
   if(window.AuthClient && AuthClient.init){
     try{ await AuthClient.init(); }catch(e){}
@@ -532,6 +539,9 @@
     return;
   }
   if(migrateLegacyLiftNames(state)){
+    save(state);
+  }
+  if(migrateMetricsVersion(state)){
     save(state);
   }
   const openLifts = new Set();
@@ -720,6 +730,18 @@
     }
     return key;
   }
+  const LIFT_DEFS_BY_NAME = PLAN.reduce((acc, day) => {
+    (day.lifts || []).forEach(lift => {
+      if(!acc[lift.name]) acc[lift.name] = lift;
+    });
+    return acc;
+  }, {});
+  function liftVolumeMultiplier(liftKey){
+    const baseName = String(liftKey || "").split("::")[0];
+    const lift = LIFT_DEFS_BY_NAME[baseName];
+    const repScheme = String(lift && lift.reps ? lift.reps : "").toLowerCase();
+    return (repScheme.includes("/side") || repScheme.includes("/leg")) ? 2 : 1;
+  }
   function exerciseStatsForWeek(weekKey){
     const sessions = state.sessions[weekKey] || {};
     const stats = {};
@@ -727,6 +749,7 @@
       if(!s || !s.liftSets) return;
       Object.entries(s.liftSets).forEach(([key, arr]) => {
         const name = displayNameFromStorageKey(key);
+        const volumeMultiplier = liftVolumeMultiplier(key);
         if(!stats[name]) stats[name] = {maxWeight:null, volume:0};
         (arr || []).forEach(set => {
           if(!set || !set.done) return;
@@ -736,7 +759,7 @@
             stats[name].maxWeight = stats[name].maxWeight === null ? w : Math.max(stats[name].maxWeight, w);
           }
           if(w !== null && r !== null){
-            stats[name].volume += w * r;
+            stats[name].volume += w * r * volumeMultiplier;
           }
         });
       });
@@ -750,6 +773,7 @@
     if(!s || !s.liftSets) return stats;
     Object.entries(s.liftSets).forEach(([key, arr]) => {
       const name = displayNameFromStorageKey(key);
+      const volumeMultiplier = liftVolumeMultiplier(key);
       if(!stats[name]) stats[name] = {maxWeight:null, volume:0};
       (arr || []).forEach(set => {
         if(!set || !set.done) return;
@@ -759,17 +783,18 @@
           stats[name].maxWeight = stats[name].maxWeight === null ? w : Math.max(stats[name].maxWeight, w);
         }
         if(w !== null && r !== null){
-          stats[name].volume += w * r;
+          stats[name].volume += w * r * volumeMultiplier;
         }
       });
     });
     return stats;
   }
-  function liftStatsFromSets(sets){
+  function liftStatsFromSets(sets, liftKey){
     let maxWeight = null;
     let volume = 0;
     let anyWeight = false;
     let anyVolume = false;
+    const volumeMultiplier = liftVolumeMultiplier(liftKey);
     (sets || []).forEach(set => {
       if(!set || !set.done) return;
       const w = parseNum(set.weight);
@@ -779,7 +804,7 @@
         anyWeight = true;
       }
       if(w !== null && r !== null){
-        volume += w * r;
+        volume += w * r * volumeMultiplier;
         anyVolume = true;
       }
     });
@@ -798,7 +823,7 @@
       if(!s || !s.liftSets) return;
       const sets = s.liftSets[liftKey];
       if(!sets || !sets.length) return;
-      const stats = liftStatsFromSets(sets);
+      const stats = liftStatsFromSets(sets, liftKey);
       if(stats.maxWeight === null && stats.volume === null) return;
       labels.push(wk);
       maxValues.push(stats.maxWeight);
@@ -2785,6 +2810,9 @@
         save(state, {skipRemote:true});
         render();
         remoteReady = true;
+        if(migrateLegacyLiftNames(state) || migrateMetricsVersion(state)){
+          save(state);
+        }
         return;
       }
     }catch(e){
