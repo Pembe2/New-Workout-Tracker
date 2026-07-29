@@ -83,7 +83,7 @@
     <div class="tabs" id="tabs"></div>
     <div class="kpi">
       <span class="badge">Week: <span class="mono" id="weekLbl"></span></span>
-      <span class="badge">Complete: <span class="mono" id="completedLbl">0</span>/2</span>
+      <span class="badge">Complete: <span class="mono" id="completedLbl">0</span>/4</span>
       <button class="btn primary" id="dashboardBtn">Dashboard</button>
     </div>
   </div>
@@ -222,7 +222,7 @@
 
   const PLAN = [
     {
-      id:"d1", short:"Day A", title:"Push + Quad Focus",
+      id:"d1", short:"Day 1 (A)", title:"Push + Quad Focus",
       muscleGroups:["Chest","Shoulders","Triceps","Quads","Hamstrings","Calves","Core","Carries"],
       mobility:[
         {name:"Treadmill warm-up", dose:"10 min", cue:"5 min brisk walk, then 5 min incline walk."},
@@ -242,7 +242,47 @@
       conditioning:{label:"Session Target", rx:"60 minutes total including the 10-minute treadmill warm-up."}
     },
     {
-      id:"d2", short:"Day B", title:"Pull + Posterior Chain Focus",
+      id:"d2", short:"Day 2 (B)", title:"Pull + Posterior Chain Focus",
+      muscleGroups:["Back","Lats","Rear Delts","Biceps","Hamstrings","Glutes","Quads","Core"],
+      mobility:[
+        {name:"Treadmill warm-up", dose:"10 min", cue:"5 min brisk walk, then 5 min incline walk."},
+      ],
+      lifts:[
+        {name:"Circuit 1 - Romanian Deadlift", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with lat pulldown; hinge with a neutral spine."},
+        {name:"Circuit 1 - Lat Pulldown", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with Romanian deadlift; full stretch and strong pull."},
+        {name:"Circuit 2 - Standing Cable Row", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with incline dumbbell curl; pull to the ribs without leaning back."},
+        {name:"Circuit 2 - Incline Dumbbell Curl", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with standing cable row; keep shoulders back and elbows quiet."},
+        {name:"Circuit 3 - Face Pull", sets:3, reps:"15", rest:"30s", cue:"Pair with dumbbell shrugs and hanging knee raise; elbows high."},
+        {name:"Circuit 3 - Dumbbell Shrugs", sets:3, reps:"12", rest:"30s", cue:"Lift straight up, pause briefly, avoid rolling the shoulders."},
+        {name:"Circuit 3 - Hanging Knee Raise", sets:3, reps:"12", rest:"30s", cue:"Control the pelvis; avoid swinging."},
+        {name:"Circuit 4 - Walking Lunges", sets:3, reps:"10/leg", rest:"30s", cue:"2-3 rounds; long stride and stable knee."},
+        {name:"Circuit 4 - Reverse Fly", sets:3, reps:"12-15", rest:"30s", cue:"2-3 rounds; lead with elbows and avoid shrugging.", options:["Machine","Cable"]},
+        {name:"Circuit 4 - Pallof Press", sets:3, reps:"12/side", rest:"30s", cue:"2-3 rounds; resist rotation and keep ribs stacked."},
+      ],
+      conditioning:{label:"Session Target", rx:"60 minutes total including the 10-minute treadmill warm-up."}
+    },
+    {
+      id:"d3", short:"Day 3 (A)", title:"Push + Quad Focus",
+      muscleGroups:["Chest","Shoulders","Triceps","Quads","Hamstrings","Calves","Core","Carries"],
+      mobility:[
+        {name:"Treadmill warm-up", dose:"10 min", cue:"5 min brisk walk, then 5 min incline walk."},
+      ],
+      lifts:[
+        {name:"Circuit 1 - Goblet Squat", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with neutral-grip dumbbell bench press; move steadily between stations."},
+        {name:"Circuit 1 - Neutral-Grip Dumbbell Bench Press", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with goblet squat; keep shoulders packed and press smoothly."},
+        {name:"Circuit 2 - Bulgarian Split Squat", sets:3, reps:"8-10/leg", rest:"30-45s", cue:"Pair with machine or cable chest press; controlled depth and stable knee."},
+        {name:"Circuit 2 - Machine/Cable Chest Press", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with Bulgarian split squat; keep constant tension.", options:["Machine","Cable"]},
+        {name:"Circuit 3 - Rope Triceps Pushdown", sets:3, reps:"12", rest:"30s", cue:"Pair with scaption raise and plank; elbows stay pinned."},
+        {name:"Circuit 3 - Scaption Raise", sets:3, reps:"12-15", rest:"30s", cue:"Raise in the scapular plane; avoid shrugging."},
+        {name:"Circuit 3 - Plank", sets:3, reps:"45-60s", rest:"30s", cue:"Ribs down, glutes tight, steady breathing."},
+        {name:"Circuit 4 - Standing Calf Raises", sets:3, reps:"15-20", rest:"30s", cue:"2-3 rounds; pause at top and bottom."},
+        {name:"Circuit 4 - Leg Curl", sets:3, reps:"12-15", rest:"30s", cue:"2-3 rounds; control the eccentric."},
+        {name:"Circuit 4 - Farmer Carry", sets:3, reps:"40-60 yd", rest:"30s", cue:"2-3 rounds; tall posture, slow controlled steps.", options:["Yards","30-45 sec"]},
+      ],
+      conditioning:{label:"Session Target", rx:"60 minutes total including the 10-minute treadmill warm-up."}
+    },
+    {
+      id:"d4", short:"Day 4 (B)", title:"Pull + Posterior Chain Focus",
       muscleGroups:["Back","Lats","Rear Delts","Biceps","Hamstrings","Glutes","Quads","Core"],
       mobility:[
         {name:"Treadmill warm-up", dose:"10 min", cue:"5 min brisk walk, then 5 min incline walk."},
@@ -1626,6 +1666,7 @@
         condTotal += dayCond;
         absDone += dayAbsDone;
         return {
+          short: d.short,
           title: d.title,
           completed,
           doneSets: dayDoneSets,
@@ -1821,7 +1862,10 @@
               <div class="dashHead">Abs</div>
               <div class="dashHead">Cond.</div>
               ${weekSummary.days.map(d => `
-                <div class="dashCell">${escapeHtml(d.title)}</div>
+                <div class="dashCell">
+                  <b>${escapeHtml(d.short || "")}</b>
+                  <div class="small">${escapeHtml(d.title)}</div>
+                </div>
                 <div class="dashCell">${d.doneSets}/${d.totalSets}</div>
                 <div class="dashCell">${d.mobDone}/${d.mobTotal}</div>
                 <div class="dashCell">${d.abDone ? "Yes" : "No"}</div>
@@ -1843,7 +1887,7 @@
                     <details class="card" style="margin:10px 0">
                       <summary class="summaryIcon">
                         <div class="summaryRow">
-                          <span>${escapeHtml(d.title)}</span>
+                          <span>${escapeHtml(d.short)} - ${escapeHtml(d.title)}</span>
                           <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
                         </div>
                       </summary>
@@ -1880,7 +1924,7 @@
                   <div style="flex:1 1 160px; min-width:160px">
                     <div class="small">Day</div>
                     <select id="progDaySelect" class="inputMini" style="width:100%">
-                      ${PLAN.map(d => `<option value="${d.id}" ${d.id === progDay.id ? "selected":""}>${escapeHtml(d.title)}</option>`).join("")}
+                      ${PLAN.map(d => `<option value="${d.id}" ${d.id === progDay.id ? "selected":""}>${escapeHtml(d.short)} - ${escapeHtml(d.title)}</option>`).join("")}
                     </select>
                   </div>
                   <div style="flex:2 1 240px; min-width:220px">
