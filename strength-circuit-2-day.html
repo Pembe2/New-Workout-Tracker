@@ -1,0 +1,2862 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>2-Day Strength Circuit</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+<div class="safe-area-fix"></div>
+
+<header>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <h1>2-Day Strength Circuit</h1>
+        <div class="sub"></div>
+      </div>
+      <div class="row" style="position:relative">
+        <button class="btn menuBtn iconOnly" id="menuToggle" aria-label="Menu">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M3 6h18M3 12h18M3 18h18"/>
+          </svg>
+        </button>
+        <input type="file" id="importFile" style="display:none" accept=".json">
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="menuLayer" id="menuLayer">
+  <div class="menuOverlay" id="menuOverlay"></div>
+  <div class="menuPopup" id="menuPopup">
+    <a class="menuItem" href="index.html">Workout Index</a>
+    <div class="hr" style="margin:4px 0"></div>
+    <button class="menuItem" id="devNotesBtn">
+      <img class="icon devNotesIcon devNotesIcon--dark" src="middle finger - white.svg" alt="">
+      <img class="icon devNotesIcon devNotesIcon--light" src="middle finger -black.svg" alt="">
+      Dev Notes
+    </button>
+    <button class="menuItem" id="themeToggle">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 1 0 9.8 9.8z"/>
+      </svg>
+      Theme
+    </button>
+    <button class="menuItem" id="logoutBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <path d="M16 17l5-5-5-5"/>
+        <path d="M21 12H9"/>
+      </svg>
+      Logout
+    </button>
+    <button class="menuItem" id="importBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v12M8 11l4 4 4-4M4 21h16"/>
+      </svg>
+      Import
+    </button>
+    <button class="menuItem" id="exportBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 21V9M8 13l4-4 4 4M4 3h16"/>
+      </svg>
+      Export
+    </button>
+    <button class="menuItem bad" id="resetBtn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<main id="app"></main>
+
+<div class="footerTabs">
+  <div class="footerInner">
+    <div class="tabs" id="tabs"></div>
+    <div class="kpi">
+      <span class="badge">Week: <span class="mono" id="weekLbl"></span></span>
+      <span class="badge">Complete: <span class="mono" id="completedLbl">0</span>/2</span>
+      <button class="btn primary" id="dashboardBtn">Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="devNotesOverlay"></div>
+<div class="devNotesModal hidden" id="devNotesModal" role="dialog" aria-modal="true" aria-labelledby="devNotesTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="devNotesTitle" style="margin:0">Developer Comments</h3>
+    <button class="btn" id="devNotesClose" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+      Close
+    </button>
+  </div>
+  <div class="devNotesList" id="devNotesList"></div>
+  <div class="small" style="margin-bottom:6px">Add a comment</div>
+  <textarea id="devNotesInput" style="width:100%; height:80px; padding:10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text); font-family:var(--sans); font-size:13px;" placeholder="Type a comment..."></textarea>
+  <div class="row" style="justify-content:flex-end; margin-top:8px">
+    <button class="btn good" id="devNotesAdd" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Add
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="workoutResetOverlay"></div>
+<div class="devNotesModal hidden" id="workoutResetModal" role="dialog" aria-modal="true" aria-labelledby="workoutResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="workoutResetTitle" style="margin:0">Reset workout timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the workout timer back to zero.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="workoutResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="workoutResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="restResetOverlay"></div>
+<div class="devNotesModal hidden" id="restResetModal" role="dialog" aria-modal="true" aria-labelledby="restResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="restResetTitle" style="margin:0">Reset rest timer?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will reset the remaining time to the set duration.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="restResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="restResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="appResetOverlay"></div>
+<div class="devNotesModal hidden" id="appResetModal" role="dialog" aria-modal="true" aria-labelledby="appResetTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="appResetTitle" style="margin:0">Reset all data?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will erase all saved workouts on this device.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="appResetCancel" type="button">Cancel</button>
+    <button class="btn bad" id="appResetConfirm" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12a9 9 0 1 0 3-6"/>
+        <path d="M3 4v4h4"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="unlockDayOverlay"></div>
+<div class="devNotesModal hidden" id="unlockDayModal" role="dialog" aria-modal="true" aria-labelledby="unlockDayTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="unlockDayTitle" style="margin:0">Unlock this day?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will re-enable all inputs for this day.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="unlockDayCancel" type="button">Cancel</button>
+    <button class="btn good" id="unlockDayConfirm" type="button">Unlock</button>
+  </div>
+</div>
+
+<div class="devNotesOverlay hidden" id="importOverlay"></div>
+<div class="devNotesModal hidden" id="importModal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="importTitle" style="margin:0">Overwrite current data?</h3>
+  </div>
+  <div class="small" style="margin:10px 0 14px">This will replace your current data with the imported file.</div>
+  <div class="row" style="justify-content:flex-end; gap:8px">
+    <button class="btn" id="importCancel" type="button">Cancel</button>
+    <button class="btn bad" id="importConfirm" type="button">Overwrite</button>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<script>
+(async () => {
+  const KEY = "workout_tracker_strength_circuit_2_day_v1";
+  const MIGRATION_KEY = `${KEY}_migrated_v1`;
+  const ICONS = {
+    add: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+    remove: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
+    copy: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="10" height="10" rx="2"/><rect x="5" y="5" width="10" height="10" rx="2"/></svg>`,
+    play: `<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l12 7-12 7z"/></svg>`,
+    pause: `<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>`,
+    reset: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6"/><path d="M3 4v4h4"/></svg>`,
+    clock: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`,
+    sound: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9a5 5 0 0 1 0 6"/></svg>`,
+    soundOff: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M23 9l-6 6"/><path d="M17 9l6 6"/></svg>`,
+    minus: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>`,
+    plus: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,
+    close: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`,
+    check: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>`,
+    unlock: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0"/></svg>`,
+    trash: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>`,
+    chevron: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>`
+  };
+
+  // Circuit plan from 2-Day_Strength_Circuit_Workout.docx.
+  // Each set represents one circuit round for that station.
+
+  const PLAN = [
+    {
+      id:"d1", short:"Day A", title:"Push + Quad Focus",
+      muscleGroups:["Chest","Shoulders","Triceps","Quads","Hamstrings","Calves","Core","Carries"],
+      mobility:[
+        {name:"Treadmill warm-up", dose:"10 min", cue:"5 min brisk walk, then 5 min incline walk."},
+      ],
+      lifts:[
+        {name:"Circuit 1 - Goblet Squat", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with neutral-grip dumbbell bench press; move steadily between stations."},
+        {name:"Circuit 1 - Neutral-Grip Dumbbell Bench Press", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with goblet squat; keep shoulders packed and press smoothly."},
+        {name:"Circuit 2 - Bulgarian Split Squat", sets:3, reps:"8-10/leg", rest:"30-45s", cue:"Pair with machine or cable chest press; controlled depth and stable knee."},
+        {name:"Circuit 2 - Machine/Cable Chest Press", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with Bulgarian split squat; keep constant tension.", options:["Machine","Cable"]},
+        {name:"Circuit 3 - Rope Triceps Pushdown", sets:3, reps:"12", rest:"30s", cue:"Pair with scaption raise and plank; elbows stay pinned."},
+        {name:"Circuit 3 - Scaption Raise", sets:3, reps:"12-15", rest:"30s", cue:"Raise in the scapular plane; avoid shrugging."},
+        {name:"Circuit 3 - Plank", sets:3, reps:"45-60s", rest:"30s", cue:"Ribs down, glutes tight, steady breathing."},
+        {name:"Circuit 4 - Standing Calf Raises", sets:3, reps:"15-20", rest:"30s", cue:"2-3 rounds; pause at top and bottom."},
+        {name:"Circuit 4 - Leg Curl", sets:3, reps:"12-15", rest:"30s", cue:"2-3 rounds; control the eccentric."},
+        {name:"Circuit 4 - Farmer Carry", sets:3, reps:"40-60 yd", rest:"30s", cue:"2-3 rounds; tall posture, slow controlled steps.", options:["Yards","30-45 sec"]},
+      ],
+      conditioning:{label:"Session Target", rx:"60 minutes total including the 10-minute treadmill warm-up."}
+    },
+    {
+      id:"d2", short:"Day B", title:"Pull + Posterior Chain Focus",
+      muscleGroups:["Back","Lats","Rear Delts","Biceps","Hamstrings","Glutes","Quads","Core"],
+      mobility:[
+        {name:"Treadmill warm-up", dose:"10 min", cue:"5 min brisk walk, then 5 min incline walk."},
+      ],
+      lifts:[
+        {name:"Circuit 1 - Romanian Deadlift", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with lat pulldown; hinge with a neutral spine."},
+        {name:"Circuit 1 - Lat Pulldown", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with Romanian deadlift; full stretch and strong pull."},
+        {name:"Circuit 2 - Standing Cable Row", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with incline dumbbell curl; pull to the ribs without leaning back."},
+        {name:"Circuit 2 - Incline Dumbbell Curl", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with standing cable row; keep shoulders back and elbows quiet."},
+        {name:"Circuit 3 - Face Pull", sets:3, reps:"15", rest:"30s", cue:"Pair with dumbbell shrugs and hanging knee raise; elbows high."},
+        {name:"Circuit 3 - Dumbbell Shrugs", sets:3, reps:"12", rest:"30s", cue:"Lift straight up, pause briefly, avoid rolling the shoulders."},
+        {name:"Circuit 3 - Hanging Knee Raise", sets:3, reps:"12", rest:"30s", cue:"Control the pelvis; avoid swinging."},
+        {name:"Circuit 4 - Walking Lunges", sets:3, reps:"10/leg", rest:"30s", cue:"2-3 rounds; long stride and stable knee."},
+        {name:"Circuit 4 - Reverse Fly", sets:3, reps:"12-15", rest:"30s", cue:"2-3 rounds; lead with elbows and avoid shrugging.", options:["Machine","Cable"]},
+        {name:"Circuit 4 - Pallof Press", sets:3, reps:"12/side", rest:"30s", cue:"2-3 rounds; resist rotation and keep ribs stacked."},
+      ],
+      conditioning:{label:"Session Target", rx:"60 minutes total including the 10-minute treadmill warm-up."}
+    }
+  ];
+
+  const $ = (s, el=document) => el.querySelector(s);
+
+  function isoDate(d=new Date()){ return d.toISOString().slice(0,10); }
+  function weekStartKey(d=new Date()){
+    const x = new Date(d);
+    const day = (x.getDay()+6)%7; // Mon=0
+    x.setDate(x.getDate()-day);
+    return isoDate(x);
+  }
+  function weekStartKeyWithCutoff(d=new Date()){
+    const x = new Date(d);
+    if(x.getDay() === 0 && x.getHours() >= 23){
+      return weekStartKey(addDays(x, 1));
+    }
+    return weekStartKey(x);
+  }
+  function addDays(d, n){
+    const x = new Date(d);
+    x.setDate(x.getDate() + n);
+    return x;
+  }
+  function nextSundayAt23(d=new Date()){
+    const x = new Date(d);
+    const day = x.getDay(); // Sun=0
+    let daysUntil = (7 - day) % 7;
+    if(day === 0 && x.getHours() >= 23) daysUntil = 7;
+    const target = addDays(x, daysUntil);
+    target.setHours(23, 0, 0, 0);
+    return target;
+  }
+
+  function load(){
+    try{ return JSON.parse(localStorage.getItem(KEY)) || null; }catch(e){ return null; }
+  }
+  const SYNC_KEY = `${KEY}_last_sync`;
+  const SYNC_STATUS_KEY = `${KEY}_last_sync_status`;
+  const REST_FOCUS_KEY = `${KEY}_rest_focus`;
+  const AUDIO_ENABLED_KEY = `${KEY}_audio_enabled`;
+  function formatClock(ts){
+    try{
+      return new Date(ts).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+    }catch(e){
+      return "";
+    }
+  }
+  function setSyncStatus(state){
+    const el = $("#syncStatus");
+    if(!el) return;
+    el.classList.remove("saving", "error");
+    if(state === "saving"){
+      el.classList.add("saving");
+      el.textContent = "Sync: Saving...";
+      localStorage.setItem(SYNC_STATUS_KEY, "saving");
+      return;
+    }
+    if(state === "error"){
+      el.classList.add("error");
+      el.textContent = "Sync: Error";
+      localStorage.setItem(SYNC_STATUS_KEY, "error");
+      return;
+    }
+    const last = localStorage.getItem(SYNC_KEY);
+    if(last){
+      el.textContent = `Sync: ${formatClock(last)}`;
+      localStorage.setItem(SYNC_STATUS_KEY, "ok");
+    } else {
+      el.textContent = "Sync: Not yet";
+      localStorage.setItem(SYNC_STATUS_KEY, "idle");
+    }
+  }
+  let remoteSaveTimer = null;
+  let remoteReady = false;
+  function withTimeout(promise, ms){
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Sync timeout")), ms))
+    ]);
+  }
+  function scheduleRemoteSave(nextState){
+    if(!window.AuthClient || !AuthClient.isLoggedIn() || !remoteReady) return;
+    if(remoteSaveTimer) clearTimeout(remoteSaveTimer);
+    setSyncStatus("saving");
+    remoteSaveTimer = setTimeout(async () => {
+      try{
+        await withTimeout(AuthClient.saveWorkout(KEY, nextState), 10000);
+        localStorage.setItem(SYNC_KEY, new Date().toISOString());
+        setSyncStatus("ok");
+      }catch(e){
+        console.warn("Remote save failed", e);
+        setSyncStatus("error");
+      }
+    }, 800);
+  }
+  function save(state, opts={}){
+    localStorage.setItem(KEY, JSON.stringify(state));
+    if(!opts.skipRemote) scheduleRemoteSave(state);
+    updateDayProgressUI();
+  }
+
+  function defaultState(){
+    return {
+      weekStart: weekStartKeyWithCutoff(),
+      activeDayId: PLAN[0].id,
+      metricsVersion: 2,
+      sessions: {}, // weekStart -> dayId -> data
+      viewWeekStart: null,
+      progression: { dayId: PLAN[0].id, liftKey: null },
+      timers: {
+        restDuration: 90,
+        restRemaining: 90,
+        workoutElapsed: 0,
+        theme: "dark"
+      }
+    };
+  }
+
+  const LEGACY_LIFT_NAME_MAP = {
+    "Bench Press (BB or DB)": "Bench Press",
+    "Incline Bench Press (BB or DB)": "Incline Bench Press",
+    "DB Overhead Press (Standing or Seated)": "DB Overhead Press",
+    "Cable or DB Chest Fly": "Chest Fly",
+    "Overhead Tricep Extension (DB or Cable)": "Overhead Tricep Extension",
+    "Squat (Back or Front)": "Squat",
+    "Plank (Front or Side)": "Plank",
+    "Leg Curl (Machine or Band)": "Leg Curl",
+    "Hip Thrust (BB or DB)": "Hip Thrust",
+    "Row (BB or DB)": "Row",
+    "Row (Seated or Dumbbell)": "Row",
+    "Biceps Curl (BB or DB)": "Biceps Curl",
+    "Rear Delt Fly (DB or Cable)": "Rear Delt Fly",
+    "Triceps Pushdown (or Dips)": "Triceps Pushdown or Dips",
+    "Pull-ups (or Lat Pulldown)": "Pull-ups or Lat Pulldown",
+    "Box Jumps (or Step-ups)": "Box Jumps or Step-ups",
+    "Hanging Leg Raises (or Dead Bug)": "Hanging Leg Raises or Dead Bug",
+    "Ab Wheel (or Plank)": "Ab Wheel or Plank",
+    "Sled Push (or Bike Sprint)": "Sled Push or Bike Sprint",
+    "Chin-ups (or assisted)": "Chin-ups or Assisted",
+    "Seated Cable Row (or Chest-Supported Row)": "Seated Cable Row or Chest-Supported Row"
+  };
+
+  function remapStorageKey(obj, oldName, newName){
+    if(!obj) return false;
+    let changed = false;
+    if(Object.prototype.hasOwnProperty.call(obj, oldName)){
+      if(!Object.prototype.hasOwnProperty.call(obj, newName)){
+        obj[newName] = obj[oldName];
+      }
+      delete obj[oldName];
+      changed = true;
+    }
+    const prefix = `${oldName}::`;
+    Object.keys(obj).forEach(k => {
+      if(!k.startsWith(prefix)) return;
+      const nextKey = `${newName}${k.slice(oldName.length)}`;
+      if(!Object.prototype.hasOwnProperty.call(obj, nextKey)){
+        obj[nextKey] = obj[k];
+      }
+      delete obj[k];
+      changed = true;
+    });
+    return changed;
+  }
+
+  function migrateLegacyLiftNames(stateObj){
+    if(!stateObj || !stateObj.sessions) return false;
+    let changed = false;
+    Object.values(stateObj.sessions).forEach(weekSessions => {
+      if(!weekSessions) return;
+      Object.entries(weekSessions).forEach(([dayId, session]) => {
+        if(!session) return;
+        Object.entries(LEGACY_LIFT_NAME_MAP).forEach(([oldName, newName]) => {
+          if(remapStorageKey(session.liftSets, oldName, newName)) changed = true;
+          if(remapStorageKey(session.extraSets, oldName, newName)) changed = true;
+          if(remapStorageKey(session.restOverrides, oldName, newName)) changed = true;
+          if(session.liftOptions){
+            const oldOptKey = `${dayId}::${oldName}`;
+            const newOptKey = `${dayId}::${newName}`;
+            if(Object.prototype.hasOwnProperty.call(session.liftOptions, oldOptKey)){
+              if(!Object.prototype.hasOwnProperty.call(session.liftOptions, newOptKey)){
+                session.liftOptions[newOptKey] = session.liftOptions[oldOptKey];
+              }
+              delete session.liftOptions[oldOptKey];
+              changed = true;
+            }
+          }
+        });
+      });
+    });
+    return changed;
+  }
+  function migrateMetricsVersion(stateObj){
+    if(!stateObj) return false;
+    if(stateObj.metricsVersion === 2) return false;
+    stateObj.metricsVersion = 2;
+    return true;
+  }
+
+  if(window.AuthClient && AuthClient.init){
+    try{ await AuthClient.init(); }catch(e){}
+  }
+  let state = load() || defaultState();
+  if(window.AuthClient && !AuthClient.isLoggedIn()){
+    window.location.href = "login.html";
+    return;
+  }
+  if(migrateLegacyLiftNames(state)){
+    save(state);
+  }
+  if(migrateMetricsVersion(state)){
+    save(state);
+  }
+  const openLifts = new Set();
+  const timers = {
+    rest:{duration:90, remaining:90, running:false, interval:null},
+    workout:{elapsed:0, running:false, interval:null}
+  };
+  let currentRestLiftKey = null;
+  let currentRestLabel = "";
+  let restPopupOpen = false;
+  let currentSession = null;
+  let weeklyRolloverTimer = null;
+
+  // Apply theme immediately
+  if(!state.theme) state.theme = "dark";
+  if(state.theme === "light") document.body.classList.add("light");
+  else document.body.classList.remove("light");
+
+  function ensureWeek(){
+    const wk = weekStartKeyWithCutoff();
+    if(state.weekStart !== wk){
+      const oldWeek = state.weekStart;
+      state.weekStart = wk;
+      state.activeDayId = PLAN[0].id;
+      if(!state.viewWeekStart || state.viewWeekStart === oldWeek){
+        state.viewWeekStart = wk;
+      }
+    }
+    if(!state.sessions[state.weekStart]) state.sessions[state.weekStart] = {};
+    if(!state.viewWeekStart) state.viewWeekStart = state.weekStart;
+  }
+
+  function scheduleWeeklyRollover(){
+    if(weeklyRolloverTimer){
+      clearTimeout(weeklyRolloverTimer);
+      weeklyRolloverTimer = null;
+    }
+    const now = new Date();
+    const target = nextSundayAt23(now);
+    const ms = Math.max(1000, target.getTime() - now.getTime());
+    weeklyRolloverTimer = setTimeout(() => {
+      ensureWeek();
+      state.viewWeekStart = state.weekStart;
+      save(state);
+      render();
+      scheduleWeeklyRollover();
+    }, ms);
+  }
+
+  function ensureTimers(){
+    if(!state.timers) state.timers = {restDuration:90, restRemaining:90, workoutElapsed:0};
+    if(!Number.isFinite(state.timers.restDuration)) state.timers.restDuration = 90;
+    if(!Number.isFinite(state.timers.restRemaining)) state.timers.restRemaining = state.timers.restDuration;
+    if(!Number.isFinite(state.timers.workoutElapsed)) state.timers.workoutElapsed = 0;
+    timers.rest.duration = state.timers.restDuration;
+    timers.rest.remaining = state.timers.restRemaining;
+    timers.workout.elapsed = state.timers.workoutElapsed;
+    currentRestLiftKey = state.timers.restLiftKey || currentRestLiftKey;
+    currentRestLabel = state.timers.restLabel || currentRestLabel;
+    restPopupOpen = !!state.timers.restOpen;
+    timers.rest.running = !!state.timers.restRunning;
+    const lastTs = state.timers.restLastTs ? new Date(state.timers.restLastTs).getTime() : null;
+    if(timers.rest.running && lastTs){
+      const elapsed = Math.floor((Date.now() - lastTs) / 1000);
+      timers.rest.remaining = Math.max(0, timers.rest.remaining - elapsed);
+      if(timers.rest.remaining === 0){
+        timers.rest.running = false;
+      }else{
+        startRestInterval();
+      }
+    }
+    persistTimers();
+  }
+
+  function persistTimers(){
+    state.timers = {
+      restDuration: timers.rest.duration,
+      restRemaining: timers.rest.remaining,
+      workoutElapsed: timers.workout.elapsed,
+      restLiftKey: currentRestLiftKey,
+      restLabel: currentRestLabel,
+      restOpen: restPopupOpen,
+      restRunning: timers.rest.running,
+      restLastTs: timers.rest.running ? new Date().toISOString() : null
+    };
+    save(state, {skipRemote:true});
+  }
+
+  function getSession(dayId){
+    ensureWeek();
+    const wk = state.weekStart;
+    if(!state.sessions[wk][dayId]){
+      state.sessions[wk][dayId] = {
+        completed:false,
+        mobilityDone:{},
+        liftSets:{},  // liftName[::option] -> [{reps,weight,rpe,done}]
+        liftOptions:{},
+        extraSets:{},     // NEW: liftStorageKey -> number of extra sets
+        abDone:false,
+        restOverrides:{},
+        conditioningMinutes:"",
+        conditioningPushups:{set1:"", set2:""},
+        dayLocked:false
+      };
+    }
+    return state.sessions[wk][dayId];
+  }
+
+  function countCompleted(){
+    ensureWeek();
+    const wk = state.weekStart;
+    const obj = state.sessions[wk] || {};
+    return Object.values(obj).filter(s => s && s.completed).length;
+  }
+  function countCompletedForWeek(weekKey){
+    const obj = state.sessions[weekKey] || {};
+    return Object.values(obj).filter(s => s && s.completed).length;
+  }
+
+  function renderTabs(){
+    const tabs = $("#tabs");
+    tabs.innerHTML = "";
+    PLAN.forEach(d => {
+      const b = document.createElement("button");
+      b.className = "tab" + (d.id === state.activeDayId ? " active" : "");
+      b.textContent = d.short;
+      b.onclick = () => { state.activeDayId = d.id; save(state); render(); };
+      tabs.appendChild(b);
+    });
+    $("#weekLbl").textContent = state.weekStart;
+    $("#completedLbl").textContent = String(countCompleted());
+    const dashboardBtn = $("#dashboardBtn");
+    if(dashboardBtn){
+      dashboardBtn.classList.toggle("primary", state.activeDayId === "dashboard");
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
+  function formatTime(totalSec){
+    const s = Math.max(0, Math.floor(totalSec));
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return `${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`;
+  }
+  function weekSummaryCompletedRatio(sessions){
+    const completed = PLAN.reduce((sum, d) => sum + (sessions[d.id] && sessions[d.id].completed ? 1 : 0), 0);
+    return completed / PLAN.length;
+  }
+  function prevWeekKey(weekKey){
+    return isoDate(addDays(new Date(weekKey + "T00:00:00"), -7));
+  }
+  function weekHasAnyData(weekKey){
+    const sessions = state.sessions[weekKey] || {};
+    return Object.values(sessions).some(s => {
+      if(!s) return false;
+      if(s.completed) return true;
+      if(s.notes && String(s.notes).trim()) return true;
+      if(s.conditioningMinutes && parseFloat(s.conditioningMinutes)) return true;
+      if(s.abDone) return true;
+      if(s.mobilityDone && Object.values(s.mobilityDone).some(Boolean)) return true;
+      if(s.liftSets && Object.values(s.liftSets).some(arr => hasLiftData(arr))) return true;
+      return false;
+    });
+  }
+  function prevWeekWithData(weekKey){
+    const weeks = Object.keys(state.sessions || {})
+      .filter(w => w < weekKey)
+      .sort((a,b) => b.localeCompare(a));
+    for(const wk of weeks){
+      if(weekHasAnyData(wk)) return wk;
+    }
+    return null;
+  }
+  function parseNum(v){
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  function displayNameFromStorageKey(key){
+    const parts = String(key).split("::");
+    if(parts.length > 1){
+      return `${parts[0]} (${parts.slice(1).join("::")})`;
+    }
+    return key;
+  }
+  const LIFT_DEFS_BY_NAME = PLAN.reduce((acc, day) => {
+    (day.lifts || []).forEach(lift => {
+      if(!acc[lift.name]) acc[lift.name] = lift;
+    });
+    return acc;
+  }, {});
+  function liftVolumeMultiplier(liftKey){
+    const baseName = String(liftKey || "").split("::")[0];
+    const lift = LIFT_DEFS_BY_NAME[baseName];
+    const repScheme = String(lift && lift.reps ? lift.reps : "").toLowerCase();
+    return (repScheme.includes("/side") || repScheme.includes("/leg")) ? 2 : 1;
+  }
+  function exerciseStatsForWeek(weekKey){
+    const sessions = state.sessions[weekKey] || {};
+    const stats = {};
+    Object.values(sessions).forEach(s => {
+      if(!s || !s.liftSets) return;
+      Object.entries(s.liftSets).forEach(([key, arr]) => {
+        const name = displayNameFromStorageKey(key);
+        const volumeMultiplier = liftVolumeMultiplier(key);
+        if(!stats[name]) stats[name] = {maxWeight:null, volume:0};
+        (arr || []).forEach(set => {
+          if(!set || !set.done) return;
+          const w = parseNum(set.weight);
+          const r = parseNum(set.reps);
+          if(w !== null){
+            stats[name].maxWeight = stats[name].maxWeight === null ? w : Math.max(stats[name].maxWeight, w);
+          }
+          if(w !== null && r !== null){
+            stats[name].volume += w * r * volumeMultiplier;
+          }
+        });
+      });
+    });
+    return stats;
+  }
+  function exerciseStatsForWeekDay(weekKey, dayId){
+    const sessions = state.sessions[weekKey] || {};
+    const stats = {};
+    const s = sessions[dayId];
+    if(!s || !s.liftSets) return stats;
+    Object.entries(s.liftSets).forEach(([key, arr]) => {
+      const name = displayNameFromStorageKey(key);
+      const volumeMultiplier = liftVolumeMultiplier(key);
+      if(!stats[name]) stats[name] = {maxWeight:null, volume:0};
+      (arr || []).forEach(set => {
+        if(!set || !set.done) return;
+        const w = parseNum(set.weight);
+        const r = parseNum(set.reps);
+        if(w !== null){
+          stats[name].maxWeight = stats[name].maxWeight === null ? w : Math.max(stats[name].maxWeight, w);
+        }
+        if(w !== null && r !== null){
+          stats[name].volume += w * r * volumeMultiplier;
+        }
+      });
+    });
+    return stats;
+  }
+  function liftStatsFromSets(sets, liftKey){
+    let maxWeight = null;
+    let volume = 0;
+    let anyWeight = false;
+    let anyVolume = false;
+    const volumeMultiplier = liftVolumeMultiplier(liftKey);
+    (sets || []).forEach(set => {
+      if(!set || !set.done) return;
+      const w = parseNum(set.weight);
+      const r = parseNum(set.reps);
+      if(w !== null){
+        maxWeight = maxWeight === null ? w : Math.max(maxWeight, w);
+        anyWeight = true;
+      }
+      if(w !== null && r !== null){
+        volume += w * r * volumeMultiplier;
+        anyVolume = true;
+      }
+    });
+    return {
+      maxWeight: anyWeight ? maxWeight : null,
+      volume: anyVolume ? volume : null
+    };
+  }
+  function progressionDataForLift(dayId, liftKey){
+    const weeks = Object.keys(state.sessions || {}).sort((a,b) => a.localeCompare(b));
+    const labels = [];
+    const maxValues = [];
+    const volValues = [];
+    weeks.forEach(wk => {
+      const s = state.sessions[wk] && state.sessions[wk][dayId];
+      if(!s || !s.liftSets) return;
+      const sets = s.liftSets[liftKey];
+      if(!sets || !sets.length) return;
+      const stats = liftStatsFromSets(sets, liftKey);
+      if(stats.maxWeight === null && stats.volume === null) return;
+      labels.push(wk);
+      maxValues.push(stats.maxWeight);
+      volValues.push(stats.volume);
+    });
+    return {labels, maxValues, volValues};
+  }
+  function renderLineSvg(labels, values, color){
+    const numeric = (values || []).map(v => (Number.isFinite(v) ? v : null));
+    const defined = numeric.filter(v => v !== null);
+    if(!defined.length) return "";
+    let minVal = Math.min(...defined);
+    let maxVal = Math.max(...defined);
+    if(minVal === maxVal){
+      minVal -= 1;
+      maxVal += 1;
+    }
+    const w = 520;
+    const h = 160;
+    const padL = 40;
+    const padR = 12;
+    const padT = 12;
+    const padB = 26;
+    const innerW = w - padL - padR;
+    const innerH = h - padT - padB;
+    const n = labels.length;
+    const x = (i) => padL + (n <= 1 ? innerW / 2 : (i / (n - 1)) * innerW);
+    const y = (v) => padT + (1 - ((v - minVal) / (maxVal - minVal))) * innerH;
+
+    let d = "";
+    let started = false;
+    const circles = [];
+    numeric.forEach((v, i) => {
+      if(v === null) { started = false; return; }
+      const xi = x(i);
+      const yi = y(v);
+      d += `${started ? " L" : " M"} ${xi} ${yi}`;
+      started = true;
+      circles.push(`<circle cx="${xi}" cy="${yi}" r="3" fill="${color}"></circle>`);
+    });
+
+    const firstLabel = labels[0] ? escapeHtml(labels[0]) : "";
+    const lastLabel = labels[labels.length - 1] ? escapeHtml(labels[labels.length - 1]) : "";
+
+    return `
+      <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Progression chart">
+        <line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="var(--line)"></line>
+        <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="var(--line)"></line>
+        <path d="${d}" fill="none" stroke="${color}" stroke-width="2"></path>
+        ${circles.join("")}
+        <text x="${padL}" y="${padT + 10}" font-size="10" fill="var(--muted)">${formatNumber(maxVal)}</text>
+        <text x="${padL}" y="${h - padB - 4}" font-size="10" fill="var(--muted)">${formatNumber(minVal)}</text>
+        <text x="${padL}" y="${h - 6}" font-size="10" fill="var(--muted)">${firstLabel}</text>
+        <text x="${w - padR}" y="${h - 6}" font-size="10" fill="var(--muted)" text-anchor="end">${lastLabel}</text>
+      </svg>
+    `;
+  }
+  function renderProgressionChart(title, labels, values, color, unitLabel){
+    if(!labels.length || !(values || []).some(v => Number.isFinite(v))){
+      return `<div class="small">No data yet for this exercise.</div>`;
+    }
+    let latestVal = null;
+    let latestLabel = "";
+    for(let i = values.length - 1; i >= 0; i--){
+      if(Number.isFinite(values[i])){
+        latestVal = values[i];
+        latestLabel = labels[i] || "";
+        break;
+      }
+    }
+    const latestText = Number.isFinite(latestVal) ? `${formatNumber(latestVal)}${unitLabel ? ` ${unitLabel}` : ""}` : "-";
+    return `
+      <div style="margin-top:10px">
+        <div class="row" style="justify-content:space-between; align-items:center; margin-bottom:6px">
+          <div><b>${escapeHtml(title)}</b></div>
+          <div class="small">Latest ${escapeHtml(latestLabel)}: <b>${escapeHtml(latestText)}</b></div>
+        </div>
+        ${renderLineSvg(labels, values, color) || `<div class="small">No data yet for this exercise.</div>`}
+      </div>
+    `;
+  }
+  function formatDelta(n){
+    if(n === null || n === undefined || Number.isNaN(n)) return "-";
+    const rounded = Math.round(n * 10) / 10;
+    const sign = rounded > 0 ? "+" : "";
+    return `${sign}${rounded}`;
+  }
+  function formatNumber(n){
+    if(n === null || n === undefined || Number.isNaN(n)) return "-";
+    const rounded = Math.round(n * 10) / 10;
+    return String(rounded);
+  }
+
+  function applyDayLock(container, locked){
+    if(!container) return;
+    container.querySelectorAll("input, textarea, select, button").forEach(el => {
+      if(el.hasAttribute("data-allow-when-locked")) return;
+      el.disabled = !!locked;
+    });
+  }
+
+  function getOverloadSuggestion(lift, prevSets){
+    // 1. Check for valid history
+    const valid = prevSets.filter(s => s.done && parseNum(s.weight) !== null && parseNum(s.reps) !== null);
+    if(!valid.length) return null;
+
+    // 2. Find best set (heaviest weight, then most reps)
+    valid.sort((a,b) => {
+      const wA = parseNum(a.weight), wB = parseNum(b.weight);
+      if(wA !== wB) return wB - wA;
+      return parseNum(b.reps) - parseNum(a.reps);
+    });
+    const best = valid[0];
+    const lastWeight = parseNum(best.weight);
+    const lastReps = parseNum(best.reps);
+
+    // 3. Parse target reps (e.g. "6-8" -> 8)
+    if(lift.reps.toLowerCase().includes("amrap")) return `Beat ${lastReps} reps @ ${lastWeight} lbs`;
+    const nums = lift.reps.match(/\d+/g);
+    if(!nums) return null;
+    const maxTarget = parseInt(nums[nums.length-1]);
+
+    // 4. Generate Tip
+    if(lastReps >= maxTarget){
+      return `Target hit! Try ${lastWeight + 5} lbs`;
+    } else {
+      return `Aim for ${lastReps + 1} reps @ ${lastWeight} lbs`;
+    }
+  }
+
+  let audioCtx = null;
+  let audioUnlocked = false;
+  let audioEnabled = localStorage.getItem(AUDIO_ENABLED_KEY) === "1";
+  let noiseBuffer = null;
+  let wakeLock = null;
+  let wakeLockEnabled = false;
+  async function resumeAudioIfNeeded(){
+    try{
+      if(!audioCtx) return;
+      if(audioCtx.state === "suspended") await audioCtx.resume();
+      audioUnlocked = audioCtx.state === "running";
+    }catch(e){
+      audioUnlocked = false;
+    }
+  }
+  async function playBeep(){
+    try{
+      if(!audioEnabled) return;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return;
+      audioCtx = audioCtx || new Ctx();
+      await resumeAudioIfNeeded();
+      if(!audioUnlocked){
+        updateTimersUI();
+        return;
+      }
+      const drop = (t) => {
+
+        const carrier = audioCtx.createOscillator();
+        const mod = audioCtx.createOscillator();
+        const modGain = audioCtx.createGain();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        carrier.type = "sine";
+        carrier.frequency.setValueAtTime(640, t);
+        carrier.frequency.exponentialRampToValueAtTime(420, t + 0.18);
+
+        mod.type = "sine";
+        mod.frequency.setValueAtTime(28, t);
+        modGain.gain.setValueAtTime(10, t);
+        modGain.gain.exponentialRampToValueAtTime(0.1, t + 0.25);
+
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(1800, t);
+        filter.Q.value = 0.7;
+
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.9, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+
+        mod.connect(modGain);
+        modGain.connect(carrier.frequency);
+        carrier.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        carrier.start(t);
+        mod.start(t);
+        carrier.stop(t + 0.24);
+        mod.stop(t + 0.24);
+      };
+      const base = audioCtx.currentTime + 0.02;
+      drop(base);
+      drop(base + 1.0);
+      drop(base + 2.0);
+    }catch(e){
+      audioUnlocked = false;
+    }
+    updateTimersUI();
+    if(navigator.vibrate){
+      navigator.vibrate(120);
+      setTimeout(() => navigator.vibrate(120), 1000);
+      setTimeout(() => navigator.vibrate(120), 2000);
+    }
+  }
+  function playConfirmBeep(){
+    if(!audioCtx || !audioUnlocked) return;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "sine";
+    o.frequency.value = 880;
+    g.gain.value = 0.35;
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
+    o.stop(audioCtx.currentTime + 0.15);
+  }
+  function primeAudioFromGesture(){
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return false;
+      audioCtx = audioCtx || new Ctx();
+      if(audioCtx.state === "suspended"){
+        audioCtx.resume().catch(() => {});
+      }
+      audioUnlocked = audioCtx.state === "running";
+      // Synchronous "silent" tap to satisfy Safari's gesture requirement.
+      const buf = audioCtx.createBuffer(1, 1, audioCtx.sampleRate || 44100);
+      const src = audioCtx.createBufferSource();
+      const g = audioCtx.createGain();
+      g.gain.value = 0.0001;
+      src.buffer = buf;
+      src.connect(g);
+      g.connect(audioCtx.destination);
+      src.start(0);
+      src.stop(0.02);
+      audioUnlocked = audioCtx.state === "running";
+      updateTimersUI();
+      return audioUnlocked;
+    }catch(e){
+      audioUnlocked = false;
+      updateTimersUI();
+      return false;
+    }
+  }
+  async function unlockAudio(silent=false){
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return false;
+      const wasUnlocked = audioUnlocked;
+      audioCtx = audioCtx || new Ctx();
+      if(audioCtx.state === "suspended") await audioCtx.resume();
+      audioUnlocked = audioCtx.state === "running";
+      if(audioUnlocked && !silent && !wasUnlocked){
+        // short tap to confirm unlock
+        playConfirmBeep();
+      }
+      updateTimersUI();
+      return audioUnlocked;
+    }catch(e){
+      updateTimersUI();
+      return false;
+    }
+  }
+
+  function stopRestTimer(){
+    if(timers.rest.interval){
+      clearInterval(timers.rest.interval);
+      timers.rest.interval = null;
+    }
+    timers.rest.running = false;
+    persistTimers();
+    updateWakeLock();
+  }
+  function showRestPopup(){
+    const el = $("#restPopup");
+    if(el) el.classList.remove("hidden");
+    const overlay = $("#restOverlay");
+    if(overlay) overlay.classList.remove("hidden");
+    if(!restPopupOpen){
+      restPopupOpen = true;
+      persistTimers();
+    }
+  }
+  function hideRestPopup(){
+    const el = $("#restPopup");
+    if(el) el.classList.add("hidden");
+    const overlay = $("#restOverlay");
+    if(overlay) overlay.classList.add("hidden");
+    if(restPopupOpen){
+      restPopupOpen = false;
+      persistTimers();
+    }
+  }
+  function startRestInterval(){
+    if(timers.rest.interval) return;
+    timers.rest.interval = setInterval(() => {
+      timers.rest.remaining -= 1;
+      if(timers.rest.remaining <= 0){
+        timers.rest.remaining = 0;
+        stopRestTimer();
+        playBeep();
+        setTimeout(() => hideRestPopup(), 2600);
+      }
+      persistTimers();
+      updateTimersUI();
+    }, 1000);
+  }
+  function startRestTimer(duration=null, liftKey=null, label=null){
+    if(timers.rest.running){
+      if(liftKey) currentRestLiftKey = liftKey;
+      currentRestLabel = label ? String(label) : currentRestLabel;
+      updateTimersUI();
+      return;
+    }
+    if(Number.isFinite(duration) && duration > 0){
+      timers.rest.duration = duration;
+      timers.rest.remaining = duration;
+    }else{
+      timers.rest.remaining = timers.rest.duration;
+    }
+    if(liftKey) currentRestLiftKey = liftKey;
+    currentRestLabel = label ? String(label) : "";
+    timers.rest.running = true;
+    updateWakeLock();
+    startRestInterval();
+    showRestPopup();
+    updateTimersUI();
+    persistTimers();
+  }
+
+  function stopWorkoutTimer(){
+    if(timers.workout.interval){
+      clearInterval(timers.workout.interval);
+      timers.workout.interval = null;
+    }
+    timers.workout.running = false;
+    updateWakeLock();
+  }
+
+  function updateTimersUI(){
+    const restTimeEl = $("#restTime");
+    const workoutTimeEl = $("#workoutTime");
+    if(restTimeEl) restTimeEl.textContent = formatTime(timers.rest.remaining);
+    if(workoutTimeEl) workoutTimeEl.textContent = formatTime(timers.workout.elapsed);
+    const restStatus = $("#restStatus");
+    if(restStatus) restStatus.textContent = timers.rest.running ? "Running" : "Ready";
+    const workoutStatus = $("#workoutStatus");
+    if(workoutStatus) workoutStatus.textContent = timers.workout.running ? "Running" : "Paused";
+    const restPopupTime = $("#restPopupTime");
+    if(restPopupTime) restPopupTime.textContent = formatTime(timers.rest.remaining);
+    const restPopupStatus = $("#restPopupStatus");
+    if(restPopupStatus) restPopupStatus.textContent = timers.rest.running ? "Running" : "Paused";
+    const restPopupNext = $("#restPopupNext");
+    if(restPopupNext) restPopupNext.textContent = currentRestLabel ? `Next: ${currentRestLabel}` : "";
+    const restPauseBtn = $("#restPauseBtn");
+    if(restPauseBtn){
+      restPauseBtn.innerHTML = `${timers.rest.running ? ICONS.pause : ICONS.play}<span class="label">${timers.rest.running ? "Pause" : "Resume"}</span>`;
+    }
+    const enableAudioBtn = $("#enableAudioBtn");
+    if(enableAudioBtn){
+      enableAudioBtn.style.display = "inline-flex";
+      enableAudioBtn.innerHTML = audioEnabled
+        ? `${ICONS.soundOff}<span class="label">Sound off</span>`
+        : `${ICONS.sound}<span class="label">Sound on</span>`;
+    }
+    const restPopupSoundStatus = $("#restPopupSoundStatus");
+    if(restPopupSoundStatus){
+      if(!audioEnabled){
+        restPopupSoundStatus.textContent = "Sound is off. Tap Enable sound to turn it on.";
+      }else if(!audioUnlocked){
+        restPopupSoundStatus.textContent = "Sound needs a tap to unlock. Tap Enable sound.";
+      }else{
+        restPopupSoundStatus.textContent = "Sound is enabled.";
+      }
+    }
+  }
+
+  function parseRestToSeconds(restStr){
+    if(!restStr) return timers.rest.duration;
+    const cleaned = String(restStr).toLowerCase();
+    const nums = cleaned.match(/\d+/g);
+    if(!nums || !nums.length) return timers.rest.duration;
+    const low = parseInt(nums[0], 10);
+    if(!Number.isFinite(low)) return timers.rest.duration;
+    const seconds = cleaned.includes("min") ? low * 60 : low;
+    return clamp(seconds, 5, 60 * 30);
+  }
+  function getRestOverride(session, liftKey){
+    if(!session || !session.restOverrides) return null;
+    const val = session.restOverrides[liftKey];
+    return Number.isFinite(val) ? val : null;
+  }
+  function setRestOverride(session, liftKey, seconds){
+    if(!session || !liftKey) return;
+    if(!session.restOverrides) session.restOverrides = {};
+    session.restOverrides[liftKey] = clamp(seconds, 5, 60 * 30);
+  }
+  function getRestSecondsForLift(session, lift, liftOpt){
+    const key = liftStorageKey(lift, liftOpt);
+    const override = getRestOverride(session, key);
+    if(Number.isFinite(override)) return override;
+    if(currentRestLiftKey === key && Number.isFinite(timers.rest.duration)) return timers.rest.duration;
+    return parseRestToSeconds(lift.rest);
+  }
+
+  async function requestWakeLock(){
+    if(!("wakeLock" in navigator)) return;
+    try{
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLockEnabled = true;
+      wakeLock.addEventListener("release", () => {
+        wakeLockEnabled = false;
+      });
+    }catch(e){
+      wakeLockEnabled = false;
+    }
+  }
+  function releaseWakeLock(){
+    if(wakeLock){
+      wakeLock.release().catch(() => {});
+      wakeLock = null;
+    }
+    wakeLockEnabled = false;
+  }
+  function updateWakeLock(){
+    const shouldHold = timers.rest.running;
+    if(shouldHold){
+      if(document.visibilityState === "visible" && !wakeLockEnabled){
+        requestWakeLock();
+      }
+    }else{
+      releaseWakeLock();
+    }
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible"){
+      resumeAudioIfNeeded();
+      updateTimersUI();
+      updateWakeLock();
+    }
+  });
+
+  function wireTimers(){
+    const restPauseBtn = $("#restPauseBtn");
+    const restResetBtn = $("#restResetBtn");
+    const restCloseBtn = $("#restCloseBtn");
+    const reloadPageBtn = $("#reloadPageBtn");
+    const restPlusBtn = $("#restPlusBtn");
+    const restMinusBtn = $("#restMinusBtn");
+
+    if(restPauseBtn){
+      restPauseBtn.onclick = () => {
+        if(timers.rest.running){
+          stopRestTimer();
+        }else{
+          startRestTimer();
+        }
+        updateTimersUI();
+      };
+    }
+
+    if(restResetBtn){
+      restResetBtn.onclick = () => {
+        const modal = $("#restResetModal");
+        const overlay = $("#restResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
+      };
+    }
+    if(reloadPageBtn){
+      reloadPageBtn.onclick = () => {
+        if(timers.rest.running && currentRestLiftKey){
+          localStorage.setItem(REST_FOCUS_KEY, "1");
+        }
+        restPopupOpen = true;
+        persistTimers();
+        location.reload();
+      };
+    }
+
+    if(restCloseBtn){
+      restCloseBtn.onclick = () => {
+        stopRestTimer();
+        persistTimers();
+        hideRestPopup();
+        updateTimersUI();
+      };
+    }
+
+    const restResetConfirm = $("#restResetConfirm");
+    const restResetCancel = $("#restResetCancel");
+    const restResetOverlay = $("#restResetOverlay");
+    const closeRestReset = () => {
+      const modal = $("#restResetModal");
+      const overlay = $("#restResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(restResetConfirm){
+      restResetConfirm.onclick = () => {
+        stopRestTimer();
+        timers.rest.remaining = timers.rest.duration;
+        persistTimers();
+        updateTimersUI();
+        closeRestReset();
+      };
+    }
+    if(restResetCancel) restResetCancel.onclick = closeRestReset;
+    if(restResetOverlay) restResetOverlay.onclick = closeRestReset;
+
+
+    const enableAudioBtn = $("#enableAudioBtn");
+    if(enableAudioBtn){
+      enableAudioBtn.onclick = () => {
+        if(audioEnabled){
+          audioEnabled = false;
+          localStorage.setItem(AUDIO_ENABLED_KEY, "0");
+          updateTimersUI();
+          return;
+        }
+        audioEnabled = true;
+        localStorage.setItem(AUDIO_ENABLED_KEY, "1");
+        primeAudioFromGesture();
+        unlockAudio();
+        persistTimers();
+        updateTimersUI();
+      };
+    }
+
+    const adjustRest = (delta) => {
+      const nextDuration = clamp(timers.rest.duration + delta, 5, 60 * 30);
+      const nextRemaining = clamp(timers.rest.remaining + delta, 5, 60 * 30);
+      timers.rest.duration = nextDuration;
+      timers.rest.remaining = nextRemaining;
+      if(currentRestLiftKey && currentSession){
+        setRestOverride(currentSession, currentRestLiftKey, nextDuration);
+        save(state);
+      }
+      persistTimers();
+      updateTimersUI();
+    };
+    if(restPlusBtn) restPlusBtn.onclick = () => adjustRest(15);
+    if(restMinusBtn) restMinusBtn.onclick = () => adjustRest(-15);
+
+    const workoutStartBtn = $("#workoutStartBtn");
+    const workoutPauseBtn = $("#workoutPauseBtn");
+    const workoutResetBtn = $("#workoutResetBtn");
+
+    if(workoutStartBtn){
+      workoutStartBtn.onclick = () => {
+        if(timers.workout.running) return;
+        timers.workout.running = true;
+        updateWakeLock();
+        timers.workout.interval = setInterval(() => {
+          timers.workout.elapsed += 1;
+          persistTimers();
+          updateTimersUI();
+        }, 1000);
+        updateTimersUI();
+      };
+    }
+
+    if(workoutPauseBtn){
+      workoutPauseBtn.onclick = () => {
+        stopWorkoutTimer();
+        persistTimers();
+        updateTimersUI();
+      };
+    }
+
+    if(workoutResetBtn){
+      workoutResetBtn.onclick = () => {
+        const modal = $("#workoutResetModal");
+        const overlay = $("#workoutResetOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
+      };
+    }
+
+    const workoutResetConfirm = $("#workoutResetConfirm");
+    const workoutResetCancel = $("#workoutResetCancel");
+    const workoutResetOverlay = $("#workoutResetOverlay");
+    const closeWorkoutReset = () => {
+      const modal = $("#workoutResetModal");
+      const overlay = $("#workoutResetOverlay");
+      if(modal) modal.classList.add("hidden");
+      if(overlay) overlay.classList.add("hidden");
+    };
+    if(workoutResetConfirm){
+      workoutResetConfirm.onclick = () => {
+        stopWorkoutTimer();
+        timers.workout.elapsed = 0;
+        persistTimers();
+        updateTimersUI();
+        closeWorkoutReset();
+      };
+    }
+    if(workoutResetCancel) workoutResetCancel.onclick = closeWorkoutReset;
+    if(workoutResetOverlay) workoutResetOverlay.onclick = closeWorkoutReset;
+  }
+
+  function liftOptionKey(dayId, lift){
+    return `${dayId}::${lift.name}`;
+  }
+  function liftStorageKey(lift, option){
+    if(lift.options && option) return `${lift.name}::${option}`;
+    return lift.name;
+  }
+  function getExtraSets(session, lift, option){
+    if(!session.extraSets) session.extraSets = {};
+    const key = liftStorageKey(lift, option);
+    return session.extraSets[key] || 0;
+  }
+  function setExtraSets(session, lift, option, n){
+    if(!session.extraSets) session.extraSets = {};
+    const key = liftStorageKey(lift, option);
+    session.extraSets[key] = Math.max(0, n|0);
+  }
+  function findStoredOption(session, lift){
+    if(!session || !session.liftSets || !lift.options) return null;
+    const prefix = `${lift.name}::`;
+    const match = Object.keys(session.liftSets).find(k => k.startsWith(prefix));
+    return match ? match.slice(prefix.length) : null;
+  }
+  function resolveLiftOption(session, dayId, lift){
+    if(!lift.options || !lift.options.length) return null;
+    const key = liftOptionKey(dayId, lift);
+    if(session && session.liftOptions && lift.options.includes(session.liftOptions[key])){
+      return session.liftOptions[key];
+    }
+    if(session && session.liftSets && session.liftSets[lift.name]){
+      return lift.options[0];
+    }
+    const stored = findStoredOption(session, lift);
+    if(stored && lift.options.includes(stored)) return stored;
+    return lift.options[0];
+  }
+  function getLiftOption(session, dayId, lift){
+    const opt = resolveLiftOption(session, dayId, lift);
+    if(!opt) return null;
+    if(!session.liftOptions) session.liftOptions = {};
+    const key = liftOptionKey(dayId, lift);
+    if(session.liftOptions[key] !== opt){
+      session.liftOptions[key] = opt;
+    }
+    return opt;
+  }
+  function ensureLiftArray(session, lift, option){
+    const key = liftStorageKey(lift, option);
+
+    // migrate old key if options changed
+    if(lift.options && !session.liftSets[key] && session.liftSets[lift.name]){
+      session.liftSets[key] = session.liftSets[lift.name];
+      delete session.liftSets[lift.name];
+    }
+
+    if(!session.liftSets[key]) session.liftSets[key] = [];
+
+    // total sets = planned sets + user-added extra sets (per lift/option)
+    const extra = getExtraSets(session, lift, option);
+    const targetLen = (lift.sets || 0) + extra;
+
+    const arr = session.liftSets[key];
+    while(arr.length < targetLen) arr.push({reps:"", weight:"", rpe:"", done:false});
+    if(arr.length > targetLen) arr.length = targetLen;
+
+    return arr;
+  }
+  function getLiftSets(session, dayId, lift){
+    if(!session || !session.liftSets) return [];
+    const opt = resolveLiftOption(session, dayId, lift);
+    const key = liftStorageKey(lift, opt);
+    if(session.liftSets[key]) return session.liftSets[key];
+    if(lift.options && session.liftSets[lift.name]) return session.liftSets[lift.name];
+    return [];
+  }
+  function liftDetailKey(dayId, lift){
+    return `${dayId}::${lift.name}`;
+  }
+  function getNextLift(day, lift){
+    if(!day || !day.lifts) return null;
+    const idx = day.lifts.findIndex(x => x.name === lift.name);
+    if(idx === -1) return null;
+    return day.lifts[idx + 1] || null;
+  }
+  function liftDisplayName(lift, option){
+    return displayNameFromStorageKey(liftStorageKey(lift, option));
+  }
+  function scrollExerciseJustBelowSticky(detailsEl){
+    if(!detailsEl) return;
+    const sticky = document.querySelector(".stickyTop");
+    const stickyRect = sticky ? sticky.getBoundingClientRect() : {height:0};
+    const stickyTop = sticky ? parseFloat(getComputedStyle(sticky).top || "0") : 0;
+    const gap = 8;
+    const rect = detailsEl.getBoundingClientRect();
+    const targetY = window.scrollY + rect.top - (stickyRect.height + stickyTop + gap);
+    window.scrollTo({top: Math.max(0, targetY), behavior: "smooth"});
+  }
+  function focusRestExerciseIfNeeded(){
+    if(localStorage.getItem(REST_FOCUS_KEY) !== "1") return;
+    localStorage.removeItem(REST_FOCUS_KEY);
+    if(!timers.rest.running || !currentRestLiftKey) return;
+    const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
+    const baseName = String(currentRestLiftKey).split("::")[0];
+    const liftDef = day.lifts.find(l => l.name === baseName);
+    if(!liftDef) return;
+    const detailKey = liftDetailKey(day.id, liftDef);
+    openLifts.add(detailKey);
+    const detailsEl = document.querySelector(`details[data-detail="${CSS.escape(detailKey)}"]`);
+    if(detailsEl){
+      detailsEl.open = true;
+      scrollExerciseJustBelowSticky(detailsEl);
+    }
+  }
+  function hasLiftData(sets){
+    return (sets || []).some(s => s && (s.done || s.reps || s.weight || s.rpe));
+  }
+  function getPrevLiftData(dayId, lift, preferredOption){
+    const currentWeek = state.weekStart;
+    const weeks = Object.keys(state.sessions || {})
+      .filter(w => w < currentWeek)
+      .sort((a,b) => b.localeCompare(a));
+    for(const wk of weeks){
+      const s = state.sessions[wk] && state.sessions[wk][dayId];
+      if(!s) continue;
+
+      if(lift.options && lift.options.length){
+        if(preferredOption && lift.options.includes(preferredOption)){
+          const key = liftStorageKey(lift, preferredOption);
+          const sets = (s.liftSets && s.liftSets[key]) ? s.liftSets[key] : [];
+          if(hasLiftData(sets)) return {weekKey:wk, session:s, option:preferredOption, sets};
+        }else{
+          const opt = resolveLiftOption(s, dayId, lift);
+          const key = opt ? liftStorageKey(lift, opt) : lift.name;
+          const sets = (s.liftSets && s.liftSets[key]) ? s.liftSets[key] : getLiftSets(s, dayId, lift);
+          if(hasLiftData(sets)) return {weekKey:wk, session:s, option:opt, sets};
+
+          if(s.liftSets){
+            const prefix = `${lift.name}::`;
+            const keys = Object.keys(s.liftSets).filter(k => k === lift.name || k.startsWith(prefix));
+            for(const k of keys){
+              const arr = s.liftSets[k] || [];
+              if(hasLiftData(arr)){
+                const opt2 = k.startsWith(prefix) ? k.slice(prefix.length) : lift.options[0];
+                return {weekKey:wk, session:s, option:opt2, sets: arr};
+              }
+            }
+          }
+        }
+      }else{
+        const sets = getLiftSets(s, dayId, lift);
+        if(hasLiftData(sets)) return {weekKey:wk, session:s, option:null, sets};
+      }
+    }
+    return {weekKey:null, session:null, option:null, sets:[]};
+  }
+
+  function updateAutoComplete(session, day){
+    if(session.dayLocked){
+      session.completed = true;
+      return;
+    }
+    session.completed = false;
+  }
+
+  function getDayProgressRatio(day, session){
+    const totalSets = day.lifts.reduce((sum, l) => sum + l.sets, 0);
+    let doneSets = 0;
+    if(session.liftSets){
+      Object.values(session.liftSets).forEach(arr => {
+        doneSets += (arr || []).filter(x => x && x.done).length;
+      });
+    }
+    const mobTotal = day.mobility.length;
+    const mobDone = Object.values(session.mobilityDone || {}).filter(Boolean).length;
+    const total = totalSets + mobTotal;
+    const done = doneSets + mobDone;
+    return total ? clamp(done / total, 0, 1) : 0;
+  }
+
+  function updateDayProgressUI(){
+    const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
+    const session = getSession(day.id);
+    const ratio = getDayProgressRatio(day, session);
+    const fill = $("#dayProgressFill");
+    if(fill) fill.style.width = `${Math.round(ratio * 100)}%`;
+  }
+
+  function updateViewportVars(){
+    const vv = window.visualViewport;
+    if(!vv) return;
+    const bottomOffset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    document.documentElement.style.setProperty("--vv-bottom", `${bottomOffset}px`);
+  }
+
+  let viewportVarsBound = false;
+  function initViewportVars(){
+    if(viewportVarsBound) return;
+    viewportVarsBound = true;
+    const handler = () => updateViewportVars();
+    window.addEventListener("scroll", handler, {passive:true});
+    window.addEventListener("resize", handler);
+    if(window.visualViewport){
+      window.visualViewport.addEventListener("scroll", handler);
+      window.visualViewport.addEventListener("resize", handler);
+    }
+    handler();
+  }
+
+  function render(){
+    ensureWeek();
+    ensureTimers();
+    const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
+    const session = getSession(day.id);
+    currentSession = session;
+    const prevCompleted = session.completed;
+    updateAutoComplete(session, day);
+    if(session.completed !== prevCompleted) save(state);
+
+    const app = $("#app");
+    const dayTotalSets = day.lifts.reduce((sum, l) => sum + l.sets, 0);
+    const estMin = Math.max(20, Math.round(
+      (dayTotalSets * 2.2) +
+      (day.lifts.length * 1.5) +
+      (day.mobility.length * 1.5) +
+      8
+    ));
+    const groupList = (day.muscleGroups || []).join(" • ");
+    const keyText = groupList ? `Targeted Muscle Groups: ${groupList}` : "";
+    const statusLabel = session.completed ? "Complete" : (session.dayLocked ? "Locked" : "In progress");
+    const statusClass = session.completed ? "good" : (session.dayLocked ? "bad" : "");
+    const overallRatio = getDayProgressRatio(day, session);
+
+    const viewWeek = state.viewWeekStart || state.weekStart;
+    const weekSummary = (() => {
+      const wk = viewWeek;
+      const sessions = state.sessions[wk] || {};
+      let totalSets = 0;
+      let doneSets = 0;
+      let mobTotal = 0;
+      let mobDone = 0;
+      let condTotal = 0;
+      let absDone = 0;
+      const days = PLAN.map(d => {
+        const s = sessions[d.id];
+        const dayTotalSets = d.lifts.reduce((sum, l) => sum + l.sets, 0);
+        totalSets += dayTotalSets;
+        mobTotal += d.mobility.length;
+        let dayDoneSets = 0;
+        let dayMobDone = 0;
+        let dayCond = 0;
+        let dayAbsDone = 0;
+        let completed = false;
+        if(s){
+          completed = !!s.completed;
+          dayMobDone = Object.values(s.mobilityDone || {}).filter(Boolean).length;
+          dayCond = parseFloat(s.conditioningMinutes) || 0;
+          dayAbsDone = s.abDone ? 1 : 0;
+          d.lifts.forEach(l => {
+            const arr = getLiftSets(s, d.id, l);
+            dayDoneSets += arr.filter(x => x.done).length;
+          });
+        }
+        doneSets += dayDoneSets;
+        mobDone += dayMobDone;
+        condTotal += dayCond;
+        absDone += dayAbsDone;
+        return {
+          title: d.title,
+          completed,
+          doneSets: dayDoneSets,
+          totalSets: dayTotalSets,
+          mobDone: dayMobDone,
+          mobTotal: d.mobility.length,
+          cond: dayCond,
+          abDone: dayAbsDone
+        };
+      });
+      const dayCompletion = weekSummaryCompletedRatio(sessions);
+      const setsRatio = totalSets ? (doneSets / totalSets) : 0;
+      const mobilityRatio = mobTotal ? (mobDone / mobTotal) : 0;
+      const condRatio = clamp(condTotal / 60, 0, 1);
+      const score = (dayCompletion * 0.45) + (setsRatio * 0.30) + (mobilityRatio * 0.15) + (condRatio * 0.10);
+      const evaluation = score >= 0.85 ? "Great" : score >= 0.65 ? "Good" : "Needs improvement";
+      return {
+        days,
+        totalSets,
+        doneSets,
+        mobTotal,
+        mobDone,
+        condTotal: Math.round(condTotal),
+        absDone,
+        absTotal: PLAN.length,
+        completed: countCompletedForWeek(wk),
+        evaluation
+      };
+    })();
+
+    const allWeeks = Object.keys(state.sessions || {}).sort((a,b) => b.localeCompare(a));
+    const prevWeekKeyStr = prevWeekWithData(viewWeek);
+    const prevWeekSummary = prevWeekKeyStr ? (() => {
+      const wk = prevWeekKeyStr;
+      const sessions = state.sessions[wk] || {};
+      let totalSets = 0;
+      let doneSets = 0;
+      let mobTotal = 0;
+      let mobDone = 0;
+      let condTotal = 0;
+      let absDone = 0;
+      PLAN.forEach(d => {
+        const s = sessions[d.id];
+        totalSets += d.lifts.reduce((sum, l) => sum + l.sets, 0);
+        mobTotal += d.mobility.length;
+        if(s){
+          mobDone += Object.values(s.mobilityDone || {}).filter(Boolean).length;
+          condTotal += parseFloat(s.conditioningMinutes) || 0;
+          if(s.abDone) absDone += 1;
+          d.lifts.forEach(l => {
+            const arr = getLiftSets(s, d.id, l);
+            doneSets += arr.filter(x => x.done).length;
+          });
+        }
+      });
+      return {
+        totalSets,
+        doneSets,
+        mobTotal,
+        mobDone,
+        condTotal: Math.round(condTotal),
+        absDone,
+        absTotal: PLAN.length,
+        completed: countCompletedForWeek(wk)
+      };
+    })() : null;
+
+    const viewWeekSessions = state.sessions[viewWeek] || {};
+    const getUsedOptionForWeek = (session, dayId, lift) => {
+      if(!session || !lift.options || !lift.options.length) return null;
+      const key = liftOptionKey(dayId, lift);
+      if(session.liftOptions && lift.options.includes(session.liftOptions[key])){
+        return session.liftOptions[key];
+      }
+      if(session.liftSets){
+        const prefix = `${lift.name}::`;
+        const keys = Object.keys(session.liftSets).filter(k => k.startsWith(prefix));
+        for(const k of keys){
+          const opt = k.slice(prefix.length);
+          if(lift.options.includes(opt) && hasLiftData(session.liftSets[k])) return opt;
+        }
+      }
+      return null;
+    };
+    const formatSetLine = (set, idx) => {
+      const parts = [];
+      if(set.reps) parts.push(`${set.reps} reps`);
+      if(set.weight) parts.push(`${set.weight} lbs`);
+      if(set.rpe) parts.push(`RPE ${set.rpe}`);
+      if(!parts.length && set.done) parts.push("Done");
+      if(!parts.length) parts.push("No data");
+      return `Set ${idx + 1}: ${parts.join(" · ")}`;
+    };
+    const getLoggedExercisesForDay = (day, session) => {
+      if(!session || !session.liftSets) return [];
+      const results = [];
+      day.lifts.forEach(lift => {
+        if(lift.options && lift.options.length){
+          const prefix = `${lift.name}::`;
+          const optionKeys = lift.options.map(opt => liftStorageKey(lift, opt));
+          const usedOptionKeys = optionKeys.filter(k => session.liftSets[k] && hasLiftData(session.liftSets[k]));
+          const extraKeys = Object.keys(session.liftSets)
+            .filter(k => k.startsWith(prefix) && !optionKeys.includes(k) && hasLiftData(session.liftSets[k]));
+          const keys = usedOptionKeys.concat(extraKeys);
+          keys.forEach(k => {
+            results.push({
+              key: k,
+              label: displayNameFromStorageKey(k),
+              sets: session.liftSets[k] || []
+            });
+          });
+          if(!keys.length && session.liftSets[lift.name] && hasLiftData(session.liftSets[lift.name])){
+            results.push({key: lift.name, label: lift.name, sets: session.liftSets[lift.name] || []});
+          }
+        }else{
+          if(session.liftSets[lift.name] && hasLiftData(session.liftSets[lift.name])){
+            results.push({key: lift.name, label: lift.name, sets: session.liftSets[lift.name] || []});
+          }
+        }
+      });
+      return results;
+    };
+    const evalClass = weekSummary.evaluation === "Great"
+      ? "evalGood"
+      : weekSummary.evaluation === "Good"
+        ? "evalOk"
+        : "evalBad";
+
+    if(!state.progression) state.progression = {dayId: PLAN[0].id, liftKey: null};
+    const progDay = PLAN.find(d => d.id === state.progression.dayId) || PLAN[0];
+    const progOptions = progDay.lifts.flatMap(lift => {
+      if(lift.options && lift.options.length){
+        return lift.options.map(opt => ({
+          key: liftStorageKey(lift, opt),
+          label: `${lift.name} (${opt})`
+        }));
+      }
+      return [{key: lift.name, label: lift.name}];
+    });
+    let progLiftKey = state.progression.liftKey;
+    if(!progLiftKey || !progOptions.some(o => o.key === progLiftKey)){
+      progLiftKey = progOptions.length ? progOptions[0].key : null;
+      state.progression.dayId = progDay.id;
+      state.progression.liftKey = progLiftKey;
+      save(state);
+    }
+    const progData = progLiftKey ? progressionDataForLift(progDay.id, progLiftKey) : {labels:[], maxValues:[], volValues:[]};
+
+    if(state.activeDayId === "dashboard"){
+      app.innerHTML = `
+        <details class="card" open>
+          <summary class="summaryIcon">
+            <div class="summaryRow">
+              <span class="row" style="gap:8px; align-items:center">
+                <span>Weekly Dashboard</span>
+                <span class="badge">Week of ${viewWeek}</span>
+              </span>
+              <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+            </div>
+          </summary>
+          <div class="details-body">
+            <div class="row" style="margin-bottom:10px">
+              <span class="small" style="min-width:110px">View week:</span>
+              <select id="weekSelect" class="inputMini" style="width:auto; min-width:140px">
+                ${allWeeks.length ? allWeeks.map(w => `
+                  <option value="${w}" ${w === viewWeek ? "selected":""}>${w}</option>
+                `).join("") : `<option value="${viewWeek}" selected>${viewWeek}</option>`}
+              </select>
+              <span class="small">Dashboard only (workout view stays on current week).</span>
+            </div>
+            <div class="row">
+              <span class="pill">Days <b>${weekSummary.completed}/${PLAN.length}</b></span>
+              <span class="pill">Sets <b>${weekSummary.doneSets}/${weekSummary.totalSets}</b></span>
+              <span class="pill">Mobility <b>${weekSummary.mobDone}/${weekSummary.mobTotal}</b></span>
+              <span class="pill">Abs <b>${weekSummary.absDone}/${weekSummary.absTotal}</b></span>
+              <span class="pill">Conditioning <b>${weekSummary.condTotal} min</b></span>
+              <span class="pill">Evaluation <b>${weekSummary.evaluation}</b><span class="evalFace ${evalClass}" aria-hidden="true">☺</span></span>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <span class="small">Vs previous week${prevWeekKeyStr ? ` (${prevWeekKeyStr})` : ""}:</span>
+              ${prevWeekSummary ? `
+                <span class="pill">Days <b>${weekSummary.completed - prevWeekSummary.completed >= 0 ? "+" : ""}${weekSummary.completed - prevWeekSummary.completed}</b></span>
+                <span class="pill">Sets <b>${weekSummary.doneSets - prevWeekSummary.doneSets >= 0 ? "+" : ""}${weekSummary.doneSets - prevWeekSummary.doneSets}</b></span>
+                <span class="pill">Mobility <b>${weekSummary.mobDone - prevWeekSummary.mobDone >= 0 ? "+" : ""}${weekSummary.mobDone - prevWeekSummary.mobDone}</b></span>
+                <span class="pill">Abs <b>${weekSummary.absDone - prevWeekSummary.absDone >= 0 ? "+" : ""}${weekSummary.absDone - prevWeekSummary.absDone}</b></span>
+                <span class="pill">Conditioning <b>${weekSummary.condTotal - prevWeekSummary.condTotal >= 0 ? "+" : ""}${weekSummary.condTotal - prevWeekSummary.condTotal} min</b></span>
+              ` : `<span class="pill">No previous week data</span>`}
+            </div>
+            <div class="dashTable">
+              <div class="dashHead">Day</div>
+              <div class="dashHead">Sets</div>
+              <div class="dashHead">Mobility</div>
+              <div class="dashHead">Abs</div>
+              <div class="dashHead">Cond.</div>
+              ${weekSummary.days.map(d => `
+                <div class="dashCell">${escapeHtml(d.title)}</div>
+                <div class="dashCell">${d.doneSets}/${d.totalSets}</div>
+                <div class="dashCell">${d.mobDone}/${d.mobTotal}</div>
+                <div class="dashCell">${d.abDone ? "Yes" : "No"}</div>
+                <div class="dashCell">${Math.round(d.cond)} min</div>
+              `).join("")}
+            </div>
+            <details style="margin-top:12px">
+              <summary class="summaryIcon">
+                <div class="summaryRow">
+                  <span>Week Summary</span>
+                  <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+                </div>
+              </summary>
+              <div class="details-body">
+                ${PLAN.map(d => {
+                  const session = viewWeekSessions[d.id];
+                  const exercises = getLoggedExercisesForDay(d, session);
+                  return `
+                    <details class="card" style="margin:10px 0">
+                      <summary class="summaryIcon">
+                        <div class="summaryRow">
+                          <span>${escapeHtml(d.title)}</span>
+                          <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+                        </div>
+                      </summary>
+                      <div class="details-body">
+                        ${exercises.length ? exercises.map(ex => {
+                          const setLines = [];
+                          (ex.sets || []).forEach((set, idx) => {
+                            if(!set || !(set.done || set.reps || set.weight || set.rpe)) return;
+                            setLines.push(`<div class="small" style="margin-left:10px">${escapeHtml(formatSetLine(set, idx))}</div>`);
+                          });
+                          if(!setLines.length){
+                            setLines.push(`<div class="small" style="margin-left:10px">No set data.</div>`);
+                          }
+                          return `
+                            <div class="small" style="margin-top:8px"><b>${escapeHtml(ex.label)}</b></div>
+                            ${setLines.join("")}
+                          `;
+                        }).join("") : `<div class="small">No exercises logged.</div>`}
+                      </div>
+                    </details>
+                  `;
+                }).join("")}
+              </div>
+            </details>
+            <details style="margin-top:12px" open>
+              <summary class="summaryIcon">
+                <div class="summaryRow">
+                  <span>Exercise Progression Charts</span>
+                  <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+                </div>
+              </summary>
+              <div class="details-body">
+                <div class="row" style="gap:10px; flex-wrap:wrap; margin-bottom:8px">
+                  <div style="flex:1 1 160px; min-width:160px">
+                    <div class="small">Day</div>
+                    <select id="progDaySelect" class="inputMini" style="width:100%">
+                      ${PLAN.map(d => `<option value="${d.id}" ${d.id === progDay.id ? "selected":""}>${escapeHtml(d.title)}</option>`).join("")}
+                    </select>
+                  </div>
+                  <div style="flex:2 1 240px; min-width:220px">
+                    <div class="small">Exercise</div>
+                    <select id="progLiftSelect" class="inputMini" style="width:100%">
+                      ${progOptions.map(o => `<option value="${escapeHtml(o.key)}" ${o.key === progLiftKey ? "selected":""}>${escapeHtml(o.label)}</option>`).join("")}
+                    </select>
+                  </div>
+                </div>
+                <div class="small">Based on completed sets only.</div>
+                ${renderProgressionChart("Weight progression", progData.labels, progData.maxValues, "var(--accent)", "lbs")}
+                ${renderProgressionChart("Volume progression", progData.labels, progData.volValues, "var(--accent-2, var(--accent))", "lb-reps")}
+              </div>
+            </details>
+          </div>
+        </details>
+      `;
+
+      const weekSelect = $("#weekSelect");
+      if(weekSelect){
+        weekSelect.onchange = () => {
+          state.viewWeekStart = weekSelect.value;
+          save(state);
+          render();
+        };
+      }
+      const progDaySelect = $("#progDaySelect");
+      if(progDaySelect){
+        progDaySelect.onchange = () => {
+          const nextDayId = progDaySelect.value;
+          const nextDay = PLAN.find(d => d.id === nextDayId) || PLAN[0];
+          const nextOptions = nextDay.lifts.flatMap(lift => {
+            if(lift.options && lift.options.length){
+              return lift.options.map(opt => liftStorageKey(lift, opt));
+            }
+            return [lift.name];
+          });
+          state.progression.dayId = nextDay.id;
+          state.progression.liftKey = nextOptions.length ? nextOptions[0] : null;
+          save(state);
+          render();
+        };
+      }
+      const progLiftSelect = $("#progLiftSelect");
+      if(progLiftSelect){
+        progLiftSelect.onchange = () => {
+          state.progression.liftKey = progLiftSelect.value;
+          save(state);
+          render();
+        };
+      }
+      renderTabs();
+      return;
+    }
+
+    const mobilityHtml = day.mobility.map(m => {
+      const checked = !!session.mobilityDone[m.name];
+      return `
+        <div class="checkbox">
+          <input type="checkbox" ${checked ? "checked":""} data-mob="${escapeHtml(m.name)}">
+          <div>
+            <div class="t">${escapeHtml(m.name)}</div>
+            <div class="d" style="color:var(--accent); font-weight:700; margin-bottom:2px">${escapeHtml(m.dose)}</div>
+            <div class="d">${escapeHtml(m.cue)}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    const liftsHtml = day.lifts.map(lift => {
+      const option = getLiftOption(session, day.id, lift);
+      const arr = ensureLiftArray(session, lift, option);
+      const allDone = arr.length > 0 && arr.every(set => set && set.done);
+      const prevData = getPrevLiftData(day.id, lift, option);
+      const prevOption = prevData.option;
+      const prevArr = prevData.sets || [];
+      const prevWeekLabel = prevData.weekKey ? ` (week of ${prevData.weekKey})` : "";
+      const suggestion = getOverloadSuggestion(lift, prevArr);
+
+      let activeCue = lift.cue;
+      if(lift.cues && option && lift.cues[option]) activeCue = lift.cues[option];
+
+      const tableRows = arr.map((set, i) => {
+        const idx = i;
+        const prevSet = prevArr[idx] || null;
+        const prevLabel = prevOption ? ` (${escapeHtml(prevOption)})` : "";
+        const prevText = prevSet
+          ? `Prev${prevLabel}${prevWeekLabel} set ${i+1}: reps ${escapeHtml(prevSet.reps || "-")}, weight ${escapeHtml(prevSet.weight || "-")}, RPE ${escapeHtml(prevSet.rpe || "-")}, ${prevSet.done ? "done" : "not done"}`
+          : `Prev${prevLabel}${prevWeekLabel} set ${i+1}: no data`;
+        return `
+          <div class="setnum">Set ${i+1}</div>
+          <div class="cell"><input inputmode="numeric" placeholder="${escapeHtml(lift.reps)}" value="${escapeHtml(set.reps)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="reps" data-idx="${idx}"></div>
+          <div class="cell"><input inputmode="decimal" placeholder="weight" value="${escapeHtml(set.weight)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="weight" data-idx="${idx}"></div>
+          <div class="cell"><input inputmode="decimal" placeholder="RPE 1-10" value="${escapeHtml(set.rpe)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="rpe" data-idx="${idx}"></div>
+          <div class="done"><input type="checkbox" ${set.done ? "checked":""} data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="done" data-idx="${idx}"></div>
+          <div class="compareRow">${prevText}</div>
+        `;
+      }).join("");
+
+      const optionToggle = lift.options ? `
+        <div class="optionToggle" role="group" aria-label="Exercise option">
+          ${lift.options.map(opt => `
+            <button class="optBtn ${opt === option ? "active" : ""}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(opt)}" type="button">${escapeHtml(opt)}</button>
+          `).join("")}
+        </div>
+      ` : "";
+
+      const detailKey = liftDetailKey(day.id, lift);
+      const isOpen = openLifts.has(detailKey);
+      return `
+        <details data-detail="${escapeHtml(detailKey)}" ${isOpen ? "open" : ""}>
+          <summary>
+            <div class="summaryRow">
+              <span style="display:flex; align-items:center; gap:8px">
+                ${allDone ? `<span aria-hidden="true" style="color:var(--good); display:inline-flex; align-items:center;">${ICONS.check}</span>` : ``}
+                <span>${escapeHtml(lift.name)}</span>
+              </span>
+              <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+            </div>
+          </summary>
+          <div class="details-body">
+            <div class="small">
+              <span class="pill">Sets <b>${lift.sets}</b></span>
+              <span class="pill">Reps <b>${escapeHtml(lift.reps)}</b></span>
+              <span class="pill">Rest <b>${escapeHtml(lift.rest)}</b></span>
+              ${optionToggle}
+              ${suggestion ? `<div class="suggestion">🎯 ${escapeHtml(suggestion)}</div>` : ""}
+              <div class="hr"></div>
+              <div><b>Coaching cue:</b> ${escapeHtml(activeCue)}</div>
+            </div>
+
+            <div class="hr"></div>
+            <div class="row" style="justify-content:space-between; margin:8px 0 10px">
+              <div class="small">
+                Planned sets: <b>${lift.sets}</b>
+                &nbsp;*&nbsp;
+                Total sets: <b>${arr.length}</b>
+              </div>
+              <div class="row" style="gap:8px">
+                <button class="btn" type="button"
+                  data-addset="1"
+                  data-lift="${escapeHtml(lift.name)}"
+                  data-opt="${escapeHtml(option || "")}">
+                  ${ICONS.add}<span class="label">Add set</span>
+                </button>
+                <button class="btn" type="button"
+                  data-rmset="1"
+                  data-lift="${escapeHtml(lift.name)}"
+                  data-opt="${escapeHtml(option || "")}"
+                  ${arr.length <= lift.sets ? "disabled" : ""}>
+                  ${ICONS.remove}<span class="label">Remove set</span>
+                </button>
+                ${hasLiftData(prevArr) ? `
+                <button class="btn" type="button"
+                  data-copyprev="1"
+                  data-lift="${escapeHtml(lift.name)}"
+                  data-opt="${escapeHtml(option || "")}">
+                  ${ICONS.copy}<span class="label">Copy Prev</span>
+                </button>` : ""}
+              </div>
+            </div>
+
+            <div class="table">
+              <div class="th">Set</div>
+              <div class="th">Reps</div>
+              <div class="th">Weight</div>
+              <div class="th">RPE</div>
+              <div class="th" style="text-align:center">Done</div>
+              ${tableRows}
+            </div>
+
+            <div class="small" style="margin-top:10px">
+              Execution: keep effort high but controlled (generally stop 1-2 reps before failure on most sets).
+            </div>
+          </div>
+        </details>
+      `;
+    }).join("");
+
+    const circuitInfoForLift = (lift) => {
+      const match = String(lift.name).match(/^(Circuit\s+\d+)\s+-\s+(.+)$/);
+      return match ? {circuit: match[1], exercise: match[2]} : {circuit: "Main Circuit", exercise: lift.name};
+    };
+
+    const circuitGroups = [];
+    const circuitMap = {};
+    day.lifts.forEach(lift => {
+      const info = circuitInfoForLift(lift);
+      if(!circuitMap[info.circuit]){
+        circuitMap[info.circuit] = {name: info.circuit, lifts: []};
+        circuitGroups.push(circuitMap[info.circuit]);
+      }
+      circuitMap[info.circuit].lifts.push({...lift, displayName: info.exercise});
+    });
+
+    const nextCircuitStepLabel = (group, roundIdx, liftIdx) => {
+      const nextLift = group.lifts[liftIdx + 1];
+      if(nextLift) return `${nextLift.displayName} - round ${roundIdx + 1}`;
+      const firstLift = group.lifts[0];
+      const maxRounds = Math.max(...group.lifts.map(l => ensureLiftArray(session, l, getLiftOption(session, day.id, l)).length));
+      if(firstLift && roundIdx + 1 < maxRounds) return `${firstLift.displayName} - round ${roundIdx + 2}`;
+      const nextGroup = circuitGroups[circuitGroups.findIndex(g => g.name === group.name) + 1];
+      if(nextGroup && nextGroup.lifts[0]) return `${nextGroup.name}: ${nextGroup.lifts[0].displayName} - round 1`;
+      return "Session complete";
+    };
+
+    const circuitLiftsHtml = circuitGroups.map((group, groupIdx) => {
+      const detailKey = `${day.id}::${group.name}`;
+      const maxRounds = Math.max(...group.lifts.map(lift => {
+        const option = getLiftOption(session, day.id, lift);
+        return ensureLiftArray(session, lift, option).length;
+      }));
+      const totalSets = group.lifts.reduce((sum, lift) => {
+        const option = getLiftOption(session, day.id, lift);
+        return sum + ensureLiftArray(session, lift, option).length;
+      }, 0);
+      const doneSets = group.lifts.reduce((sum, lift) => {
+        const option = getLiftOption(session, day.id, lift);
+        return sum + ensureLiftArray(session, lift, option).filter(set => set && set.done).length;
+      }, 0);
+      const allDone = totalSets > 0 && doneSets === totalSets;
+      const isOpen = openLifts.has(detailKey) || (openLifts.size === 0 && groupIdx === 0);
+
+      const roundHtml = Array.from({length: maxRounds}, (_, roundIdx) => {
+        const stationHtml = group.lifts.map((lift, liftIdx) => {
+          const option = getLiftOption(session, day.id, lift);
+          const arr = ensureLiftArray(session, lift, option);
+          const set = arr[roundIdx];
+          if(!set) return "";
+          const prevData = getPrevLiftData(day.id, lift, option);
+          const prevOption = prevData.option;
+          const prevArr = prevData.sets || [];
+          const prevWeekLabel = prevData.weekKey ? ` (week of ${prevData.weekKey})` : "";
+          const prevSet = prevArr[roundIdx] || null;
+          const prevLabel = prevOption ? ` (${escapeHtml(prevOption)})` : "";
+          const prevText = prevSet
+            ? `Prev${prevLabel}${prevWeekLabel} set ${roundIdx + 1}: reps ${escapeHtml(prevSet.reps || "-")}, weight ${escapeHtml(prevSet.weight || "-")}, RPE ${escapeHtml(prevSet.rpe || "-")}, ${prevSet.done ? "done" : "not done"}`
+            : `Prev${prevLabel}${prevWeekLabel} set ${roundIdx + 1}: no data`;
+          const suggestion = getOverloadSuggestion(lift, prevArr);
+          const activeCue = lift.cues && option && lift.cues[option] ? lift.cues[option] : lift.cue;
+          const nextLabel = nextCircuitStepLabel(group, roundIdx, liftIdx);
+          const optionToggle = lift.options ? `
+            <div class="optionToggle" role="group" aria-label="Exercise option">
+              ${lift.options.map(opt => `
+                <button class="optBtn ${opt === option ? "active" : ""}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(opt)}" type="button">${escapeHtml(opt)}</button>
+              `).join("")}
+            </div>
+          ` : "";
+
+          return `
+            <div style="padding:12px 0; border-top:${liftIdx === 0 ? "0" : "1px solid var(--line)"}">
+              <div class="row" style="justify-content:space-between; align-items:flex-start; margin-bottom:8px">
+                <div>
+                  <div style="font-weight:800">${escapeHtml(lift.displayName)}</div>
+                  <div class="small">
+                    <span class="pill">Reps <b>${escapeHtml(lift.reps)}</b></span>
+                    <span class="pill">Rest <b>${escapeHtml(lift.rest)}</b></span>
+                  </div>
+                </div>
+                <div class="row" style="gap:8px">
+                  ${optionToggle}
+                  ${hasLiftData(prevArr) ? `
+                  <button class="btn" type="button" data-copyprev="1" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}">
+                    ${ICONS.copy}<span class="label">Copy Prev</span>
+                  </button>` : ""}
+                </div>
+              </div>
+              <div class="table">
+                <div class="th">Round</div>
+                <div class="th">Reps</div>
+                <div class="th">Weight</div>
+                <div class="th">RPE</div>
+                <div class="th" style="text-align:center">Done</div>
+                <div class="setnum">${roundIdx + 1}</div>
+                <div class="cell"><input inputmode="numeric" placeholder="${escapeHtml(lift.reps)}" value="${escapeHtml(set.reps)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="reps" data-idx="${roundIdx}"></div>
+                <div class="cell"><input inputmode="decimal" placeholder="weight" value="${escapeHtml(set.weight)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="weight" data-idx="${roundIdx}"></div>
+                <div class="cell"><input inputmode="decimal" placeholder="RPE 1-10" value="${escapeHtml(set.rpe)}" data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="rpe" data-idx="${roundIdx}"></div>
+                <div class="done"><input type="checkbox" ${set.done ? "checked":""} data-lift="${escapeHtml(lift.name)}" data-opt="${escapeHtml(option || "")}" data-field="done" data-idx="${roundIdx}" data-next-label="${escapeHtml(nextLabel)}"></div>
+                <div class="compareRow">${prevText}</div>
+              </div>
+              <div class="small" style="margin-top:8px"><b>Coaching cue:</b> ${escapeHtml(activeCue)}</div>
+              ${suggestion ? `<div class="suggestion">${escapeHtml(suggestion)}</div>` : ""}
+            </div>
+          `;
+        }).join("");
+
+        return `
+          <div style="padding:12px; border:1px solid var(--line); border-radius:12px; margin-bottom:10px; background:var(--card2)">
+            <div class="row" style="justify-content:space-between; margin-bottom:8px">
+              <h3 style="margin:0; font-size:15px">Round ${roundIdx + 1}</h3>
+              <span class="badge">${group.lifts.length} stations</span>
+            </div>
+            ${stationHtml}
+          </div>
+        `;
+      }).join("");
+
+      return `
+        <details data-detail="${escapeHtml(detailKey)}" ${isOpen ? "open" : ""}>
+          <summary>
+            <div class="summaryRow">
+              <span style="display:flex; align-items:center; gap:8px">
+                ${allDone ? `<span aria-hidden="true" style="color:var(--good); display:inline-flex; align-items:center;">${ICONS.check}</span>` : ``}
+                <span>${escapeHtml(group.name)}</span>
+              </span>
+              <span class="badge">${doneSets}/${totalSets} sets</span>
+              <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+            </div>
+          </summary>
+          <div class="details-body">
+            <div class="small" style="margin-bottom:10px">Complete each round in order before moving to the next round.</div>
+            ${roundHtml}
+          </div>
+        </details>
+      `;
+    }).join("");
+
+    app.innerHTML = `
+      <div class="card stickyTop dayHero" id="dayHero">
+        <div class="ch">
+          <div class="dayTitle">
+            <div class="row dayMeta">
+              <span class="badge">${day.lifts.length} exercises</span>
+              <span class="badge">Approx. ${estMin} min</span>
+              <span class="badge syncBadge" id="syncStatus">Sync: -</span>
+            </div>
+            <h2 class="dayHeading">
+              <span>${escapeHtml(day.title)}</span>
+              <span class="badge ${statusClass}">${statusLabel}</span>
+            </h2>
+            ${keyText ? `<div class="small dayKeyLifts">${escapeHtml(keyText)}</div>` : ""}
+          </div>
+          <div class="dayStatus">
+          </div>
+        </div>
+        <div class="cb">
+          <div class="progress" aria-hidden="true">
+            <div class="progressFill" id="dayProgressFill" style="width:${Math.round(overallRatio * 100)}%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="restOverlay" class="restOverlay hidden"></div>
+      <div id="restPopup" class="restPopup hidden">
+        <div class="row">
+          <div>
+            <div class="small">Rest timer</div>
+            <div class="row restTimeRow">
+              <div class="time" id="restPopupTime">${formatTime(timers.rest.remaining)}</div>
+              <div class="pillSplit restAdjust">
+                <button class="pillBtn" id="restMinusBtn">${ICONS.minus}<span class="label">15s</span></button>
+                <button class="pillBtn" id="restPlusBtn">${ICONS.plus}<span class="label">15s</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="small" id="restPopupNext" style="margin-top:6px"></div>
+        <div class="timerRow">
+          <button class="btn" id="reloadPageBtn" aria-label="Reload page">${ICONS.reset}<span class="label">Reload</span></button>
+          <button class="btn" id="enableAudioBtn">${ICONS.sound}<span class="label">Enable sound</span></button>
+        </div>
+        <div class="timerRow">
+          <button class="btn" id="restPauseBtn">${ICONS.pause}<span class="label">Pause</span></button>
+          <button class="btn bad" id="restResetBtn">${ICONS.reset}<span class="label">Reset</span></button>
+          <button class="btn" id="restCloseBtn">${ICONS.close}<span class="label">Close</span></button>
+        </div>
+        <div class="small" id="restPopupSoundStatus" style="margin-top:6px"></div>
+      </div>
+
+      \n<details class="card mobilityCard" open>
+        <summary class="summaryIcon">
+          <div class="summaryRow">
+            <span>Mobility Warm-up</span>
+            <span class="badge">Before lifting</span>
+            <span class="expandIcon" aria-hidden="true">${ICONS.chevron}</span>
+          </div>
+        </summary>
+        <div class="details-body">
+          ${mobilityHtml}
+        </div>
+      </details>
+
+      <div class="card">
+        <div class="ch">
+          <h2>Main Workout</h2>
+          <span class="badge">${day.lifts.length} exercises</span>
+        </div>
+        <div class="cb">${circuitLiftsHtml}</div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <h2>${escapeHtml(day.conditioning.label)}</h2>
+          <span class="badge">Target</span>
+        </div>
+        <div class="cb">
+          <div class="small">${escapeHtml(day.conditioning.rx)}</div>
+          <div class="hr"></div>
+          <div class="row">
+            <div style="flex:1 1 220px">
+              <div class="small" style="margin-bottom:6px">Session minutes completed</div>
+              <input id="condMin" type="number" style="width:100%; padding:10px 10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text);"
+                     inputmode="numeric" min="0" step="0.1" placeholder="e.g., 60" value="${escapeHtml(session.conditioningMinutes||"")}">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <h2>5-Minute Ab Workout</h2>
+          <span class="badge">Optional</span>
+        </div>
+        <div class="cb">
+          <div class="row" style="justify-content:space-between; align-items:center">
+            <div>
+              <button class="btn" type="button" onclick="location.href='ab-5-minute.html'">Ab Workout</button>
+            </div>
+            <label class="done" style="display:flex; flex-direction:column; align-items:center; gap:4px">
+              <span class="small">Done</span>
+              <input type="checkbox" id="abDone" ${session.abDone ? "checked":""}>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <h2>Session Notes</h2>
+          <span class="badge">Log</span>
+        </div>
+        <div class="cb">
+          <textarea id="sessionNotes" style="width:100%; height:80px; padding:10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text); font-family:var(--sans); font-size:13px;" placeholder="How did it feel? Pain? Energy levels?">${escapeHtml(session.notes || "")}</textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <h2>Day Complete</h2>
+          <span class="badge">${session.dayLocked ? "Locked" : "Unlocked"}</span>
+        </div>
+        <div class="cb">
+          <div class="small" style="margin-bottom:8px">Locks all inputs for this day.</div>
+          <button class="btn good" id="dayCompleteBtn" data-allow-when-locked="1">
+            ${session.dayLocked ? `${ICONS.unlock}<span class="label">Unlock Day</span>` : `${ICONS.check}<span class="label">Mark Day Complete</span>`}
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Wire events (mobility)
+    app.querySelectorAll('input[type="checkbox"][data-mob]').forEach(cb => {
+      cb.addEventListener("change", () => {
+        session.mobilityDone[cb.getAttribute("data-mob")] = cb.checked;
+        updateAutoComplete(session, day);
+        save(state);
+        renderTabs();
+      });
+    });
+
+    const abDone = $("#abDone");
+    if(abDone){
+      abDone.addEventListener("change", () => {
+        session.abDone = abDone.checked;
+        save(state);
+        renderTabs();
+      });
+    }
+
+    // Wire events (lift inputs)
+    app.querySelectorAll('input[data-lift]').forEach(inp => {
+      const liftName = inp.getAttribute("data-lift");
+      const liftOpt = inp.getAttribute("data-opt") || null;
+      const field = inp.getAttribute("data-field");
+      const idx = parseInt(inp.getAttribute("data-idx"), 10);
+
+      inp.addEventListener("input", () => {
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        const arr = ensureLiftArray(session, liftDef, liftOpt);
+        arr[idx][field] = inp.value;
+        save(state);
+      });
+
+        if(inp.type === "checkbox"){
+          inp.addEventListener("change", () => {
+            const liftDef = day.lifts.find(x => x.name === liftName);
+            const arr = ensureLiftArray(session, liftDef, liftOpt);
+            arr[idx][field] = inp.checked;
+            updateAutoComplete(session, day);
+            save(state);
+            renderTabs();
+            if(field === "done"){
+              render();
+            }
+            if(field === "done" && inp.checked){
+              const restSeconds = getRestSecondsForLift(session, liftDef, liftOpt);
+              const circuitNextLabel = inp.getAttribute("data-next-label");
+              const remainingSets = arr.some(s => s && !s.done);
+              const nextLift = remainingSets ? null : getNextLift(day, liftDef);
+              let restLabel = "";
+              if(circuitNextLabel){
+                restLabel = circuitNextLabel;
+              }else if(remainingSets){
+                restLabel = liftDisplayName(liftDef, liftOpt);
+              }else if(nextLift){
+                const nextOpt = getLiftOption(session, day.id, nextLift);
+                restLabel = liftDisplayName(nextLift, nextOpt);
+              }else{
+                restLabel = "Session complete";
+              }
+              startRestTimer(restSeconds, liftStorageKey(liftDef, liftOpt), restLabel);
+
+              if(!remainingSets && nextLift){
+                const currentKey = liftDetailKey(day.id, liftDef);
+                const nextKey = liftDetailKey(day.id, nextLift);
+                openLifts.delete(currentKey);
+                openLifts.add(nextKey);
+                const currentEl = document.querySelector(`details[data-detail="${CSS.escape(currentKey)}"]`);
+                const nextEl = document.querySelector(`details[data-detail="${CSS.escape(nextKey)}"]`);
+                if(currentEl) currentEl.open = false;
+                if(nextEl) nextEl.open = true;
+                if(nextEl){
+                  requestAnimationFrame(() => scrollExerciseJustBelowSticky(nextEl));
+                }
+              }
+            }
+          });
+        }
+    });
+
+    app.querySelectorAll(".optBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const opt = btn.getAttribute("data-opt");
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef || !opt) return;
+        const circuitMatch = String(liftDef.name).match(/^(Circuit\s+\d+)\s+-\s+.+$/);
+        openLifts.add(circuitMatch ? `${day.id}::${circuitMatch[1]}` : liftDetailKey(day.id, liftDef));
+        if(!session.liftOptions) session.liftOptions = {};
+        const key = liftOptionKey(day.id, liftDef);
+        session.liftOptions[key] = opt;
+        save(state);
+        render();
+      });
+    });
+
+    app.querySelectorAll("details[data-detail]").forEach(el => {
+      el.addEventListener("toggle", () => {
+        const key = el.getAttribute("data-detail");
+        if(!key) return;
+        if(el.open){
+          openLifts.add(key);
+        }else{
+          openLifts.delete(key);
+        }
+      });
+    });
+
+    // Add/Remove sets
+    app.querySelectorAll("button[data-addset]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const liftOpt = btn.getAttribute("data-opt") || null;
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef) return;
+
+        const cur = getExtraSets(session, liftDef, liftOpt);
+        setExtraSets(session, liftDef, liftOpt, cur + 1);
+
+        openLifts.add(liftDetailKey(day.id, liftDef)); // keep open
+        save(state);
+        render();
+      });
+    });
+
+    app.querySelectorAll("button[data-rmset]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const liftOpt = btn.getAttribute("data-opt") || null;
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef) return;
+
+        const cur = getExtraSets(session, liftDef, liftOpt);
+        if(cur <= 0) return;
+        setExtraSets(session, liftDef, liftOpt, cur - 1);
+
+        openLifts.add(liftDetailKey(day.id, liftDef)); // keep open
+        save(state);
+        render();
+      });
+    });
+
+    // Copy previous values
+    app.querySelectorAll("button[data-copyprev]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const liftOpt = btn.getAttribute("data-opt") || null;
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef) return;
+
+        const prevData = getPrevLiftData(day.id, liftDef, liftOpt);
+        if(!hasLiftData(prevData.sets)) return;
+
+        let targetOpt = liftOpt || prevData.option || null;
+        if(liftDef.options && targetOpt && !liftDef.options.includes(targetOpt)){
+          targetOpt = liftDef.options[0];
+        }
+
+        if(liftDef.options && targetOpt){
+          if(!session.liftOptions) session.liftOptions = {};
+          const key = liftOptionKey(day.id, liftDef);
+          session.liftOptions[key] = targetOpt;
+        }
+
+        const desiredExtra = Math.max(0, (prevData.sets || []).length - (liftDef.sets || 0));
+        setExtraSets(session, liftDef, targetOpt, desiredExtra);
+        const arr = ensureLiftArray(session, liftDef, targetOpt);
+
+        for(let i=0; i<arr.length; i++){
+          const prevSet = (prevData.sets || [])[i];
+          arr[i].reps = prevSet ? (prevSet.reps || "") : "";
+          arr[i].weight = prevSet ? (prevSet.weight || "") : "";
+          arr[i].rpe = prevSet ? (prevSet.rpe || "") : "";
+          arr[i].done = false;
+        }
+
+        save(state);
+        render();
+      });
+    });
+
+    // Session Notes
+    $("#sessionNotes").addEventListener("input", (e) => {
+      session.notes = e.target.value;
+      save(state);
+    });
+
+
+    // Conditioning tracking
+    const condMin = $("#condMin");
+    if(condMin){
+      condMin.addEventListener("input", () => {
+        session.conditioningMinutes = condMin.value;
+        save(state);
+      });
+    }
+    const dayCompleteBtn = $("#dayCompleteBtn");
+    if(dayCompleteBtn){
+      dayCompleteBtn.addEventListener("click", () => {
+        if(session.dayLocked){
+          openUnlockDayModal(() => {
+            session.dayLocked = false;
+            save(state);
+            render();
+          });
+          return;
+        }
+        session.dayLocked = true;
+        session.completed = true;
+        stopRestTimer();
+        stopWorkoutTimer();
+        persistTimers();
+        hideRestPopup();
+        save(state);
+        render();
+      });
+    }
+
+    renderTabs();
+    updateTimersUI();
+    wireTimers();
+    applyDayLock(app, session.dayLocked);
+    if(restPopupOpen){
+      showRestPopup();
+    }else{
+      hideRestPopup();
+    }
+    updateDayProgressUI();
+    initViewportVars();
+    focusRestExerciseIfNeeded();
+
+    const weekSelect = $("#weekSelect");
+    if(weekSelect){
+      weekSelect.onchange = () => {
+        state.viewWeekStart = weekSelect.value;
+        save(state);
+        render();
+      };
+    }
+  }
+
+  // Export / Reset
+  $("#exportBtn").onclick = () => {
+    // Export only workout set data for the current week.
+    ensureWeek();
+    save(state);
+    const wk = state.weekStart;
+    const sessions = state.sessions[wk] || {};
+    const exportSessions = {};
+    PLAN.forEach(d => {
+      const s = sessions[d.id] || {};
+      exportSessions[d.id] = { liftSets: s.liftSets || {} };
+    });
+    const data = JSON.stringify({weekStart: wk, sessions: exportSessions});
+    const blob = new Blob([data], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `workout-tracker-export-${isoDate()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  $("#importBtn").onclick = () => {
+    $("#importFile").click();
+  };
+
+  let pendingImport = null;
+  $("#importFile").onchange = (e) => {
+    const f = e.target.files[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => {
+      try{
+        const json = JSON.parse(ev.target.result);
+        if(!json.weekStart || !json.sessions) throw new Error("Invalid format");
+        pendingImport = json;
+        const modal = $("#importModal");
+        const overlay = $("#importOverlay");
+        if(modal) modal.classList.remove("hidden");
+        if(overlay) overlay.classList.remove("hidden");
+      }catch(err){
+        alert("Error importing file: " + err.message);
+      }
+    };
+    r.readAsText(f);
+  };
+
+  $("#themeToggle").onclick = () => {
+    state.theme = state.theme === "light" ? "dark" : "light";
+    if(state.theme === "light") document.body.classList.add("light");
+    else document.body.classList.remove("light");
+    save(state);
+  };
+  const logoutBtn = $("#logoutBtn");
+  if(logoutBtn){
+    if(!window.AuthClient || !AuthClient.isLoggedIn()){
+      logoutBtn.style.display = "none";
+    } else {
+      logoutBtn.onclick = async () => {
+        await AuthClient.logout();
+        window.location.href = "login.html";
+      };
+    }
+  }
+
+  const menuToggle = $("#menuToggle");
+  const menuPopup = $("#menuPopup");
+  const menuOverlay = $("#menuOverlay");
+  if(menuToggle){
+    menuToggle.onclick = () => {
+      menuPopup.classList.toggle("show");
+      menuOverlay.classList.toggle("show");
+    };
+    menuOverlay.onclick = () => {
+      menuPopup.classList.remove("show");
+      menuOverlay.classList.remove("show");
+    };
+    // Close menu when clicking an item
+    menuPopup.querySelectorAll(".menuItem").forEach(b => b.addEventListener("click", () => menuOverlay.click()));
+  }
+
+  // Developer comments (local only)
+  const DEV_NOTES_KEY = `${KEY}__dev_notes`;
+  function loadDevNotes(){
+    try{ return JSON.parse(localStorage.getItem(DEV_NOTES_KEY)) || []; }catch(e){ return []; }
+  }
+  function saveDevNotes(notes){
+    localStorage.setItem(DEV_NOTES_KEY, JSON.stringify(notes));
+  }
+  function renderDevNotesList(){
+    const list = $("#devNotesList");
+    if(!list) return;
+    const notes = loadDevNotes();
+    list.innerHTML = "";
+    if(!notes.length){
+      const empty = document.createElement("div");
+      empty.className = "small";
+      empty.textContent = "No comments yet.";
+      list.appendChild(empty);
+      return;
+    }
+    notes.forEach(note => {
+      const row = document.createElement("div");
+      row.className = "devNoteRow";
+      row.innerHTML = `
+        <div class="devNoteText">${escapeHtml(note.text)}</div>
+        <button class="btn bad" type="button" data-note-id="${note.id}">${ICONS.trash}<span class="label">Delete</span></button>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll("button[data-note-id]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-note-id");
+        const next = loadDevNotes().filter(n => n.id !== id);
+        saveDevNotes(next);
+        renderDevNotesList();
+      });
+    });
+  }
+  function openDevNotes(){
+    const modal = $("#devNotesModal");
+    const overlay = $("#devNotesOverlay");
+    if(!modal || !overlay) return;
+    renderDevNotesList();
+    modal.classList.remove("hidden");
+    overlay.classList.remove("hidden");
+    const input = $("#devNotesInput");
+    if(input) input.focus();
+  }
+  function closeDevNotes(){
+    const modal = $("#devNotesModal");
+    const overlay = $("#devNotesOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+  }
+  const devNotesBtn = $("#devNotesBtn");
+  if(devNotesBtn) devNotesBtn.onclick = openDevNotes;
+  const devNotesClose = $("#devNotesClose");
+  if(devNotesClose) devNotesClose.onclick = closeDevNotes;
+  const devNotesOverlay = $("#devNotesOverlay");
+  if(devNotesOverlay) devNotesOverlay.onclick = closeDevNotes;
+  const devNotesAdd = $("#devNotesAdd");
+  if(devNotesAdd){
+    devNotesAdd.onclick = () => {
+      const input = $("#devNotesInput");
+      if(!input) return;
+      const text = input.value.trim();
+      if(!text) return;
+      const notes = loadDevNotes();
+      notes.push({id:`n_${Date.now()}_${Math.random().toString(36).slice(2,6)}`, text});
+      saveDevNotes(notes);
+      input.value = "";
+      renderDevNotesList();
+      input.focus();
+    };
+  }
+
+  $("#resetBtn").onclick = () => {
+    const modal = $("#appResetModal");
+    const overlay = $("#appResetOverlay");
+    if(modal) modal.classList.remove("hidden");
+    if(overlay) overlay.classList.remove("hidden");
+  };
+
+  const appResetConfirm = $("#appResetConfirm");
+  const appResetCancel = $("#appResetCancel");
+  const appResetOverlay = $("#appResetOverlay");
+  const closeAppReset = () => {
+    const modal = $("#appResetModal");
+    const overlay = $("#appResetOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+  };
+  if(appResetConfirm){
+    appResetConfirm.onclick = () => {
+      localStorage.removeItem(KEY);
+      state = defaultState();
+      save(state);
+      render();
+      closeAppReset();
+    };
+  }
+  if(appResetCancel) appResetCancel.onclick = closeAppReset;
+  if(appResetOverlay) appResetOverlay.onclick = closeAppReset;
+
+  let unlockDayAction = null;
+  const openUnlockDayModal = (action) => {
+    unlockDayAction = action;
+    const modal = $("#unlockDayModal");
+    const overlay = $("#unlockDayOverlay");
+    if(modal) modal.classList.remove("hidden");
+    if(overlay) overlay.classList.remove("hidden");
+  };
+  const unlockDayConfirm = $("#unlockDayConfirm");
+  const unlockDayCancel = $("#unlockDayCancel");
+  const unlockDayOverlay = $("#unlockDayOverlay");
+  const closeUnlockDay = () => {
+    const modal = $("#unlockDayModal");
+    const overlay = $("#unlockDayOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+  };
+  if(unlockDayConfirm){
+    unlockDayConfirm.onclick = () => {
+      const action = unlockDayAction;
+      unlockDayAction = null;
+      if(action) action();
+      closeUnlockDay();
+    };
+  }
+  if(unlockDayCancel) unlockDayCancel.onclick = closeUnlockDay;
+  if(unlockDayOverlay) unlockDayOverlay.onclick = closeUnlockDay;
+
+  const importConfirm = $("#importConfirm");
+  const importCancel = $("#importCancel");
+  const importOverlay = $("#importOverlay");
+  const closeImport = () => {
+    const modal = $("#importModal");
+    const overlay = $("#importOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+    pendingImport = null;
+  };
+  if(importConfirm){
+    importConfirm.onclick = () => {
+      if(!pendingImport) return closeImport();
+      localStorage.setItem(KEY, JSON.stringify(pendingImport));
+      closeImport();
+      location.reload();
+    };
+  }
+  if(importCancel) importCancel.onclick = closeImport;
+  if(importOverlay) importOverlay.onclick = closeImport;
+
+  $("#dashboardBtn").onclick = () => {
+    state.activeDayId = "dashboard";
+    save(state);
+    render();
+  };
+
+  // Init
+  ensureWeek();
+  save(state);
+  scheduleWeeklyRollover();
+  render();
+  setSyncStatus("ok");
+  (async () => {
+    if(!window.AuthClient || !AuthClient.isLoggedIn()) return;
+    try{
+      const remote = await AuthClient.getWorkout(KEY);
+      if(remote && remote.data){
+        state = remote.data;
+        save(state, {skipRemote:true});
+        render();
+        remoteReady = true;
+        if(migrateLegacyLiftNames(state) || migrateMetricsVersion(state)){
+          save(state);
+        }
+        return;
+      }
+    }catch(e){
+      if(!e || e.status !== 404) console.warn("Remote load failed", e);
+    }
+    if(localStorage.getItem(KEY) && !localStorage.getItem(MIGRATION_KEY)){
+      try{
+        await AuthClient.saveWorkout(KEY, state);
+        localStorage.setItem(MIGRATION_KEY, "1");
+      }catch(e){
+        console.warn("Migration failed", e);
+      }
+    }
+    remoteReady = true;
+  })();
+
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
