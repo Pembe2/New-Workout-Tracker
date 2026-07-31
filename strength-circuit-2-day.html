@@ -250,8 +250,8 @@
       lifts:[
         {name:"Circuit 1 - Romanian Deadlift", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with lat pulldown; hinge with a neutral spine."},
         {name:"Circuit 1 - Lat Pulldown", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with Romanian deadlift; full stretch and strong pull."},
-        {name:"Circuit 2 - Standing Cable Row", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with incline dumbbell curl; pull to the ribs without leaning back."},
-        {name:"Circuit 2 - Incline Dumbbell Curl", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with standing cable row; keep shoulders back and elbows quiet."},
+        {name:"Circuit 2 - Standing Cable Row", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with bodyweight hip thrust; pull to the ribs without leaning back."},
+        {name:"Circuit 2 - Bodyweight Hip Thrust", sets:3, reps:"15-25", rest:"30-45s", cue:"Pair with standing cable row; pause at the top and finish each rep with the glutes, not the low back."},
         {name:"Circuit 3 - Face Pull", sets:3, reps:"15", rest:"30s", cue:"Pair with dumbbell shrugs and hanging knee raise; elbows high."},
         {name:"Circuit 3 - Dumbbell Shrugs", sets:3, reps:"12", rest:"30s", cue:"Lift straight up, pause briefly, avoid rolling the shoulders."},
         {name:"Circuit 3 - Hanging Knee Raise", sets:3, reps:"12", rest:"30s", cue:"Control the pelvis; avoid swinging."},
@@ -290,8 +290,8 @@
       lifts:[
         {name:"Circuit 1 - Romanian Deadlift", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with lat pulldown; hinge with a neutral spine."},
         {name:"Circuit 1 - Lat Pulldown", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with Romanian deadlift; full stretch and strong pull."},
-        {name:"Circuit 2 - Standing Cable Row", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with incline dumbbell curl; pull to the ribs without leaning back."},
-        {name:"Circuit 2 - Incline Dumbbell Curl", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with standing cable row; keep shoulders back and elbows quiet."},
+        {name:"Circuit 2 - Standing Cable Row", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with bodyweight hip thrust; pull to the ribs without leaning back."},
+        {name:"Circuit 2 - Bodyweight Hip Thrust", sets:3, reps:"15-25", rest:"30-45s", cue:"Pair with standing cable row; pause at the top and finish each rep with the glutes, not the low back."},
         {name:"Circuit 3 - Face Pull", sets:3, reps:"15", rest:"30s", cue:"Pair with dumbbell shrugs and hanging knee raise; elbows high."},
         {name:"Circuit 3 - Dumbbell Shrugs", sets:3, reps:"12", rest:"30s", cue:"Lift straight up, pause briefly, avoid rolling the shoulders."},
         {name:"Circuit 3 - Hanging Knee Raise", sets:3, reps:"12", rest:"30s", cue:"Control the pelvis; avoid swinging."},
@@ -2422,6 +2422,7 @@
             if(field === "done" && inp.checked){
               const restSeconds = getRestSecondsForLift(session, liftDef, liftOpt);
               const circuitNextLabel = inp.getAttribute("data-next-label");
+              const circuitMatch = String(liftDef.name).match(/^(Circuit\s+\d+)\s+-\s+.+$/);
               const remainingSets = arr.some(s => s && !s.done);
               const nextLift = remainingSets ? null : getNextLift(day, liftDef);
               let restLabel = "";
@@ -2437,7 +2438,39 @@
               }
               startRestTimer(restSeconds, liftStorageKey(liftDef, liftOpt), restLabel);
 
-              if(!remainingSets && nextLift){
+              if(circuitMatch && !remainingSets){
+                const currentCircuit = circuitMatch[1];
+                const currentCircuitLifts = day.lifts.filter(l => {
+                  const match = String(l.name).match(/^(Circuit\s+\d+)\s+-\s+.+$/);
+                  return match && match[1] === currentCircuit;
+                });
+                const lastCircuitLift = currentCircuitLifts[currentCircuitLifts.length - 1];
+                const currentCircuitDone = currentCircuitLifts.length > 0 && currentCircuitLifts.every(l => {
+                  const option = getLiftOption(session, day.id, l);
+                  const sets = ensureLiftArray(session, l, option);
+                  return sets.length > 0 && sets.every(s => s && s.done);
+                });
+
+                if(lastCircuitLift && lastCircuitLift.name === liftDef.name && currentCircuitDone){
+                  const currentKey = `${day.id}::${currentCircuit}`;
+                  const currentLiftIdx = day.lifts.findIndex(l => l.name === liftDef.name);
+                  const nextCircuitLift = day.lifts.slice(currentLiftIdx + 1).find(l => {
+                    const match = String(l.name).match(/^(Circuit\s+\d+)\s+-\s+.+$/);
+                    return match && match[1] !== currentCircuit;
+                  });
+                  const nextCircuitMatch = nextCircuitLift ? String(nextCircuitLift.name).match(/^(Circuit\s+\d+)\s+-\s+.+$/) : null;
+                  const nextKey = nextCircuitMatch ? `${day.id}::${nextCircuitMatch[1]}` : null;
+                  openLifts.delete(currentKey);
+                  if(nextKey) openLifts.add(nextKey);
+                  const currentEl = document.querySelector(`details[data-detail="${CSS.escape(currentKey)}"]`);
+                  const nextEl = nextKey ? document.querySelector(`details[data-detail="${CSS.escape(nextKey)}"]`) : null;
+                  if(currentEl) currentEl.open = false;
+                  if(nextEl) nextEl.open = true;
+                  if(nextEl){
+                    requestAnimationFrame(() => scrollExerciseJustBelowSticky(nextEl));
+                  }
+                }
+              }else if(!remainingSets && nextLift){
                 const currentKey = liftDetailKey(day.id, liftDef);
                 const nextKey = liftDetailKey(day.id, nextLift);
                 openLifts.delete(currentKey);
