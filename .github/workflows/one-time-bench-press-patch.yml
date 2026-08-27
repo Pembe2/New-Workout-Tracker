@@ -18,13 +18,11 @@ jobs:
       - name: Patch Day A Circuit 2
         run: python .github/scripts/patch-day-a-bench.py
 
-      - name: Commit workout changes
+      - name: Commit workout change
         shell: bash
         run: |
-          rm -f .github/workflows/one-time-bench-press-patch.yml
-          rm -f .github/scripts/patch-day-a-bench.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add strength-circuit-2-day.html .github/workflows/one-time-bench-press-patch.yml .github/scripts/patch-day-a-bench.py
+          git add strength-circuit-2-day.html
           git commit -m "Swap Day A machine chest press for bench press"
           git push
