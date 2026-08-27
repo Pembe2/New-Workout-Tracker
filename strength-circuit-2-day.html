@@ -231,7 +231,7 @@
         {name:"Circuit 1 - Goblet Squat", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with neutral-grip dumbbell bench press; move steadily between stations."},
         {name:"Circuit 1 - Neutral-Grip Dumbbell Bench Press", sets:3, reps:"8-10", rest:"30-45s", cue:"Pair with goblet squat; keep shoulders packed and press smoothly."},
         {name:"Circuit 2 - Bulgarian Split Squat", sets:3, reps:"8-10/leg", rest:"30-45s", cue:"Pair with machine or cable chest press; controlled depth and stable knee."},
-        {name:"Circuit 2 - Machine/Cable Chest Press", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with Bulgarian split squat; keep constant tension.", options:["Machine","Cable"]},
+        {name:"Circuit 2 - Bench/Cable Chest Press", sets:3, reps:"10-12", rest:"30-45s", cue:"Pair with Bulgarian split squat; press smoothly through a controlled range.", options:["Bench Press","Cable"], cues:{"Bench Press":"Pair with Bulgarian split squat; keep shoulder blades set, feet planted, and press smoothly.", "Cable":"Pair with Bulgarian split squat; keep constant tension through the full range."}},
         {name:"Circuit 3 - Rope Triceps Pushdown", sets:3, reps:"12", rest:"30s", cue:"Pair with scaption raise and plank; elbows stay pinned."},
         {name:"Circuit 3 - Scaption Raise", sets:3, reps:"12-15", rest:"30s", cue:"Raise in the scapular plane; avoid shrugging."},
         {name:"Circuit 3 - Plank", sets:3, reps:"45-60s", rest:"30s", cue:"Ribs down, glutes tight, steady breathing."},
@@ -469,6 +469,39 @@
     return changed;
   }
 
+  function migrateDayABenchPressHistory(stateObj){
+    if(!stateObj || !stateObj.sessions) return false;
+    let changed = false;
+    Object.values(stateObj.sessions).forEach(weekSessions => {
+      const session = weekSessions && weekSessions.d1;
+      if(!session) return;
+      const oldName = "Circuit 2 - Machine/Cable Chest Press";
+      const newName = "Circuit 2 - Bench/Cable Chest Press";
+      const oldCable = `${oldName}::Cable`;
+      const newCable = `${newName}::Cable`;
+      ["liftSets", "extraSets", "restOverrides"].forEach(bucket => {
+        const obj = session[bucket];
+        if(!obj || !Object.prototype.hasOwnProperty.call(obj, oldCable)) return;
+        if(!Object.prototype.hasOwnProperty.call(obj, newCable)) obj[newCable] = obj[oldCable];
+        delete obj[oldCable];
+        changed = true;
+      });
+      if(session.liftOptions){
+        const oldOptKey = `d1::${oldName}`;
+        const newOptKey = `d1::${newName}`;
+        if(Object.prototype.hasOwnProperty.call(session.liftOptions, oldOptKey)){
+          const oldOpt = session.liftOptions[oldOptKey];
+          if(oldOpt === "Cable" && !Object.prototype.hasOwnProperty.call(session.liftOptions, newOptKey)){
+            session.liftOptions[newOptKey] = "Cable";
+          }
+          delete session.liftOptions[oldOptKey];
+          changed = true;
+        }
+      }
+    });
+    return changed;
+  }
+
   function migrateLegacyLiftNames(stateObj){
     if(!stateObj || !stateObj.sessions) return false;
     let changed = false;
@@ -512,6 +545,9 @@
     return;
   }
   if(migrateLegacyLiftNames(state)){
+    save(state);
+  }
+  if(migrateDayABenchPressHistory(state)){
     save(state);
   }
   if(migrateMetricsVersion(state)){
@@ -2909,7 +2945,7 @@
         save(state, {skipRemote:true});
         render();
         remoteReady = true;
-        if(migrateLegacyLiftNames(state) || migrateMetricsVersion(state)){
+        if(migrateLegacyLiftNames(state) || migrateDayABenchPressHistory(state) || migrateMetricsVersion(state)){
           save(state);
         }
         return;
