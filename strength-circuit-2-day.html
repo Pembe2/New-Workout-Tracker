@@ -236,7 +236,7 @@
         {name:"Circuit 3 - Scaption Raise", sets:3, reps:"12-15", rest:"30s", cue:"Raise in the scapular plane; avoid shrugging."},
         {name:"Circuit 3 - Plank", sets:3, reps:"45-60s", rest:"30s", cue:"Ribs down, glutes tight, steady breathing."},
         {name:"Circuit 4 - Standing Calf Raises", sets:3, reps:"15-20", rest:"30s", cue:"2-3 rounds; pause at top and bottom."},
-        {name:"Circuit 4 - Leg Curl", sets:3, reps:"12-15", rest:"30s", cue:"2-3 rounds; control the eccentric."},
+        {name:"Circuit 4 - Neutral-Grip Dumbbell Overhead Press", sets:3, reps:"8-12", rest:"30-45s", cue:"2-3 rounds; keep ribs down, use a neutral grip, and press without shrugging."},
         {name:"Circuit 4 - Farmer Carry", sets:3, reps:"40-60 yd", rest:"30s", cue:"2-3 rounds; tall posture, slow controlled steps.", options:["Yards","30-45 sec"]},
       ],
       conditioning:{label:"Session Target", rx:"60 minutes total including the 10-minute treadmill warm-up."}
@@ -256,7 +256,7 @@
         {name:"Circuit 3 - Dumbbell Shrugs", sets:3, reps:"12", rest:"30s", cue:"Lift straight up, pause briefly, avoid rolling the shoulders."},
         {name:"Circuit 3 - Hanging Knee Raise", sets:3, reps:"12", rest:"30s", cue:"Control the pelvis; avoid swinging."},
         {name:"Circuit 4 - Walking Lunges", sets:3, reps:"10/leg", rest:"30s", cue:"2-3 rounds; long stride and stable knee."},
-        {name:"Circuit 4 - Reverse Fly", sets:3, reps:"12-15", rest:"30s", cue:"2-3 rounds; lead with elbows and avoid shrugging.", options:["Machine","Cable"]},
+        {name:"Circuit 4 - Dumbbell Reverse Fly", sets:3, reps:"12-15", rest:"30s", cue:"2-3 rounds; hinge slightly, lead with the elbows, and avoid shrugging."},
         {name:"Circuit 4 - Pallof Press", sets:3, reps:"12/side", rest:"30s", cue:"2-3 rounds; resist rotation and keep ribs stacked."},
       ],
       conditioning:{label:"Session Target", rx:"60 minutes total including the 10-minute treadmill warm-up."}
@@ -296,7 +296,7 @@
         {name:"Circuit 3 - Dumbbell Shrugs", sets:3, reps:"12", rest:"30s", cue:"Lift straight up, pause briefly, avoid rolling the shoulders."},
         {name:"Circuit 3 - Hanging Knee Raise", sets:3, reps:"12", rest:"30s", cue:"Control the pelvis; avoid swinging."},
         {name:"Circuit 4 - Walking Lunges", sets:3, reps:"10/leg", rest:"30s", cue:"2-3 rounds; long stride and stable knee."},
-        {name:"Circuit 4 - Reverse Fly", sets:3, reps:"12-15", rest:"30s", cue:"2-3 rounds; lead with elbows and avoid shrugging.", options:["Machine","Cable"]},
+        {name:"Circuit 4 - Dumbbell Reverse Fly", sets:3, reps:"12-15", rest:"30s", cue:"2-3 rounds; hinge slightly, lead with the elbows, and avoid shrugging."},
         {name:"Circuit 4 - Pallof Press", sets:3, reps:"12/side", rest:"30s", cue:"2-3 rounds; resist rotation and keep ribs stacked."},
       ],
       conditioning:{label:"Session Target", rx:"60 minutes total including the 10-minute treadmill warm-up."}
@@ -420,6 +420,9 @@
   }
 
   const LEGACY_LIFT_NAME_MAP = {
+    "Circuit 4 - Reverse Fly::Machine": "Circuit 4 - Dumbbell Reverse Fly",
+    "Circuit 4 - Reverse Fly::Cable": "Circuit 4 - Dumbbell Reverse Fly",
+    "Circuit 4 - Reverse Fly": "Circuit 4 - Dumbbell Reverse Fly",
     "Bench Press (BB or DB)": "Bench Press",
     "Incline Bench Press (BB or DB)": "Incline Bench Press",
     "DB Overhead Press (Standing or Seated)": "DB Overhead Press",
