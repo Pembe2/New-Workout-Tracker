@@ -1,0 +1,33 @@
+name: One-time Day 2 warmup update
+
+on:
+  push:
+    paths:
+      - '.github/trigger-day2-warmup.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-workout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply Day 2 warmup change
+        run: python .github/scripts/patch-day2-warmup.py
+
+      - name: Commit workout update
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add workout.html
+          if git diff --cached --quiet; then
+            echo "Workout plan already up to date."
+            exit 0
+          fi
+          git commit -m "Restructure Day 2 warmup and restore lift order"
+          git push
