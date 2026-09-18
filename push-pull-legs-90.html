@@ -1650,7 +1650,8 @@
     if(session.completed !== prevCompleted) save(state);
 
     const app = $("#app");
-    const dayTotalSets = day.lifts.reduce((sum, l) => sum + l.sets, 0);\n    const estMin = 90;
+    const dayTotalSets = day.lifts.reduce((sum, l) => sum + l.sets, 0);
+    const estMin = 90;
     const groupList = (day.muscleGroups || []).join(" • ");
     const keyText = groupList ? `Targeted Muscle Groups: ${groupList}` : "";
     const statusLabel = session.completed ? "Complete" : (session.dayLocked ? "Locked" : "In progress");
