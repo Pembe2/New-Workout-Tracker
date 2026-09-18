@@ -496,6 +496,9 @@
     }
   }
   let remoteSaveTimer = null;
+  let remoteRetryTimer = null;
+  let remoteSaveInFlight = false;
+  let pendingRemoteState = null;
   let remoteReady = false;
   function withTimeout(promise, ms){
     return Promise.race([
@@ -503,21 +506,53 @@
       new Promise((_, reject) => setTimeout(() => reject(new Error("Sync timeout")), ms))
     ]);
   }
-  function scheduleRemoteSave(nextState){
+  function cloneForRemote(value){
+    if(typeof structuredClone === "function"){
+      try{ return structuredClone(value); }catch(e){}
+    }
+    return JSON.parse(JSON.stringify(value));
+  }
+  async function flushRemoteSave(){
+    if(remoteSaveInFlight || !pendingRemoteState) return;
     if(!window.AuthClient || !AuthClient.isLoggedIn() || !remoteReady) return;
     if(intervalTimer.running && !syncStatusArmed) return;
     if(syncStatusArmed) syncStatusArmed = false;
-    if(remoteSaveTimer) clearTimeout(remoteSaveTimer);
-    remoteSaveTimer = setTimeout(async () => {
-      try{
-        setSyncStatus("saving");
-        await withTimeout(AuthClient.saveWorkout(KEY, nextState), 10000);
-        localStorage.setItem(SYNC_KEY, new Date().toISOString());
-        setSyncStatus("ok");
-      }catch(e){
-        console.warn("Remote save failed", e);
-        setSyncStatus("error");
+    remoteSaveInFlight = true;
+    const snapshot = pendingRemoteState;
+    pendingRemoteState = null;
+    try{
+      setSyncStatus("saving");
+      await withTimeout(AuthClient.saveWorkout(KEY, snapshot), 20000);
+      localStorage.setItem(SYNC_KEY, new Date().toISOString());
+      setSyncStatus("ok");
+      if(remoteRetryTimer){
+        clearTimeout(remoteRetryTimer);
+        remoteRetryTimer = null;
       }
+    }catch(e){
+      console.warn("Remote save failed", e);
+      pendingRemoteState = pendingRemoteState || snapshot;
+      setSyncStatus("error");
+      if(remoteRetryTimer) clearTimeout(remoteRetryTimer);
+      remoteRetryTimer = setTimeout(() => {
+        remoteRetryTimer = null;
+        flushRemoteSave();
+      }, 5000);
+    }finally{
+      remoteSaveInFlight = false;
+      if(pendingRemoteState && !remoteRetryTimer && !intervalTimer.running){
+        flushRemoteSave();
+      }
+    }
+  }
+  function scheduleRemoteSave(nextState){
+    if(!window.AuthClient || !AuthClient.isLoggedIn() || !remoteReady) return;
+    pendingRemoteState = cloneForRemote(nextState);
+    if(intervalTimer.running && !syncStatusArmed) return;
+    if(remoteSaveTimer) clearTimeout(remoteSaveTimer);
+    remoteSaveTimer = setTimeout(() => {
+      remoteSaveTimer = null;
+      flushRemoteSave();
     }, 800);
   }
   function save(state, opts={}){
