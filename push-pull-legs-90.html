@@ -113,6 +113,29 @@
   </div>
 </div>
 
+<div class="devNotesOverlay hidden" id="exerciseNotesOverlay"></div>
+<div class="devNotesModal hidden" id="exerciseNotesModal" role="dialog" aria-modal="true" aria-labelledby="exerciseNotesTitle">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <h3 id="exerciseNotesTitle" style="margin:0">Exercise Notes</h3>
+    <button class="btn" id="exerciseNotesClose" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+      Close
+    </button>
+  </div>
+  <div class="small" style="margin:10px 0 6px">Persistent notes for this exercise</div>
+  <textarea id="exerciseNotesInput" style="width:100%; height:120px; padding:10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text); font-family:var(--sans); font-size:13px;" placeholder="Technique cues, machine settings, reminders, next-time targets..."></textarea>
+  <div class="row" style="justify-content:flex-end; gap:8px; margin-top:8px">
+    <button class="btn bad" id="exerciseNotesClear" type="button">Clear</button>
+    <button class="btn good" id="exerciseNotesSave" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+      Save
+    </button>
+  </div>
+</div>
 <div class="devNotesOverlay hidden" id="workoutResetOverlay"></div>
 <div class="devNotesModal hidden" id="workoutResetModal" role="dialog" aria-modal="true" aria-labelledby="workoutResetTitle">
   <div class="row" style="justify-content:space-between; align-items:center">
@@ -478,6 +501,7 @@
       sessions: {}, // weekStart -> dayId -> data
       viewWeekStart: null,
       progression: { dayId: PLAN[0].id, liftKey: null },
+      exerciseNotes: {},
       timers: {
         restDuration: 90,
         restRemaining: 90,
@@ -2143,6 +2167,13 @@
                   data-opt="${escapeHtml(option || "")}">
                   ${ICONS.copy}<span class="label">Copy Prev</span>
                 </button>` : ""}
+                <button class="btn" type="button"
+                  data-exercise-notes="1"
+                  data-day="${escapeHtml(day.id)}"
+                  data-lift="${escapeHtml(lift.name)}"
+                  data-allow-when-locked="1">
+                  <span class="label">${state.exerciseNotes && state.exerciseNotes[`${day.id}::${lift.name}`] ? "Notes ✓" : "Notes"}</span>
+                </button>
               </div>
             </div>
 
@@ -2351,6 +2382,14 @@
             }
           });
         }
+    });
+
+    app.querySelectorAll("[data-exercise-notes]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const dayId = btn.getAttribute("data-day");
+        const liftName = btn.getAttribute("data-lift");
+        if(dayId && liftName) openExerciseNotes(dayId, liftName);
+      });
     });
 
     app.querySelectorAll(".optBtn").forEach(btn => {
@@ -2612,6 +2651,66 @@
     };
     // Close menu when clicking an item
     menuPopup.querySelectorAll(".menuItem").forEach(b => b.addEventListener("click", () => menuOverlay.click()));
+  }
+
+  // Exercise notes (persistent and synced)
+  let activeExerciseNoteKey = null;
+  function getExerciseNotes(){
+    if(!state.exerciseNotes || typeof state.exerciseNotes !== "object"){
+      state.exerciseNotes = {};
+    }
+    return state.exerciseNotes;
+  }
+  function closeExerciseNotes(){
+    const modal = $("#exerciseNotesModal");
+    const overlay = $("#exerciseNotesOverlay");
+    if(modal) modal.classList.add("hidden");
+    if(overlay) overlay.classList.add("hidden");
+    activeExerciseNoteKey = null;
+  }
+  function openExerciseNotes(dayId, liftName){
+    const modal = $("#exerciseNotesModal");
+    const overlay = $("#exerciseNotesOverlay");
+    const title = $("#exerciseNotesTitle");
+    const input = $("#exerciseNotesInput");
+    if(!modal || !overlay || !input) return;
+    activeExerciseNoteKey = `${dayId}::${liftName}`;
+    if(title) title.textContent = `Exercise Notes — ${liftName}`;
+    input.value = getExerciseNotes()[activeExerciseNoteKey] || "";
+    modal.classList.remove("hidden");
+    overlay.classList.remove("hidden");
+    requestAnimationFrame(() => input.focus());
+  }
+  const exerciseNotesClose = $("#exerciseNotesClose");
+  const exerciseNotesOverlay = $("#exerciseNotesOverlay");
+  const exerciseNotesSave = $("#exerciseNotesSave");
+  const exerciseNotesClear = $("#exerciseNotesClear");
+  if(exerciseNotesClose) exerciseNotesClose.onclick = closeExerciseNotes;
+  if(exerciseNotesOverlay) exerciseNotesOverlay.onclick = closeExerciseNotes;
+  if(exerciseNotesSave){
+    exerciseNotesSave.onclick = () => {
+      if(!activeExerciseNoteKey) return;
+      const input = $("#exerciseNotesInput");
+      const notes = getExerciseNotes();
+      const value = input ? input.value.trim() : "";
+      if(value) notes[activeExerciseNoteKey] = value;
+      else delete notes[activeExerciseNoteKey];
+      save(state);
+      closeExerciseNotes();
+      render();
+    };
+  }
+  if(exerciseNotesClear){
+    exerciseNotesClear.onclick = () => {
+      if(!activeExerciseNoteKey) return;
+      const notes = getExerciseNotes();
+      delete notes[activeExerciseNoteKey];
+      save(state);
+      const input = $("#exerciseNotesInput");
+      if(input) input.value = "";
+      closeExerciseNotes();
+      render();
+    };
   }
 
   // Developer comments (local only)
