@@ -124,15 +124,15 @@
       Close
     </button>
   </div>
-  <div class="small" style="margin:10px 0 6px">Persistent notes for this exercise</div>
-  <textarea id="exerciseNotesInput" style="width:100%; height:120px; padding:10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text); font-family:var(--sans); font-size:13px;" placeholder="Technique cues, machine settings, reminders, next-time targets..."></textarea>
-  <div class="row" style="justify-content:flex-end; gap:8px; margin-top:8px">
-    <button class="btn bad" id="exerciseNotesClear" type="button">Clear</button>
-    <button class="btn good" id="exerciseNotesSave" type="button">
+  <div class="devNotesList" id="exerciseNotesList"></div>
+  <div class="small" style="margin:10px 0 6px">Add a note</div>
+  <textarea id="exerciseNotesInput" style="width:100%; height:80px; padding:10px; border-radius:12px; border:1px solid var(--line); background:var(--input-bg); color:var(--text); font-family:var(--sans); font-size:13px;" placeholder="Session reminder, machine setting, technique cue, next-time target..."></textarea>
+  <div class="row" style="justify-content:flex-end; margin-top:8px">
+    <button class="btn good" id="exerciseNotesAdd" type="button">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path d="M20 6L9 17l-5-5"/>
+        <path d="M12 5v14M5 12h14"/>
       </svg>
-      Save
+      Add
     </button>
   </div>
 </div>
@@ -2172,7 +2172,7 @@
                   data-day="${escapeHtml(day.id)}"
                   data-lift="${escapeHtml(lift.name)}"
                   data-allow-when-locked="1">
-                  <span class="label">${state.exerciseNotes && state.exerciseNotes[`${day.id}::${lift.name}`] ? "Notes ✓" : "Notes"}</span>
+                  <span class="label">${(() => { const v = state.exerciseNotes && state.exerciseNotes[`${day.id}::${lift.name}`]; return (Array.isArray(v) ? v.length > 0 : !!v) ? "Notes ✓" : "Notes"; })()}</span>
                 </button>
               </div>
             </div>
@@ -2655,11 +2655,59 @@
 
   // Exercise notes (persistent and synced)
   let activeExerciseNoteKey = null;
-  function getExerciseNotes(){
+  function getExerciseNotesStore(){
     if(!state.exerciseNotes || typeof state.exerciseNotes !== "object"){
       state.exerciseNotes = {};
     }
     return state.exerciseNotes;
+  }
+  function normalizeExerciseNotesForKey(key){
+    const store = getExerciseNotesStore();
+    const existing = store[key];
+    if(Array.isArray(existing)) return existing;
+    if(typeof existing === "string" && existing.trim()){
+      store[key] = [{id:`n_${Date.now()}_${Math.random().toString(36).slice(2,6)}`, text:existing.trim()}];
+      save(state);
+      return store[key];
+    }
+    store[key] = [];
+    return store[key];
+  }
+  function renderExerciseNotesList(){
+    const list = $("#exerciseNotesList");
+    if(!list || !activeExerciseNoteKey) return;
+    const notes = normalizeExerciseNotesForKey(activeExerciseNoteKey);
+    list.innerHTML = "";
+    if(!notes.length){
+      const empty = document.createElement("div");
+      empty.className = "small";
+      empty.textContent = "No notes yet.";
+      list.appendChild(empty);
+      return;
+    }
+    notes.forEach(note => {
+      const row = document.createElement("div");
+      row.className = "devNoteRow";
+      row.innerHTML = `
+        <div class="devNoteText">${escapeHtml(note.text)}</div>
+        <button class="btn bad" type="button" data-exercise-note-id="${note.id}">
+          ${ICONS.trash}<span class="label">Delete</span>
+        </button>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll("button[data-exercise-note-id]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if(!activeExerciseNoteKey) return;
+        const id = btn.getAttribute("data-exercise-note-id");
+        const store = getExerciseNotesStore();
+        const notes = normalizeExerciseNotesForKey(activeExerciseNoteKey);
+        store[activeExerciseNoteKey] = notes.filter(n => n.id !== id);
+        if(!store[activeExerciseNoteKey].length) delete store[activeExerciseNoteKey];
+        save(state);
+        renderExerciseNotesList();
+      });
+    });
   }
   function closeExerciseNotes(){
     const modal = $("#exerciseNotesModal");
@@ -2676,40 +2724,30 @@
     if(!modal || !overlay || !input) return;
     activeExerciseNoteKey = `${dayId}::${liftName}`;
     if(title) title.textContent = `Exercise Notes — ${liftName}`;
-    input.value = getExerciseNotes()[activeExerciseNoteKey] || "";
+    input.value = "";
+    renderExerciseNotesList();
     modal.classList.remove("hidden");
     overlay.classList.remove("hidden");
     requestAnimationFrame(() => input.focus());
   }
   const exerciseNotesClose = $("#exerciseNotesClose");
   const exerciseNotesOverlay = $("#exerciseNotesOverlay");
-  const exerciseNotesSave = $("#exerciseNotesSave");
-  const exerciseNotesClear = $("#exerciseNotesClear");
+  const exerciseNotesAdd = $("#exerciseNotesAdd");
   if(exerciseNotesClose) exerciseNotesClose.onclick = closeExerciseNotes;
   if(exerciseNotesOverlay) exerciseNotesOverlay.onclick = closeExerciseNotes;
-  if(exerciseNotesSave){
-    exerciseNotesSave.onclick = () => {
+  if(exerciseNotesAdd){
+    exerciseNotesAdd.onclick = () => {
       if(!activeExerciseNoteKey) return;
       const input = $("#exerciseNotesInput");
-      const notes = getExerciseNotes();
-      const value = input ? input.value.trim() : "";
-      if(value) notes[activeExerciseNoteKey] = value;
-      else delete notes[activeExerciseNoteKey];
+      if(!input) return;
+      const text = input.value.trim();
+      if(!text) return;
+      const notes = normalizeExerciseNotesForKey(activeExerciseNoteKey);
+      notes.push({id:`n_${Date.now()}_${Math.random().toString(36).slice(2,6)}`, text});
       save(state);
-      closeExerciseNotes();
-      render();
-    };
-  }
-  if(exerciseNotesClear){
-    exerciseNotesClear.onclick = () => {
-      if(!activeExerciseNoteKey) return;
-      const notes = getExerciseNotes();
-      delete notes[activeExerciseNoteKey];
-      save(state);
-      const input = $("#exerciseNotesInput");
-      if(input) input.value = "";
-      closeExerciseNotes();
-      render();
+      input.value = "";
+      renderExerciseNotesList();
+      input.focus();
     };
   }
 
