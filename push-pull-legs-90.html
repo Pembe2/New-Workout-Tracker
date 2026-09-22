@@ -2655,12 +2655,15 @@
 
   // Exercise notes (persistent and synced)
   let activeExerciseNoteKey = null;
+  let editingExerciseNoteId = null;
+
   function getExerciseNotesStore(){
     if(!state.exerciseNotes || typeof state.exerciseNotes !== "object"){
       state.exerciseNotes = {};
     }
     return state.exerciseNotes;
   }
+
   function normalizeExerciseNotesForKey(key){
     const store = getExerciseNotesStore();
     const existing = store[key];
@@ -2673,11 +2676,26 @@
     store[key] = [];
     return store[key];
   }
+
+  function resetExerciseNoteEditor(){
+    editingExerciseNoteId = null;
+    const input = $("#exerciseNotesInput");
+    const addBtn = $("#exerciseNotesAdd");
+    if(input) input.value = "";
+    if(addBtn) addBtn.innerHTML = `
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Add
+    `;
+  }
+
   function renderExerciseNotesList(){
     const list = $("#exerciseNotesList");
     if(!list || !activeExerciseNoteKey) return;
     const notes = normalizeExerciseNotesForKey(activeExerciseNoteKey);
     list.innerHTML = "";
+
     if(!notes.length){
       const empty = document.createElement("div");
       empty.className = "small";
@@ -2685,17 +2703,51 @@
       list.appendChild(empty);
       return;
     }
+
     notes.forEach(note => {
       const row = document.createElement("div");
       row.className = "devNoteRow";
       row.innerHTML = `
         <div class="devNoteText">${escapeHtml(note.text)}</div>
-        <button class="btn bad" type="button" data-exercise-note-id="${note.id}">
-          ${ICONS.trash}<span class="label">Delete</span>
-        </button>
+        <div class="row" style="gap:6px">
+          <button class="btn" type="button" data-exercise-note-edit="${note.id}">
+            <span class="label">Edit</span>
+          </button>
+          <button class="btn bad" type="button" data-exercise-note-id="${note.id}">
+            ${ICONS.trash}<span class="label">Delete</span>
+          </button>
+        </div>
       `;
       list.appendChild(row);
     });
+
+    list.querySelectorAll("button[data-exercise-note-edit]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if(!activeExerciseNoteKey) return;
+        const id = btn.getAttribute("data-exercise-note-edit");
+        const notes = normalizeExerciseNotesForKey(activeExerciseNoteKey);
+        const note = notes.find(n => n.id === id);
+        if(!note) return;
+
+        editingExerciseNoteId = id;
+        const input = $("#exerciseNotesInput");
+        const addBtn = $("#exerciseNotesAdd");
+        if(input){
+          input.value = note.text;
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        }
+        if(addBtn){
+          addBtn.innerHTML = `
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            Save Changes
+          `;
+        }
+      });
+    });
+
     list.querySelectorAll("button[data-exercise-note-id]").forEach(btn => {
       btn.addEventListener("click", () => {
         if(!activeExerciseNoteKey) return;
@@ -2704,37 +2756,46 @@
         const notes = normalizeExerciseNotesForKey(activeExerciseNoteKey);
         store[activeExerciseNoteKey] = notes.filter(n => n.id !== id);
         if(!store[activeExerciseNoteKey].length) delete store[activeExerciseNoteKey];
+        if(editingExerciseNoteId === id) resetExerciseNoteEditor();
         save(state);
         renderExerciseNotesList();
       });
     });
   }
+
   function closeExerciseNotes(){
     const modal = $("#exerciseNotesModal");
     const overlay = $("#exerciseNotesOverlay");
     if(modal) modal.classList.add("hidden");
     if(overlay) overlay.classList.add("hidden");
     activeExerciseNoteKey = null;
+    resetExerciseNoteEditor();
   }
+
   function openExerciseNotes(dayId, liftName){
     const modal = $("#exerciseNotesModal");
     const overlay = $("#exerciseNotesOverlay");
     const title = $("#exerciseNotesTitle");
     const input = $("#exerciseNotesInput");
     if(!modal || !overlay || !input) return;
+
     activeExerciseNoteKey = `${dayId}::${liftName}`;
+    editingExerciseNoteId = null;
     if(title) title.textContent = `Exercise Notes — ${liftName}`;
-    input.value = "";
+    resetExerciseNoteEditor();
     renderExerciseNotesList();
     modal.classList.remove("hidden");
     overlay.classList.remove("hidden");
     requestAnimationFrame(() => input.focus());
   }
+
   const exerciseNotesClose = $("#exerciseNotesClose");
   const exerciseNotesOverlay = $("#exerciseNotesOverlay");
   const exerciseNotesAdd = $("#exerciseNotesAdd");
+
   if(exerciseNotesClose) exerciseNotesClose.onclick = closeExerciseNotes;
   if(exerciseNotesOverlay) exerciseNotesOverlay.onclick = closeExerciseNotes;
+
   if(exerciseNotesAdd){
     exerciseNotesAdd.onclick = () => {
       if(!activeExerciseNoteKey) return;
@@ -2742,10 +2803,18 @@
       if(!input) return;
       const text = input.value.trim();
       if(!text) return;
+
       const notes = normalizeExerciseNotesForKey(activeExerciseNoteKey);
-      notes.push({id:`n_${Date.now()}_${Math.random().toString(36).slice(2,6)}`, text});
+
+      if(editingExerciseNoteId){
+        const note = notes.find(n => n.id === editingExerciseNoteId);
+        if(note) note.text = text;
+      }else{
+        notes.push({id:`n_${Date.now()}_${Math.random().toString(36).slice(2,6)}`, text});
+      }
+
       save(state);
-      input.value = "";
+      resetExerciseNoteEditor();
       renderExerciseNotesList();
       input.focus();
     };
