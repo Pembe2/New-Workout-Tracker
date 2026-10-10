@@ -13,7 +13,7 @@
 .mobGuideSheet{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:20px;box-shadow:0 22px 70px #0009;width:min(980px,100%);max-height:calc(100dvh - 24px);display:flex;flex-direction:column;overflow:hidden}
 .mobGuideHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
 .mobGuideHead h2{margin:0;font-size:18px}
-.mobGuideGrid{padding:14px;overflow-y:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;overscroll-behavior:contain}
+.mobGuideFullImage{grid-column:1/-1}.mobGuideFullImage img{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line)}.mobGuideGrid{padding:14px;overflow-y:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;overscroll-behavior:contain}
 .mobGuideExercise{border:1px solid var(--line);background:var(--ui-bg);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
 .mobGuideIllustration{height:130px;background:linear-gradient(145deg,rgba(122,162,255,.12),rgba(53,208,127,.07));padding:8px;display:flex;align-items:center;justify-content:center}
 .mobGuideIllustration svg{height:100%;width:100%;max-width:220px}
@@ -1796,7 +1796,11 @@
     const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
     document.getElementById("mobGuideTitle").textContent = "Mobility Guide — "+day.short;
     document.getElementById("mobGuideDay").textContent = day.title+" · "+day.mobility.length+" movements";
-    document.getElementById("mobGuideGrid").innerHTML = day.mobility.map((m,i) =>
+    const guideImage = "mobility-guide-day-" + day.id.slice(1) + ".jpg";
+    document.getElementById("mobGuideGrid").innerHTML =
+      '<div class="mobGuideFullImage"><img src="' + guideImage + '" alt="' + escapeHtml(day.short) +
+      ' illustrated mobility warm-up infographic" onerror="this.closest(\\'.mobGuideFullImage\\').style.display=\\'none\\'"></div>' +
+      day.mobility.map((m,i) =>
       '<div class="mobGuideExercise">'+
       '<div class="mobGuideInfo" style="display:block!important;visibility:visible!important;color:var(--text)!important;background:var(--card2);padding:14px">'+
       '<div style="font-weight:900;font-size:16px;color:var(--text)">'+(i+1)+'. '+escapeHtml(m.name)+'</div>'+
