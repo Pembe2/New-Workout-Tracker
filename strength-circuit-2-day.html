@@ -1799,7 +1799,7 @@
     const guideImage = "mobility-guide-day-" + day.id.slice(1) + ".jpg";
     document.getElementById("mobGuideGrid").innerHTML =
       '<div class="mobGuideFullImage"><img src="' + guideImage + '" alt="' + escapeHtml(day.short) +
-      ' illustrated mobility warm-up infographic" onerror="this.closest(\\'.mobGuideFullImage\\').style.display=\\'none\\'"></div>' +
+      ' illustrated mobility warm-up infographic"></div>' +
       day.mobility.map((m,i) =>
       '<div class="mobGuideExercise">'+
       '<div class="mobGuideInfo" style="display:block!important;visibility:visible!important;color:var(--text)!important;background:var(--card2);padding:14px">'+
@@ -1808,6 +1808,10 @@
       '<div style="color:var(--muted);font-size:13px;line-height:1.45">'+escapeHtml(m.cue)+'</div></div>'+
       '<div class="mobGuideIllustration">'+mobilityArtwork(m.name)+'</div></div>'
     ).join("");
+    const infographic = document.querySelector("#mobGuideGrid .mobGuideFullImage img");
+    if(infographic) infographic.addEventListener("error", () => {
+      infographic.closest(".mobGuideFullImage").style.display = "none";
+    });
     mobGuideOverlay.classList.remove("hidden");
     mobGuideOverlay.setAttribute("aria-hidden","false");
     mobGuideClose.focus();
