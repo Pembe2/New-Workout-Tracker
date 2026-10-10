@@ -1785,13 +1785,12 @@
       '<path d="M20 122H200" stroke="#9bb0d6" stroke-opacity=".25" stroke-width="2"/>'+pose+'</svg>';
   };
   const mobGuideOverlay = document.getElementById("mobGuideOverlay");
-  // The guide button is rendered inside the active workout, not at page load.
+  const mobGuideBtn = document.getElementById("mobGuideBtn");
   const mobGuideClose = document.getElementById("mobGuideClose");
   function closeMobGuide(){
     mobGuideOverlay.classList.add("hidden");
     mobGuideOverlay.setAttribute("aria-hidden","true");
-    const guideButton = document.getElementById("mobGuideBtn");
-    if(guideButton) guideButton.focus();
+    mobGuideBtn.focus();
   }
   function openMobGuide(){
     const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
@@ -1809,13 +1808,7 @@
     mobGuideOverlay.setAttribute("aria-hidden","false");
     mobGuideClose.focus();
   }
-  document.getElementById("app").addEventListener("click",e=>{
-    const guideButton = e.target.closest("#mobGuideBtn");
-    if(!guideButton) return;
-    e.preventDefault();
-    e.stopPropagation();
-    openMobGuide();
-  });
+  mobGuideBtn.addEventListener("click",openMobGuide);
   mobGuideClose.addEventListener("click",closeMobGuide);
   mobGuideOverlay.addEventListener("click",e=>{if(e.target===mobGuideOverlay)closeMobGuide();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!mobGuideOverlay.classList.contains("hidden"))closeMobGuide();});
