@@ -1785,12 +1785,12 @@
       '<path d="M20 122H200" stroke="#9bb0d6" stroke-opacity=".25" stroke-width="2"/>'+pose+'</svg>';
   };
   const mobGuideOverlay = document.getElementById("mobGuideOverlay");
-  const mobGuideBtn = document.getElementById("mobGuideBtn");
+
   const mobGuideClose = document.getElementById("mobGuideClose");
   function closeMobGuide(){
     mobGuideOverlay.classList.add("hidden");
     mobGuideOverlay.setAttribute("aria-hidden","true");
-    mobGuideBtn.focus();
+    document.getElementById("mobGuideBtn")?.focus();
   }
   function openMobGuide(){
     const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
@@ -1816,7 +1816,12 @@
     mobGuideOverlay.setAttribute("aria-hidden","false");
     mobGuideClose.focus();
   }
-  mobGuideBtn.addEventListener("click",openMobGuide);
+  document.getElementById("app").addEventListener("click", (event) => {
+    if(!event.target.closest("#mobGuideBtn")) return;
+    event.preventDefault();
+    event.stopPropagation();
+    openMobGuide();
+  });
   mobGuideClose.addEventListener("click",closeMobGuide);
   mobGuideOverlay.addEventListener("click",e=>{if(e.target===mobGuideOverlay)closeMobGuide();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!mobGuideOverlay.classList.contains("hidden"))closeMobGuide();});
