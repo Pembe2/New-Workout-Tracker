@@ -1808,7 +1808,7 @@
     mobGuideOverlay.setAttribute("aria-hidden","false");
     mobGuideClose.focus();
   }
-  mobGuideBtn.addEventListener("click",openMobGuide);
+  mobGuideBtn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();openMobGuide();});
   mobGuideClose.addEventListener("click",closeMobGuide);
   mobGuideOverlay.addEventListener("click",e=>{if(e.target===mobGuideOverlay)closeMobGuide();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!mobGuideOverlay.classList.contains("hidden"))closeMobGuide();});
