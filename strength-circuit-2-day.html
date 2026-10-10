@@ -7,6 +7,22 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="styles.css">
 
+<style>
+.mobGuideOverlay{position:fixed;inset:0;z-index:9000;background:rgba(4,10,22,.84);display:flex;justify-content:center;align-items:center;padding:12px;backdrop-filter:blur(7px)}
+.mobGuideOverlay.hidden{display:none!important}
+.mobGuideSheet{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:20px;box-shadow:0 22px 70px #0009;width:min(980px,100%);max-height:calc(100dvh - 24px);display:flex;flex-direction:column;overflow:hidden}
+.mobGuideHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.mobGuideHead h2{margin:0;font-size:18px}
+.mobGuideGrid{padding:14px;overflow-y:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;overscroll-behavior:contain}
+.mobGuideExercise{border:1px solid var(--line);background:var(--ui-bg);border-radius:16px;overflow:hidden}
+.mobGuideIllustration{height:145px;background:linear-gradient(145deg,rgba(122,162,255,.12),rgba(53,208,127,.07));padding:8px;display:flex;align-items:center;justify-content:center}
+.mobGuideIllustration svg{height:100%;width:100%;max-width:220px}
+.mobGuideInfo{padding:12px}
+.mobGuideInfo strong{font-size:14px}
+.mobGuideInfo .dose{font-weight:900;color:var(--accent);margin:5px 0}
+.mobGuideInfo p{margin:0;font-size:12px;line-height:1.45;color:var(--muted)}
+@media(max-width:620px){#mobGuideBtn{padding:8px;font-size:12px}.mobGuideGrid{grid-template-columns:1fr}.mobGuideIllustration{height:120px}.mobGuideHead{padding:12px}}
+</style>
 </head>
 <body>
 <div class="safe-area-fix"></div>
@@ -19,6 +35,7 @@
         <div class="sub"></div>
       </div>
       <div class="row" style="position:relative">
+        <button class="btn" id="mobGuideBtn" type="button">Mobility Guide</button>
         <button class="btn menuBtn iconOnly" id="menuToggle" aria-label="Menu">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M3 6h18M3 12h18M3 18h18"/>
@@ -30,6 +47,12 @@
   </div>
 </header>
 
+<div id="mobGuideOverlay" class="mobGuideOverlay hidden" aria-hidden="true">
+  <div class="mobGuideSheet" role="dialog" aria-modal="true" aria-labelledby="mobGuideTitle">
+    <div class="mobGuideHead"><div><h2 id="mobGuideTitle">Mobility Guide</h2><div class="small" id="mobGuideDay"></div></div><button class="btn" id="mobGuideClose" type="button">Close ✕</button></div>
+    <div class="mobGuideGrid" id="mobGuideGrid"></div>
+  </div>
+</div>
 <div class="menuLayer" id="menuLayer">
   <div class="menuOverlay" id="menuOverlay"></div>
   <div class="menuPopup" id="menuPopup">
@@ -1715,6 +1738,79 @@
     }
     handler();
   }
+
+
+  // Illustrated warm-ups are generated directly from each day's plan, so the guide
+  // stays in sync with exercise names, repetitions, and coaching cues.
+  const mobilityArtwork = (name) => {
+    const n = name.toLowerCase();
+    const style = 'stroke="#7aa2ff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"';
+    const guide = 'stroke="#35d07f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"';
+    let pose = '';
+    if(n.includes("treadmill")){
+      pose = '<path d="M37 110H172L155 123H51Z" '+style+'/>'+
+       '<path d="M132 105V33H162" '+style+'/>'+
+       '<circle cx="94" cy="30" r="11" '+style+'/>'+
+       '<path d="M93 42L87 68L112 81M88 52L107 55L121 48M88 67L64 93L48 96M88 68L98 95L124 103" '+style+'/>';
+    }else if(n.includes("ankle") || n.includes("calf")){
+      pose = '<circle cx="78" cy="22" r="11" '+style+'/>'+
+       '<path d="M77 35L77 70L112 85L136 102M77 69L64 103L37 109M112 85L111 115L146 115M42 113H166" '+style+'/>'+
+       '<path d="M129 73Q145 86 134 98" '+guide+'/>';
+    }else if(n.includes("squat")){
+      pose = '<circle cx="110" cy="27" r="11" '+style+'/>'+
+       '<path d="M108 40L108 80L81 92L66 117M108 80L137 91L152 117M108 53L83 29M108 53L130 29M56 119H77M141 119H165" '+style+'/>';
+    }else if(n.includes("wall slide") || n.includes("shoulder circle") || n.includes("scapular")){
+      pose = '<circle cx="110" cy="29" r="11" '+style+'/>'+
+       '<path d="M109 41L109 88M109 88L89 116M109 88L130 116M109 51L78 48L68 21M109 51L141 48L152 21" '+style+'/>'+
+       '<path d="M51 43Q47 9 82 11M135 11Q171 8 166 43" '+guide+'/>';
+    }else if(n.includes("rotator cuff")){
+      pose = '<circle cx="105" cy="28" r="11" '+style+'/>'+
+       '<path d="M105 40V91M105 91L89 118M105 91L122 118M105 49L129 58L129 86M105 49L81 62L81 87" '+style+'/>'+
+       '<path d="M128 87Q163 82 166 60M167 61L155 65M167 61L162 73" '+guide+'/>';
+    }else if(n.includes("cat-cow")||n.includes("thread")||n.includes("rock-back")){
+      pose = '<circle cx="150" cy="58" r="11" '+style+'/>'+
+       '<path d="M139 59Q107 37 78 68L58 91M80 68L88 108M132 60L142 110M47 113H165" '+style+'/>'+
+       '<path d="M92 43Q111 25 132 43" '+guide+'/>';
+    }else if(n.includes("lunge")||n.includes("hip flexor")){
+      pose = '<circle cx="111" cy="25" r="11" '+style+'/>'+
+       '<path d="M111 38L111 71L87 87L59 113M111 70L138 85L151 114M111 48L88 60M111 48L128 58M43 115H165" '+style+'/>';
+    }else if(n.includes("hinge")||n.includes("reach")){
+      pose = '<circle cx="136" cy="38" r="11" '+style+'/>'+
+       '<path d="M125 43L84 70L85 88L67 117M85 87L129 112M107 58L140 81M84 71L61 91M53 119H78M120 116H151" '+style+'/>';
+    }else{
+      pose = '<circle cx="110" cy="29" r="11" '+style+'/>'+
+       '<path d="M110 42L110 85L91 116M110 85L131 116M110 52L82 67L59 55M110 52L138 29L159 19" '+style+'/>'+
+       '<path d="M144 15Q171 18 168 46" '+guide+'/>';
+    }
+    return '<svg viewBox="0 0 220 135" role="img" aria-label="Simplified illustration of '+escapeHtml(name)+'">'+
+      '<path d="M20 122H200" stroke="#9bb0d6" stroke-opacity=".25" stroke-width="2"/>'+pose+'</svg>';
+  };
+  const mobGuideOverlay = document.getElementById("mobGuideOverlay");
+  const mobGuideBtn = document.getElementById("mobGuideBtn");
+  const mobGuideClose = document.getElementById("mobGuideClose");
+  function closeMobGuide(){
+    mobGuideOverlay.classList.add("hidden");
+    mobGuideOverlay.setAttribute("aria-hidden","true");
+    mobGuideBtn.focus();
+  }
+  function openMobGuide(){
+    const day = PLAN.find(d => d.id === state.activeDayId) || PLAN[0];
+    document.getElementById("mobGuideTitle").textContent = "Mobility Guide — "+day.short;
+    document.getElementById("mobGuideDay").textContent = day.title+" · "+day.mobility.length+" movements";
+    document.getElementById("mobGuideGrid").innerHTML = day.mobility.map((m,i) =>
+      '<div class="mobGuideExercise">'+
+      '<div class="mobGuideIllustration">'+mobilityArtwork(m.name)+'</div>'+
+      '<div class="mobGuideInfo"><strong>'+(i+1)+'. '+escapeHtml(m.name)+'</strong>'+
+      '<div class="dose">'+escapeHtml(m.dose)+'</div><p>'+escapeHtml(m.cue)+'</p></div></div>'
+    ).join("");
+    mobGuideOverlay.classList.remove("hidden");
+    mobGuideOverlay.setAttribute("aria-hidden","false");
+    mobGuideClose.focus();
+  }
+  mobGuideBtn.addEventListener("click",openMobGuide);
+  mobGuideClose.addEventListener("click",closeMobGuide);
+  mobGuideOverlay.addEventListener("click",e=>{if(e.target===mobGuideOverlay)closeMobGuide();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!mobGuideOverlay.classList.contains("hidden"))closeMobGuide();});
 
   function render(){
     ensureWeek();
