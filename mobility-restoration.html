@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Mobility Restoration</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+<style>
+.mobHero h2{margin:0 0 4px;font-size:20px}.stepTitle{font-size:14px;font-weight:900;margin-bottom:8px}
+.choiceGrid,.equipmentGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.choiceBtn{width:100%;text-align:left;min-height:48px}.choiceBtn.active{border-color:rgba(122,162,255,.72);background:rgba(122,162,255,.20)}
+.choiceBtn.warn.active{border-color:rgba(255,107,107,.72);background:rgba(255,107,107,.16)}
+.bodyMapWrap{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bodyPanel{border:1px solid var(--line);background:var(--ui-bg);border-radius:18px;padding:10px}
+.bodyLabel{text-align:center;font-size:12px;color:var(--muted);font-weight:800;margin-bottom:6px}.bodySvg{width:100%;height:auto;display:block;max-height:320px}
+.zone{fill:rgba(122,162,255,.08);stroke:rgba(122,162,255,.35);stroke-width:2;cursor:pointer}.zone.selected{fill:rgba(53,208,127,.36);stroke:rgba(53,208,127,.95);stroke-width:3}
+.zoneText{font-size:10px;fill:var(--text);font-family:var(--sans);font-weight:800;pointer-events:none}.zoneHint{text-align:center;margin-top:8px}
+.actionBar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actionBar .btn{flex:1 1 150px}
+.safetyBox{border:1px solid rgba(255,107,107,.45);background:rgba(255,107,107,.10);border-radius:14px;padding:10px 12px;margin-top:10px}
+.routineHeader{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.movementCard{border:1px solid var(--line);background:var(--ui-bg);border-radius:16px;padding:12px;margin-bottom:10px}
+.movementCard.done{border-color:rgba(53,208,127,.55);background:rgba(53,208,127,.08)}
+.movementTop{display:grid;grid-template-columns:62px 1fr;gap:10px;align-items:center}.movementVisual{height:62px;border-radius:14px;border:1px solid var(--line);background:rgba(122,162,255,.10);display:flex;align-items:center;justify-content:center;font-size:30px}
+.movementName{font-size:14px;font-weight:900;margin-bottom:4px}.movementMeta{font-size:12px;color:var(--accent);font-weight:800}.movementCue{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px}
+.movementActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}.movementActions .btn{box-shadow:none}
+.timerReadout{font-family:var(--mono);font-size:18px;font-weight:900;min-width:62px;text-align:center}
+.historyItem{border:1px solid var(--line);background:var(--ui-bg);border-radius:14px;padding:10px;margin-bottom:8px}.historyTitle{font-weight:900;font-size:13px}.historyMeta{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4}
+.hidden{display:none!important}@media(max-width:560px){.zoneText{font-size:9px}}
+</style>
+</head>
+<body>
+<div class="safe-area-fix"></div>
+<header><div class="wrap"><div class="head"><div><h1>Mobility Restoration</h1><div class="sub">Build a focused ~10-minute mobility reset.</div></div><a class="btn" href="index.html">Workout Index</a></div></div></header>
+<main>
+<section class="card mobHero"><div class="cb"><div class="routineHeader"><div><h2>What needs attention today?</h2><div class="small">Select one or more areas, then choose how it feels, the routine style, and what equipment you have.</div></div><button class="btn" id="repeatLastBtn" type="button">Repeat Last Routine</button></div></div></section>
+
+<section class="card" id="setupCard">
+<div class="ch"><h2>1. Where are you stiff?</h2></div><div class="cb">
+<div class="bodyMapWrap">
+<div class="bodyPanel"><div class="bodyLabel">Front</div>
+<svg class="bodySvg" viewBox="0 0 180 360" aria-label="Front body map">
+<circle cx="90" cy="28" r="18" class="zone" data-zone="neck"/><rect x="66" y="48" width="48" height="28" rx="14" class="zone" data-zone="shoulders"/>
+<rect x="68" y="78" width="44" height="48" rx="18" class="zone" data-zone="chest"/><rect x="70" y="130" width="40" height="38" rx="16" class="zone" data-zone="hips"/>
+<rect x="55" y="170" width="28" height="72" rx="14" class="zone" data-zone="quads"/><rect x="97" y="170" width="28" height="72" rx="14" class="zone" data-zone="quads"/>
+<rect x="58" y="246" width="24" height="70" rx="12" class="zone" data-zone="calves"/><rect x="98" y="246" width="24" height="70" rx="12" class="zone" data-zone="calves"/>
+<rect x="50" y="320" width="34" height="20" rx="10" class="zone" data-zone="ankles"/><rect x="96" y="320" width="34" height="20" rx="10" class="zone" data-zone="ankles"/>
+<text x="90" y="62" text-anchor="middle" class="zoneText">shoulders</text><text x="90" y="105" text-anchor="middle" class="zoneText">chest</text><text x="90" y="153" text-anchor="middle" class="zoneText">hips</text><text x="90" y="210" text-anchor="middle" class="zoneText">quads</text><text x="90" y="286" text-anchor="middle" class="zoneText">calves</text>
+</svg></div>
+<div class="bodyPanel"><div class="bodyLabel">Back</div>
+<svg class="bodySvg" viewBox="0 0 180 360" aria-label="Back body map">
+<circle cx="90" cy="28" r="18" class="zone" data-zone="neck"/><rect x="64" y="48" width="52" height="44" rx="18" class="zone" data-zone="upper back"/>
+<rect x="69" y="94" width="42" height="48" rx="16" class="zone" data-zone="lower back"/><rect x="67" y="145" width="46" height="36" rx="16" class="zone" data-zone="glutes"/>
+<rect x="55" y="184" width="28" height="64" rx="14" class="zone" data-zone="hamstrings"/><rect x="97" y="184" width="28" height="64" rx="14" class="zone" data-zone="hamstrings"/>
+<rect x="58" y="252" width="24" height="64" rx="12" class="zone" data-zone="calves"/><rect x="98" y="252" width="24" height="64" rx="12" class="zone" data-zone="calves"/>
+<rect x="50" y="320" width="34" height="20" rx="10" class="zone" data-zone="ankles"/><rect x="96" y="320" width="34" height="20" rx="10" class="zone" data-zone="ankles"/>
+<text x="90" y="72" text-anchor="middle" class="zoneText">upper back</text><text x="90" y="121" text-anchor="middle" class="zoneText">lower back</text><text x="90" y="168" text-anchor="middle" class="zoneText">glutes</text><text x="90" y="220" text-anchor="middle" class="zoneText">hamstrings</text>
+</svg></div></div>
+<div class="small zoneHint" id="zoneSummary">No areas selected yet.</div>
+
+<div class="hr"></div><div class="stepTitle">2. How does it feel?</div>
+<div class="choiceGrid" id="symptomChoices">
+<button class="btn choiceBtn active" data-symptom="stiff">Stiff / Tight<div class="small">Restricted, but not painful</div></button>
+<button class="btn choiceBtn" data-symptom="sore">Sore<div class="small">General or post-workout soreness</div></button>
+<button class="btn choiceBtn warn" data-symptom="painful">Painful<div class="small">Use a conservative routine</div></button>
+</div>
+<div class="safetyBox hidden" id="painNotice"><b>Pain changes the plan.</b><div class="small" style="margin-top:4px">Only gentle movements will be suggested. Stop if symptoms worsen. Sharp pain, numbness/tingling, significant swelling, or a recent injury are better assessed rather than pushed through.</div></div>
+
+<div class="hr"></div><div class="stepTitle">3. What kind of mobility routine do you want?</div>
+<div class="choiceGrid" id="routineChoices">
+<button class="btn choiceBtn active" data-type="restore">Gentle Restore<div class="small">Easy mobility + light stretching</div></button>
+<button class="btn choiceBtn" data-type="strength">Mobility + Strength<div class="small">Mobility plus stability work</div></button>
+<button class="btn choiceBtn" data-type="stretch">Stretch Focus<div class="small">Longer holds and breathing</div></button>
+<button class="btn choiceBtn" data-type="full">Full-Body Reset<div class="small">General 10-minute reset</div></button>
+</div>
+
+<div class="hr"></div><div class="stepTitle">4. What equipment is available?</div><div class="small" style="margin-bottom:8px">Select everything you can use right now.</div>
+<div class="equipmentGrid" id="equipmentChoices">
+<button class="btn choiceBtn active" data-equipment="none">Bodyweight / None</button><button class="btn choiceBtn" data-equipment="band">Resistance Band</button>
+<button class="btn choiceBtn" data-equipment="dumbbell">Dumbbells</button><button class="btn choiceBtn" data-equipment="cable">Cable Machine</button>
+<button class="btn choiceBtn" data-equipment="bench">Bench / Chair</button><button class="btn choiceBtn" data-equipment="ball">Exercise Ball</button>
+<button class="btn choiceBtn" data-equipment="roller">Foam Roller</button>
+</div>
+<div class="actionBar"><button class="btn primary" id="buildBtn" type="button">Build My 10-Minute Routine</button></div>
+<div class="small" id="setupError" style="color:var(--bad);margin-top:8px"></div>
+</div></section>
+
+<section class="card hidden" id="routineCard">
+<div class="ch"><div><h2 id="routineTitle">Your Mobility Routine</h2><div class="small" id="routineSubtitle"></div></div><button class="btn" id="newRoutineBtn" type="button">Start Over</button></div>
+<div class="cb"><div class="progress" style="margin-bottom:12px"><div class="progressFill" id="routineProgress" style="width:0%"></div></div><div id="routineList"></div>
+<div class="actionBar"><button class="btn good" id="finishRoutineBtn" type="button">Finish Routine</button></div>
+<div id="afterRating" class="hidden"><div class="hr"></div><div class="stepTitle">How do you feel now?</div><div class="choiceGrid">
+<button class="btn choiceBtn" data-feel="Worse">Worse</button><button class="btn choiceBtn" data-feel="Same">Same</button><button class="btn choiceBtn" data-feel="Better">Better</button><button class="btn choiceBtn" data-feel="Much Better">Much Better</button>
+</div></div></div></section>
+
+<section class="card"><div class="ch"><h2>Recent Mobility Sessions</h2></div><div class="cb" id="historyList"><div class="small">No mobility sessions yet.</div></div></section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<script>
+(async function(){
+const KEY="workout_tracker_mobility_restoration_v1";
+const $=function(s){return document.querySelector(s)};const $$=function(s){return Array.from(document.querySelectorAll(s))};
+const MOVES=[
+{name:"90/90 Hip Switches",zones:["hips","glutes"],types:["restore","strength","full"],equipment:"none",seconds:90,icon:"🧘",cue:"Sit tall and rotate both knees side to side under control. Stay in a pain-free range."},
+{name:"Half-Kneeling Hip Flexor Stretch",zones:["hips","quads"],types:["restore","stretch","full"],equipment:"none",seconds:90,icon:"🦵",cue:"Tuck the pelvis slightly, squeeze the back glute, and shift forward without arching the low back."},
+{name:"Adductor Rock-Back",zones:["hips","hamstrings"],types:["restore","strength","full"],equipment:"none",seconds:75,icon:"↔️",cue:"From hands and knees, extend one leg to the side and rock hips back slowly."},
+{name:"Glute Bridge",zones:["hips","glutes","lower back"],types:["strength","full"],equipment:"none",seconds:75,icon:"🌉",cue:"Drive through the feet, squeeze glutes, and stop before the low back takes over."},
+{name:"Figure-4 Stretch",zones:["glutes","hips"],types:["restore","stretch","full"],equipment:"none",seconds:90,icon:"4️⃣",cue:"Cross ankle over opposite knee and gently draw the legs toward you. Breathe slowly."},
+{name:"Hamstring Floss",zones:["hamstrings","lower back"],types:["restore","strength","full"],equipment:"none",seconds:75,icon:"🦵",cue:"Move in and out of the stretch rather than forcing a long hold."},
+{name:"Supine Hamstring Stretch",zones:["hamstrings"],types:["stretch"],equipment:"none",seconds:90,icon:"🧘",cue:"Keep the knee soft and stop before the pelvis rolls backward."},
+{name:"Quad / Couch Stretch",zones:["quads","hips"],types:["stretch","restore"],equipment:"bench",seconds:90,icon:"🪑",cue:"Keep ribs stacked over pelvis and squeeze the glute on the stretching side."},
+{name:"Bodyweight Split Squat Iso Hold",zones:["hips","quads","glutes"],types:["strength"],equipment:"none",seconds:75,icon:"🏋️",cue:"Hold a comfortable split stance with an upright torso and the front foot fully planted."},
+{name:"Calf Wall Stretch",zones:["calves","ankles"],types:["restore","stretch","full"],equipment:"none",seconds:75,icon:"🦶",cue:"Keep the heel down and point the toes straight ahead. Ease forward gradually."},
+{name:"Ankle Dorsiflexion Rocks",zones:["ankles","calves"],types:["restore","strength","full"],equipment:"none",seconds:75,icon:"🦶",cue:"Drive the knee over the toes while keeping the heel planted."},
+{name:"Single-Leg Calf Raise",zones:["calves","ankles"],types:["strength"],equipment:"none",seconds:60,icon:"⬆️",cue:"Use a slow full range. Hold a wall or bench for balance if needed."},
+{name:"Cat-Cow",zones:["upper back","lower back","neck"],types:["restore","full"],equipment:"none",seconds:75,icon:"🐈",cue:"Move one spinal segment at a time and keep the range comfortable."},
+{name:"Child's Pose with Side Reach",zones:["upper back","lower back","shoulders"],types:["restore","stretch","full"],equipment:"none",seconds:90,icon:"🧘",cue:"Sit hips back and walk hands to one side to lengthen the lat and side body."},
+{name:"Open Book Rotation",zones:["upper back","shoulders","chest"],types:["restore","stretch","full"],equipment:"none",seconds:90,icon:"📖",cue:"Keep knees stacked and rotate through the upper back rather than the low back."},
+{name:"Wall Thoracic Rotation",zones:["upper back","shoulders"],types:["strength","restore"],equipment:"none",seconds:75,icon:"🔄",cue:"Keep hips square and rotate smoothly through the upper spine."},
+{name:"Band Pull-Aparts",zones:["shoulders","upper back","chest"],types:["strength","full"],equipment:"band",seconds:75,icon:"➖",cue:"Keep ribs down and pull the band apart without shrugging."},
+{name:"Cable Face Pull",zones:["shoulders","upper back"],types:["strength"],equipment:"cable",seconds:75,icon:"🎯",cue:"Pull toward the face with elbows high and finish with the upper back."},
+{name:"Doorway Chest Stretch",zones:["chest","shoulders"],types:["restore","stretch","full"],equipment:"none",seconds:90,icon:"🚪",cue:"Forearm on a doorway, then rotate away gently without forcing the shoulder."},
+{name:"Wall Slides",zones:["shoulders","upper back"],types:["restore","strength","full"],equipment:"none",seconds:75,icon:"⬆️",cue:"Keep ribs down and slide arms upward only as far as you can without shrugging."},
+{name:"Upper Trap / Neck Stretch",zones:["neck","shoulders"],types:["restore","stretch","full"],equipment:"none",seconds:75,icon:"🧠",cue:"Gently tip the ear toward the shoulder. Do not pull aggressively on the head."},
+{name:"Chin Tucks",zones:["neck"],types:["restore","strength","full"],equipment:"none",seconds:60,icon:"↩️",cue:"Draw the chin straight back to make a small double-chin while keeping eyes level."},
+{name:"Foam Roll Upper Back",zones:["upper back"],types:["restore","full"],equipment:"roller",seconds:75,icon:"🧱",cue:"Roll slowly across the upper back; avoid rolling directly on the neck or low back."},
+{name:"Exercise Ball Hamstring Curl",zones:["hamstrings","glutes"],types:["strength"],equipment:"ball",seconds:75,icon:"⚽",cue:"Keep hips lifted and curl the ball in under control."},
+{name:"Goblet Squat Pry",zones:["hips","ankles","quads"],types:["strength","restore"],equipment:"dumbbell",seconds:75,icon:"🏋️",cue:"Sit into a comfortable squat and gently shift side to side while keeping the whole foot down."},
+{name:"Gentle Lower-Back Rotation",zones:["lower back"],types:["restore","stretch","full"],equipment:"none",seconds:75,icon:"🔄",cue:"Lie on your back with knees bent and let them move side to side in a small comfortable range."}
+];
+var state=load()||{history:[],lastRoutine:null};var remoteReady=false,saveTimer=null,activeRoutine=[],timers={};
+var selections={zones:new Set(),symptom:"stiff",type:"restore",equipment:new Set(["none"])};
+
+function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));if(!remoteReady||!window.AuthClient||!AuthClient.isLoggedIn())return;clearTimeout(saveTimer);saveTimer=setTimeout(function(){AuthClient.saveWorkout(KEY,state).catch(function(e){console.warn("Mobility sync failed",e)})},500)}
+if(window.AuthClient&&AuthClient.init){try{await AuthClient.init()}catch(e){}}
+if(window.AuthClient&&!AuthClient.isLoggedIn()){window.location.href="login.html";return}
+if(window.AuthClient&&AuthClient.isLoggedIn()){try{var remote=await AuthClient.getWorkout(KEY);if(remote&&remote.data){state=remote.data;localStorage.setItem(KEY,JSON.stringify(state))}}catch(e){}remoteReady=true}
+
+function esc(v){return String(v).replace(/[&<>"']/g,function(m){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[m]})}
+function fmt(sec){var m=Math.floor(sec/60),s=sec%60;return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")}
+function updateZoneUI(){$$(".zone").forEach(function(el){el.classList.toggle("selected",selections.zones.has(el.dataset.zone))});var z=Array.from(selections.zones);$("#zoneSummary").textContent=z.length?"Selected: "+z.join(", "):"No areas selected yet."}
+$$(".zone").forEach(function(el){el.addEventListener("click",function(){var z=el.dataset.zone;if(selections.zones.has(z))selections.zones.delete(z);else selections.zones.add(z);updateZoneUI()})});
+
+function bindSingle(id,key,dataKey){var c=$("#"+id);c.querySelectorAll("[data-"+dataKey+"]").forEach(function(btn){btn.addEventListener("click",function(){selections[key]=btn.dataset[dataKey];c.querySelectorAll("[data-"+dataKey+"]").forEach(function(x){x.classList.toggle("active",x===btn)});if(key==="symptom")$("#painNotice").classList.toggle("hidden",selections.symptom!=="painful")})})}
+bindSingle("symptomChoices","symptom","symptom");bindSingle("routineChoices","type","type");
+$("#equipmentChoices").querySelectorAll("[data-equipment]").forEach(function(btn){btn.addEventListener("click",function(){var e=btn.dataset.equipment;if(selections.equipment.has(e))selections.equipment.delete(e);else selections.equipment.add(e);if(!selections.equipment.size)selections.equipment.add("none");$("#equipmentChoices").querySelectorAll("[data-equipment]").forEach(function(x){x.classList.toggle("active",selections.equipment.has(x.dataset.equipment))})})});
+
+function scoreMove(m,zones){var score=0;m.zones.forEach(function(z){if(zones.indexOf(z)>=0)score+=5});if(m.types.indexOf(selections.type)>=0)score+=3;if(m.equipment==="none"||selections.equipment.has(m.equipment))score+=2;else score-=20;if(selections.type==="full"&&m.types.indexOf("full")>=0)score+=4;return score}
+function buildRoutine(){$("#setupError").textContent="";var zones=Array.from(selections.zones);if(selections.type!=="full"&&!zones.length){$("#setupError").textContent="Pick at least one body area first.";return}var target=selections.type==="full"?["neck","shoulders","upper back","lower back","hips","glutes","hamstrings","quads","calves","ankles"]:zones;
+var pool=MOVES.filter(function(m){return m.equipment==="none"||selections.equipment.has(m.equipment)});if(selections.symptom==="painful")pool=pool.filter(function(m){return(m.types.indexOf("restore")>=0||m.types.indexOf("stretch")>=0)&&["Bodyweight Split Squat Iso Hold","Goblet Squat Pry","Single-Leg Calf Raise"].indexOf(m.name)<0});
+pool=pool.map(function(m){return{m:m,score:scoreMove(m,target)}}).filter(function(x){return x.score>1}).sort(function(a,b){return b.score-a.score});
+var chosen=[],used={},total=0;pool.forEach(function(x){var m=x.m;if(chosen.length>=7||used[m.name])return;if(total+m.seconds>620&&chosen.length>=5)return;chosen.push(Object.assign({},m,{done:false}));used[m.name]=true;total+=m.seconds});
+if(chosen.length<4){MOVES.filter(function(m){return m.equipment==="none"&&m.types.indexOf("restore")>=0}).forEach(function(m){if(chosen.length<5&&!used[m.name]){chosen.push(Object.assign({},m,{done:false}));used[m.name]=true}})}
+activeRoutine=chosen;state.lastRoutine={createdAt:new Date().toISOString(),zones:target,symptom:selections.symptom,type:selections.type,equipment:Array.from(selections.equipment),moves:chosen.map(function(m){var c=Object.assign({},m);delete c.done;return c})};save();renderRoutine()}
+
+function renderRoutine(){$("#setupCard").classList.add("hidden");$("#routineCard").classList.remove("hidden");var labels={restore:"Gentle Restore",strength:"Mobility + Strength",stretch:"Stretch Focus",full:"Full-Body Reset"};$("#routineTitle").textContent=labels[selections.type]||"Mobility Routine";$("#routineSubtitle").textContent="~10 minutes • "+selections.symptom+" • "+(Array.from(selections.zones).join(", ")||"full body");
+var box=$("#routineList");box.innerHTML="";activeRoutine.forEach(function(m,i){var div=document.createElement("div");div.className="movementCard"+(m.done?" done":"");div.innerHTML='<div class="movementTop"><div class="movementVisual">'+m.icon+'</div><div><div class="movementName">'+(i+1)+'. '+esc(m.name)+'</div><div class="movementMeta">'+m.seconds+' sec • '+esc(m.equipment==="none"?"No equipment":m.equipment)+'</div></div></div><div class="movementCue">'+esc(m.cue)+'</div><div class="movementActions"><button class="btn" type="button" data-start="'+i+'">Start Timer</button><div class="timerReadout" id="timer-'+i+'">'+fmt(m.seconds)+'</div><button class="btn good" type="button" data-done="'+i+'">'+(m.done?"Done ✓":"Mark Done")+'</button></div>';box.appendChild(div)});
+$$("[data-start]").forEach(function(btn){btn.addEventListener("click",function(){startTimer(Number(btn.dataset.start))})});$$("[data-done]").forEach(function(btn){btn.addEventListener("click",function(){var i=Number(btn.dataset.done);activeRoutine[i].done=!activeRoutine[i].done;renderRoutine()})});updateProgress();window.scrollTo({top:0,behavior:"smooth"})}
+function startTimer(i){if(timers[i])clearInterval(timers[i]);var remaining=activeRoutine[i].seconds;var el=$("#timer-"+i);var id=setInterval(function(){remaining--;if(el)el.textContent=fmt(Math.max(0,remaining));if(remaining<=0){clearInterval(id);delete timers[i];activeRoutine[i].done=true;if(navigator.vibrate)navigator.vibrate([100,80,100]);renderRoutine()}},1000);timers[i]=id}
+function updateProgress(){var done=activeRoutine.filter(function(x){return x.done}).length;$("#routineProgress").style.width=(activeRoutine.length?Math.round(done/activeRoutine.length*100):0)+"%"}
+
+$("#finishRoutineBtn").addEventListener("click",function(){var rec={id:"m_"+Date.now(),date:new Date().toISOString(),zones:Array.from(selections.zones),symptom:selections.symptom,type:selections.type,equipment:Array.from(selections.equipment),moves:activeRoutine.map(function(m){return m.name}),completed:activeRoutine.filter(function(m){return m.done}).length,total:activeRoutine.length,feeling:null};state.history=[rec].concat(state.history||[]).slice(0,30);save();renderHistory();$("#afterRating").classList.remove("hidden")});
+$("#afterRating").querySelectorAll("[data-feel]").forEach(function(btn){btn.addEventListener("click",function(){if(state.history&&state.history[0]){state.history[0].feeling=btn.dataset.feel;save();renderHistory()}$("#afterRating").querySelectorAll("[data-feel]").forEach(function(x){x.classList.toggle("active",x===btn)})})});
+$("#newRoutineBtn").addEventListener("click",function(){Object.keys(timers).forEach(function(k){clearInterval(timers[k])});timers={};activeRoutine=[];$("#routineCard").classList.add("hidden");$("#setupCard").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"})});
+$("#repeatLastBtn").addEventListener("click",function(){var last=state.lastRoutine;if(!last||!last.moves||!last.moves.length){$("#setupError").textContent="No previous mobility routine saved yet.";return}selections.zones=new Set(last.zones||[]);selections.symptom=last.symptom||"stiff";selections.type=last.type||"restore";selections.equipment=new Set(last.equipment||["none"]);activeRoutine=last.moves.map(function(m){return Object.assign({},m,{done:false})});updateZoneUI();renderRoutine()});
+$("#buildBtn").addEventListener("click",buildRoutine);
+
+function renderHistory(){var box=$("#historyList"),history=state.history||[];if(!history.length){box.innerHTML='<div class="small">No mobility sessions yet.</div>';return}box.innerHTML=history.slice(0,8).map(function(h){var d=new Date(h.date);return'<div class="historyItem"><div class="historyTitle">'+esc(h.zones&&h.zones.length?h.zones.join(", "):"Full body")+'</div><div class="historyMeta">'+d.toLocaleDateString()+' • '+esc(h.type)+' • '+h.completed+'/'+h.total+' movements'+(h.feeling?' • felt '+esc(h.feeling):'')+'</div></div>'}).join("")}
+updateZoneUI();renderHistory();
+})();
+</script>
+</body>
+</html>
