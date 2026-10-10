@@ -2547,7 +2547,47 @@
               }else{
                 restLabel = "Session complete";
               }
-              startRestTimer(restSeconds, liftStorageKey(liftDef, liftOpt), restLabel);
+              // Rest only when every station in this circuit round is complete.
+              // No timer between stations, and no timer after the final block.
+              let shouldStartRest = !circuitMatch;
+              if(circuitMatch){
+                const circuitName = circuitMatch[1];
+                const circuitLifts = day.lifts.filter(l => String(l.name).startsWith(circuitName + " - "));
+                const roundComplete = circuitLifts.every(l => {
+                  const option = getLiftOption(session, day.id, l);
+                  const sets = ensureLiftArray(session, l, option);
+                  return !sets[idx] || !!sets[idx].done;
+                });
+                const moreRounds = circuitLifts.some(l => {
+                  const option = getLiftOption(session, day.id, l);
+                  const sets = ensureLiftArray(session, l, option);
+                  return sets.some((set, setIdx) => setIdx > idx && set && !set.done);
+                });
+                const nextBlock = day.lifts.some(l => {
+                  const match = String(l.name).match(/^(Circuit\s+\d+)\s+-\s+.+$/);
+                  if(!match || Number(match[1].match(/\d+/)[0]) <= Number(circuitName.match(/\d+/)[0])) return false;
+                  const option = getLiftOption(session, day.id, l);
+                  return ensureLiftArray(session, l, option).some(set => set && !set.done);
+                });
+                shouldStartRest = roundComplete && (moreRounds || nextBlock);
+                if(shouldStartRest){
+                  if(moreRounds){
+                    const first = circuitLifts[0];
+                    restLabel = first.name.replace(/^Circuit\s+\d+\s+-\s+/, "") + " - round " + (idx + 2);
+                  }else{
+                    const next = day.lifts.find(l => {
+                      const match = String(l.name).match(/^(Circuit\s+\d+)\s+-\s+.+$/);
+                      if(!match || Number(match[1].match(/\d+/)[0]) <= Number(circuitName.match(/\d+/)[0])) return false;
+                      const option = getLiftOption(session, day.id, l);
+                      return ensureLiftArray(session, l, option).some(set => set && !set.done);
+                    });
+                    if(next) restLabel = next.name.replace(" - ", ": ") + " - round 1";
+                  }
+                }
+              }
+              if(shouldStartRest){
+                startRestTimer(restSeconds, liftStorageKey(liftDef, liftOpt), restLabel);
+              }
 
               if(circuitMatch && !remainingSets){
                 const currentCircuit = circuitMatch[1];
