@@ -8,16 +8,32 @@
 <link rel="stylesheet" href="styles.css">
 
 <style>
-/* Exercise data confirmation: app-styled modal instead of browser dialogs. */
-.exerciseClearOverlay{position:fixed;inset:0;z-index:200;background:rgba(5,9,18,.78);backdrop-filter:blur(6px)}
+/* Match the existing rest timer popup, including light-mode appearance. */
+.exerciseClearOverlay{position:fixed;inset:0;z-index:200;background:rgba(6,10,18,.35);backdrop-filter:blur(4px)}
 .exerciseClearOverlay.hidden,.exerciseClearModal.hidden{display:none!important}
-.exerciseClearModal{position:fixed;z-index:201;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,440px);max-height:calc(100dvh - 32px);overflow:auto;border-radius:20px;border:1px solid var(--line);background:var(--card-bg);color:var(--text);padding:22px;box-shadow:0 24px 76px rgba(0,0,0,.55)}
-.exerciseClearIcon{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:var(--bad);background:rgba(255,107,107,.12);margin-bottom:14px}
-.exerciseClearModal h3{font-size:19px;margin:0 0 8px}
-.exerciseClearModal p{font-size:14px;line-height:1.5;margin:0 0 10px}
-.exerciseClearModal .exerciseClearScope{border:1px solid var(--line);background:var(--ui-bg);border-radius:12px;padding:11px 12px;margin:14px 0;font-size:13px;line-height:1.5}
-.exerciseClearActions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap}
-.exerciseClearActions .btn{min-width:110px;justify-content:center}
+.exerciseClearModal{
+ position:fixed;z-index:201;left:50%;top:50%;transform:translate(-50%,-50%);
+ width:min(92vw,420px);max-height:calc(100dvh - 32px);overflow:auto;
+ background:var(--ui-bg);color:var(--text);border:1px solid rgba(122,162,255,.6);
+ border-radius:18px;padding:14px;
+ box-shadow:0 18px 50px rgba(0,0,0,.45),0 0 18px rgba(122,162,255,.25);
+}
+.exerciseClearModal::before{content:"";position:absolute;inset:-2px;border-radius:20px;border:1px solid rgba(122,162,255,.35);pointer-events:none}
+.exerciseClearIcon{display:none}
+.exerciseClearModal h3{font-size:17px;margin:0 0 8px;font-weight:800}
+.exerciseClearModal p{font-size:13px;line-height:1.5;margin:0 0 10px;color:var(--muted)}
+.exerciseClearModal p strong{color:var(--text)}
+.exerciseClearScope{border:1px solid var(--line);background:var(--btn-bg);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:12px;line-height:1.55}
+.exerciseClearActions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap}
+.exerciseClearActions .btn{background:var(--btn-bg)}
+.exerciseClearActions .btn.bad{border-color:rgba(255,107,107,.45)}
+body.light .exerciseClearOverlay{background:rgba(15,23,42,.12);backdrop-filter:blur(4px)}
+body.light .exerciseClearModal{
+ background:linear-gradient(135deg,#ffffff,#f1f5f9);
+ border:1px solid rgba(49,130,206,.35);
+ box-shadow:0 16px 40px rgba(15,23,42,.12),0 0 12px rgba(49,130,206,.15);
+}
+body.light .exerciseClearModal::before{border-color:rgba(49,130,206,.25)}
 @media(max-width:390px){.exerciseClearActions .btn{flex:1}}
 </style>
 </head>
