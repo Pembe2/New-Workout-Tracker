@@ -2168,6 +2168,13 @@
                   data-opt="${escapeHtml(option || "")}">
                   ${ICONS.copy}<span class="label">Copy Prev</span>
                 </button>` : ""}
+                <button class="btn bad" type="button"
+                  data-clear-exercise="1"
+                  data-lift="${escapeHtml(lift.name)}"
+                  data-opt="${escapeHtml(option || "")}"
+                  aria-label="Clear current session data for ${escapeHtml(liftDisplayName(lift, option))}">
+                  ${ICONS.trash}<span class="label">Clear Data</span>
+                </button>
                 <button class="btn" type="button"
                   data-exercise-notes="1"
                   data-day="${escapeHtml(day.id)}"
@@ -2383,6 +2390,35 @@
             }
           });
         }
+    });
+
+    // Clear only this session's selected exercise variation. Never modify historical weeks,
+    // other variation keys, exercise notes, or the selected option itself.
+    app.querySelectorAll("button[data-clear-exercise]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const liftName = btn.getAttribute("data-lift");
+        const liftOpt = btn.getAttribute("data-opt") || null;
+        const liftDef = day.lifts.find(x => x.name === liftName);
+        if(!liftDef) return;
+        const storageKey = liftStorageKey(liftDef, liftOpt);
+        const displayName = liftDisplayName(liftDef, liftOpt);
+        const message = "Clear ALL current-session set data for " + displayName +
+          "?\n\nThis will erase reps, weights, RPE, and Done checkmarks for this variation only." +
+          "\nOther variations, previous weeks, and exercise notes will not be changed.";
+        if(!window.confirm(message)) return;
+        const arr = ensureLiftArray(session, liftDef, liftOpt);
+        arr.forEach(set => {
+          set.reps = "";
+          set.weight = "";
+          set.rpe = "";
+          set.done = false;
+        });
+        updateAutoComplete(session, day);
+        openLifts.add(liftDetailKey(day.id, liftDef));
+        save(state);
+        renderTabs();
+        render();
+      });
     });
 
     app.querySelectorAll("[data-exercise-notes]").forEach(btn => {
