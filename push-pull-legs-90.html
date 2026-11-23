@@ -7,6 +7,19 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="styles.css">
 
+<style>
+/* Exercise data confirmation: app-styled modal instead of browser dialogs. */
+.exerciseClearOverlay{position:fixed;inset:0;z-index:200;background:rgba(5,9,18,.78);backdrop-filter:blur(6px)}
+.exerciseClearOverlay.hidden,.exerciseClearModal.hidden{display:none!important}
+.exerciseClearModal{position:fixed;z-index:201;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,440px);max-height:calc(100dvh - 32px);overflow:auto;border-radius:20px;border:1px solid var(--line);background:var(--card-bg);color:var(--text);padding:22px;box-shadow:0 24px 76px rgba(0,0,0,.55)}
+.exerciseClearIcon{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:var(--bad);background:rgba(255,107,107,.12);margin-bottom:14px}
+.exerciseClearModal h3{font-size:19px;margin:0 0 8px}
+.exerciseClearModal p{font-size:14px;line-height:1.5;margin:0 0 10px}
+.exerciseClearModal .exerciseClearScope{border:1px solid var(--line);background:var(--ui-bg);border-radius:12px;padding:11px 12px;margin:14px 0;font-size:13px;line-height:1.5}
+.exerciseClearActions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap}
+.exerciseClearActions .btn{min-width:110px;justify-content:center}
+@media(max-width:390px){.exerciseClearActions .btn{flex:1}}
+</style>
 </head>
 <body>
 <div class="safe-area-fix"></div>
@@ -136,6 +149,25 @@
     </button>
   </div>
 </div>
+<div class="exerciseClearOverlay hidden" id="exerciseClearOverlay"></div>
+<div class="exerciseClearModal hidden" id="exerciseClearModal" role="dialog" aria-modal="true" aria-labelledby="exerciseClearTitle" aria-describedby="exerciseClearDescription">
+  <div class="exerciseClearIcon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6zM10 10v7M14 10v7"/>
+    </svg>
+  </div>
+  <h3 id="exerciseClearTitle">Clear exercise data?</h3>
+  <p id="exerciseClearDescription">You're about to clear the current session's entries for <strong id="exerciseClearName"></strong>.</p>
+  <div class="exerciseClearScope">
+    <div><strong>Will clear:</strong> reps, weight, RPE, and completed sets.</div>
+    <div style="margin-top:5px;color:var(--muted)"><strong>Will keep:</strong> previous weeks, other exercise variations, and notes.</div>
+  </div>
+  <div class="exerciseClearActions">
+    <button class="btn" type="button" id="exerciseClearCancel">Keep Data</button>
+    <button class="btn bad" type="button" id="exerciseClearConfirm">Yes, Clear Data</button>
+  </div>
+</div>
+
 <div class="devNotesOverlay hidden" id="workoutResetOverlay"></div>
 <div class="devNotesModal hidden" id="workoutResetModal" role="dialog" aria-modal="true" aria-labelledby="workoutResetTitle">
   <div class="row" style="justify-content:space-between; align-items:center">
@@ -1700,6 +1732,59 @@
     handler();
   }
 
+  let pendingExerciseClear = null;
+  const exerciseClearOverlay = $("#exerciseClearOverlay");
+  const exerciseClearModal = $("#exerciseClearModal");
+  const exerciseClearCancel = $("#exerciseClearCancel");
+  const exerciseClearConfirm = $("#exerciseClearConfirm");
+  let exerciseClearTrigger = null;
+
+  function closeExerciseClear(){
+    exerciseClearOverlay.classList.add("hidden");
+    exerciseClearModal.classList.add("hidden");
+    pendingExerciseClear = null;
+    if(exerciseClearTrigger && document.contains(exerciseClearTrigger)) exerciseClearTrigger.focus();
+    exerciseClearTrigger = null;
+  }
+  function openExerciseClear(day, liftDef, option, trigger){
+    // Capture the current session identity so the confirmation cannot affect another day/week.
+    pendingExerciseClear = {weekKey:state.weekStart,dayId:day.id,liftName:liftDef.name,option};
+    exerciseClearTrigger = trigger || null;
+    $("#exerciseClearName").textContent = liftDisplayName(liftDef,option);
+    exerciseClearOverlay.classList.remove("hidden");
+    exerciseClearModal.classList.remove("hidden");
+    exerciseClearCancel.focus();
+  }
+  exerciseClearCancel.addEventListener("click",closeExerciseClear);
+  exerciseClearOverlay.addEventListener("click",closeExerciseClear);
+  document.addEventListener("keydown",e=>{
+    if(exerciseClearModal.classList.contains("hidden"))return;
+    if(e.key==="Escape"){e.preventDefault();closeExerciseClear();}
+    if(e.key==="Tab"){
+      const first=exerciseClearCancel,last=exerciseClearConfirm;
+      if(e.shiftKey && document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey && document.activeElement===last){e.preventDefault();first.focus();}
+    }
+  });
+  exerciseClearConfirm.addEventListener("click",()=>{
+    const pending = pendingExerciseClear;
+    if(!pending)return;
+    // Never clear a different session if time or view changed while dialog was open.
+    if(state.weekStart !== pending.weekKey || state.activeDayId !== pending.dayId){closeExerciseClear();return;}
+    const day = PLAN.find(d=>d.id===pending.dayId);
+    const liftDef = day && day.lifts.find(l=>l.name===pending.liftName);
+    if(!day || !liftDef){closeExerciseClear();return;}
+    const session = getSession(day.id);
+    const arr = ensureLiftArray(session,liftDef,pending.option);
+    arr.forEach(set=>{set.reps="";set.weight="";set.rpe="";set.done=false;});
+    updateAutoComplete(session,day);
+    openLifts.add(liftDetailKey(day.id,liftDef));
+    closeExerciseClear();
+    save(state);
+    renderTabs();
+    render();
+  });
+
   function render(){
     ensureWeek();
     ensureTimers();
@@ -2400,24 +2485,7 @@
         const liftOpt = btn.getAttribute("data-opt") || null;
         const liftDef = day.lifts.find(x => x.name === liftName);
         if(!liftDef) return;
-        const storageKey = liftStorageKey(liftDef, liftOpt);
-        const displayName = liftDisplayName(liftDef, liftOpt);
-        const message = "Clear ALL current-session set data for " + displayName +
-          "?\n\nThis will erase reps, weights, RPE, and Done checkmarks for this variation only." +
-          "\nOther variations, previous weeks, and exercise notes will not be changed.";
-        if(!window.confirm(message)) return;
-        const arr = ensureLiftArray(session, liftDef, liftOpt);
-        arr.forEach(set => {
-          set.reps = "";
-          set.weight = "";
-          set.rpe = "";
-          set.done = false;
-        });
-        updateAutoComplete(session, day);
-        openLifts.add(liftDetailKey(day.id, liftDef));
-        save(state);
-        renderTabs();
-        render();
+        openExerciseClear(day, liftDef, liftOpt, btn);
       });
     });
 
